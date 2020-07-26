@@ -30,4 +30,4 @@ jobs:
     - name: Build
       run: make
     - name: Run unit tests
-      run: cd out/gcc/debug/tests && ./monads_test
+      run: cd out/gcc/debug/monads && ./monads_test
