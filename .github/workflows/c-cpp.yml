@@ -38,7 +38,7 @@ jobs:
         set(C_COMPILER ${{ matrix.config.cc }})
         set(CXX_COMPILER ${{ matrix.config.cxx }})
 
-        if (C_COMPILER STREQUAL "gcc" AND CXX_COMPILER STREQUAL "g++"
+        if (C_COMPILER STREQUAL "gcc" AND CXX_COMPILER STREQUAL "g++")
           execute_process(
             COMMAND cmake
               -S .
