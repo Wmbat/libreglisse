@@ -1,5 +1,6 @@
 # monads
 
+![C/C++ CI](https://github.com/Wmbat/monads/workflows/C/C++%20CI/badge.svg)
 ![GitHub](https://img.shields.io/github/license/Wmbat/monads?style=flat-square)
 
 Monads is a library to emulate the behaviour of `either` and `maybe` monads. This library was strongly inspired by the
