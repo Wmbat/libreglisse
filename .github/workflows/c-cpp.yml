@@ -14,20 +14,25 @@ jobs:
       matrix:
         config:
         - {
-            name: "Ubuntu Latest GCC",
+            name: "Ubuntu Latest GCC", artifact: "Linux.tar.xz",
             os: ubuntu-latest,
             build_type: "Release", cc: "gcc", cxx: "g++"
+          }
+        - {
+            name: "Ubuntu Latest Clang", artifact: "Linux.tar.xz",
+            os: ubuntu-latest,
+            build_type: "Release", cc: "clang", cxx: "clang++"
           }
 
     steps:
     - uses: actions/checkout@v2
     - name: Download Packages
-      run: | 
-        sudo apt update
-        sudo apt-get install gcc-10 g++-10
+      if: ${{ matrix.config.cc == 'gcc' && matrix.config.cxx == 'g++' }}
+      run: sudo apt update && sudo apt-get install gcc-10 g++-10
+      if: ${{ matrix.config.cc == 'clang' && matrix.config.cxx == 'clang++' }}
+      run: sudo apt update && sudo apt-get install clang-10
     - name: Configure
-      run: cmake -DCMAKE_C_COMPILER=/usr/bin/gcc-10 -DCMAKE_CXX_COMPILER=/usr/bin/g++-10 -DCMAKE_BUILD_TYPE=Debug -DMONADS_BUILD_TESTS=ON ./
+      if: ${{ matrix.config.cc == 'gcc' && matrix.config.cxx == 'g++' }}
+      run: cmake -DCMAKE_C_COMPILER=/usr/bin/gcc-10 -DCMAKE_CXX_COMPILER=/usr/bin/g++-10 -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} -DMONADS_BUILD_TESTS=ON ./
     - name: Build
       run: make
-    - name: Run unit tests
-      run: cd out/gcc/debug/monads && ./monads_test
