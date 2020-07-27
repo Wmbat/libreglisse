@@ -28,7 +28,7 @@ project(monads
 
 # User interface declarations
 
-option(MONADS_BUILD_TESTS "Build unit tests" ON)
+option(BUILD_TESTS "Build unit tests" ON)
 
 message(STATUS "[${PROJECT_NAME}] Compiling with ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "[${PROJECT_NAME}] ${PROJECT_VERSION}")
@@ -42,9 +42,9 @@ endif ()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "" FORCE)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
-message(STATUS "[${PROJECT_NAME}] Building unit tests: ${MONADS_BUILD_TESTS}")
+message(STATUS "[${PROJECT_NAME}] Building unit tests: ${BUILD_TESTS}")
 
-if (MONADS_BUILD_TESTS) 
+if (BUILD_TESTS) 
     enable_testing( )
 
     add_subdirectory(tests)
