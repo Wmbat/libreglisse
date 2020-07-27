@@ -1,10 +1,9 @@
 name: Linux
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Release
 
 jobs:
   build:
@@ -16,12 +15,12 @@ jobs:
         - {
             name: "Ubuntu Latest GCC",
             os: ubuntu-latest,
-            build_type: "Release", cc: "gcc", cxx: "g++"
+            cc: "gcc", cxx: "g++"
           }
         - {
             name: "Ubuntu Latest Clang",
             os: ubuntu-latest,
-            build_type: "Release", cc: "clang", cxx: "clang++"
+            cc: "clang", cxx: "clang++"
           }
 
     steps:
@@ -56,7 +55,7 @@ jobs:
               -B build
               -D CMAKE_C_COMPILER=/usr/bin/clang-10
               -D CMAKE_CXX_COMPILER=/usr/bin/clang++-10
-              -D CMAKE_BUILD_TYPE=${{ matrix.config.build_type }}
+              -D CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
               -D BUILD_TESTS=ON
             RESULT_VARIABLE result
           )
@@ -76,4 +75,18 @@ jobs:
         if (NOT result EQUAL 0)
           message(FATAL_ERROR "Bad exit status")
         endif()
+    - name: Tests
+      shell: cmake -P {0}
+      run: |
+        include(ProcessorCount)
+        ProcessorCount(N)
 
+        execute_process(
+          COMMAND ctest -j ${n}
+          WORKING_DIRECTORY build
+          RESULT_VARIABLE result
+        )
+
+        if (NOT result EQUAL 0)
+          message(FATAL_ERROR "Bad exit status")
+        endif()

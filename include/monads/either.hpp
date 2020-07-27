@@ -100,6 +100,22 @@ namespace monad
          static inline constexpr bool is_nothrow_move_assignable =
             is_nothrow_move_constructible &&
             is_nothrow_destructible;
+
+         static inline constexpr bool is_nothrow_left_value_copyable =
+            std::is_nothrow_copy_assignable_v<left_type> &&
+            std::is_nothrow_copy_constructible_v<left_type>;
+
+         static inline constexpr bool is_nothrow_left_value_movable =
+            std::is_nothrow_move_assignable_v<left_type> &&
+            std::is_nothrow_move_constructible_v<left_type>;
+
+         static inline constexpr bool is_nothrow_right_value_copyable =
+            std::is_nothrow_copy_assignable_v<right_type> &&
+            std::is_nothrow_copy_constructible_v<right_type>;
+
+         static inline constexpr bool is_nothrow_right_value_movable =
+            std::is_nothrow_move_assignable_v<right_type> &&
+            std::is_nothrow_move_constructible_v<right_type>;
          // clang-format on
 
       public:
@@ -219,17 +235,31 @@ namespace monad
          }
 
          constexpr auto left() & noexcept -> left_type& { return *l_pointer(); }
-         constexpr auto left() const& noexcept -> const left_type& { return *l_pointer(); }
-         constexpr auto left() && noexcept -> left_type&& { return std::move(*l_pointer()); }
-         constexpr auto left() const&& noexcept -> const left_type&&
+         constexpr auto left() const& noexcept(is_nothrow_left_value_copyable) -> const left_type&
+         {
+            return *l_pointer();
+         }
+         constexpr auto left() && noexcept(is_nothrow_left_value_movable) -> left_type&&
+         {
+            return std::move(*l_pointer());
+         }
+         constexpr auto left() const&& noexcept(is_nothrow_left_value_movable) -> const left_type&&
          {
             return std::move(*l_pointer());
          }
 
          constexpr auto right() & noexcept -> right_type& { return *r_pointer(); }
-         constexpr auto right() const& noexcept -> const right_type& { return *r_pointer(); }
-         constexpr auto right() && noexcept -> right_type&& { return std::move(*r_pointer()); }
-         constexpr auto right() const&& noexcept -> const right_type&&
+         constexpr auto right() const& noexcept(is_nothrow_right_value_copyable)
+            -> const right_type&
+         {
+            return *r_pointer();
+         }
+         constexpr auto right() && noexcept(is_nothrow_right_value_movable) -> right_type&&
+         {
+            return std::move(*r_pointer());
+         }
+         constexpr auto right() const&& noexcept(is_nothrow_right_value_movable)
+            -> const right_type&&
          {
             return std::move(*r_pointer());
          }
@@ -490,18 +520,18 @@ namespace monad
          }
       }
 
-      template <std::copyable inner_error_ = left_type, std::copyable inner_value_ = right_type>
-      constexpr auto join() const -> std::common_type_t<inner_error_, inner_value_>
+      template <std::copyable inner_left_ = left_type, std::copyable inner_right_ = right_type>
+      constexpr auto join() const -> std::common_type_t<inner_left_, inner_right_>
       {
          return is_left ? m_storage.error() : m_storage.value();
       }
 
-      template <std::movable inner_error_ = left_type, std::movable inner_value_ = left_type>
-      constexpr auto join() -> std::common_type_t<inner_error_, inner_value_>
+      template <class inner_left_ = left_type, class inner_right_ = right_type>
+      constexpr auto join() -> std::common_type_t<inner_left_, inner_right_>
       {
          if (is_left())
          {
-            if constexpr (std::movable<left_type>)
+            if constexpr (std::movable<inner_left_>)
             {
                return std::move(m_storage.left());
             }
@@ -512,7 +542,7 @@ namespace monad
          }
          else
          {
-            if constexpr (std::movable<left_type>)
+            if constexpr (std::movable<inner_right_>)
             {
                return std::move(m_storage.right());
             }
@@ -525,25 +555,40 @@ namespace monad
 
       constexpr auto join(const std::invocable<left_type> auto& left_fun,
          const std::invocable<right_type> auto& right_fun) const
-         -> std::common_type_t<decltype(left_fun(m_storage.left())),
-            decltype(right_fun(m_storage.right()))>
-      //-> decltype(is_left() ? left_fun(m_storage.error()) : right_fun(m_storage.value()))
+         -> std::common_type_t<left_map_result<decltype(left_fun)>,
+            right_map_result<decltype(right_fun)>>
       {
          return is_left() ? std::invoke(left_fun, m_storage.error())
                           : std::invoke(right_fun, m_storage.value());
       }
 
-      // clang-format off
       constexpr auto join(const std::invocable<left_type> auto& left_fun,
          const std::invocable<right_type> auto& right_fun)
-         -> decltype(is_left() ? 
-               left_fun(std::move(m_storage.left())) : 
-               right_fun(std::move(m_storage.right()))) 
-         requires std::movable<left_type> && std::movable<right_type>
+         -> std::common_type_t<left_map_result<decltype(left_fun)>,
+            right_map_result<decltype(right_fun)>>
       {
-         return is_left() ? std::invoke(left_fun, std::move(m_storage.error()))
-                          : std::invoke(right_fun, std::move(m_storage.value()));
+         if (is_left())
+         {
+            if constexpr (std::movable<left_type>)
+            {
+               return std::invoke(left_fun, std::move(m_storage.error()));
+            }
+            else
+            {
+               return std::invoke(left_fun, m_storage.error());
+            }
+         }
+         else
+         {
+            if constexpr (std::movable<right_type>)
+            {
+               return std::invoke(right_fun, std::move(m_storage.value()));
+            }
+            else
+            {
+               return std::invoke(right_fun, m_storage.value());
+            }
+         }
       }
-      // clang-format on
    };
 } // namespace monad

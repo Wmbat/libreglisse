@@ -3,6 +3,7 @@
 #include "monads/type_traits.hpp"
 
 #include <cassert>
+#include <compare>
 #include <functional>
 #include <memory>
 #include <utility>
@@ -353,27 +354,6 @@ namespace monad
       storage<value_type> m_storage{};
    };
 
-   namespace detail
-   {
-      inline constexpr auto equal(maybe<void> const&, maybe<void> const&) -> bool { return true; }
-
-      template <std::equality_comparable any_>
-      constexpr auto equal(const maybe<any_>& lhs, const maybe<any_>& rhs) -> bool
-      {
-         if (lhs.has_value())
-         {
-            return rhs.has_value() && lhs.value() == rhs.value();
-         }
-         return !rhs.has_value();
-      }
-   } // namespace detail
-
-   template <class any_>
-   constexpr auto operator==(const maybe<any_>& a, const maybe<any_>& b) -> bool
-   {
-      return detail::equal(a, b);
-   }
-
    template <class any_>
    constexpr auto to_maybe(any_&& value) noexcept(
       std::is_nothrow_constructible_v<maybe<any_>, any_>) -> maybe<std::remove_reference_t<any_>>
@@ -381,11 +361,64 @@ namespace monad
       return {std::forward<any_>(value)};
    }
 
-   template <class any_ = void>
-   constexpr auto to_maybe()
+   using none_t = maybe<void>;
+
+   static inline constexpr auto none = none_t{}; // NOLINT
+
+   template <class first_, std::equality_comparable_with<first_> second_>
+   constexpr auto operator==(const maybe<first_>& lhs, const maybe<second_>& rhs) noexcept(
+      noexcept(lhs.value() == rhs.value())) -> bool
    {
-      return maybe<any_>{};
+      if (lhs.has_value() != rhs.has_value())
+      {
+         return false;
+      }
+      else if (!lhs.has_value())
+      {
+         return true;
+      }
+      else
+      {
+         return lhs.value() == rhs.value();
+      }
+   }
+   template <class any_>
+   constexpr auto operator==(const maybe<any_>& m, none_t) noexcept
+   {
+      return !m.has_value();
+   }
+   template <class any_>
+   constexpr auto operator==(const maybe<any_>& m,
+      const std::equality_comparable_with<any_> auto& value) noexcept(noexcept(m.value() == value))
+   {
+      return m.has_value() ? m.value() == value : false;
    }
 
-   static inline constexpr auto none = to_maybe(); // NOLINT
+   template <class first_, std::three_way_comparable_with<first_> second_>
+   constexpr auto operator<=>(const maybe<first_>& lhs, const maybe<second_>& rhs)
+      -> std::compare_three_way_result_t<first_, second_>
+   {
+      if (lhs.has_value() && rhs.has_value())
+      {
+         return lhs.value() <=> rhs.has_value();
+      }
+      else
+      {
+         return lhs.has_value() <=> rhs.has_value();
+      }
+   }
+
+   template <class any_>
+   constexpr auto operator<=>(const maybe<any_>& m, none_t) noexcept -> std::strong_ordering
+   {
+      return m.has_value() <=> false;
+   }
+
+   template <class any_>
+   constexpr auto operator<=>(const maybe<any_>& m,
+      const std::three_way_comparable_with<any_> auto& value) noexcept(noexcept(m.value() <=>
+      value)) -> std::compare_three_way_result_t<any_, decltype(value)>
+   {
+      return m.has_value() ? m.value() <=> value : std::strong_ordering::less;
+   }
 } // namespace monad

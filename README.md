@@ -2,7 +2,7 @@
 
 ![Linux](https://github.com/Wmbat/monads/workflows/Linux/badge.svg)
 
-Monads is a library to emulate the behaviour of `either` and `maybe` monads. This library was strongly inspired by the
+Monads is a library to emulate the behaviour of `either` and `maybe` monads in C++20. This library was strongly inspired by the
 [neither](https://github.com/LoopPerfect/neither) library.
 
 ## Table of Content
@@ -13,7 +13,8 @@ Monads is a library to emulate the behaviour of `either` and `maybe` monads. Thi
 
 ## Requirements
 
-This library currently makes use of C++20 features only available on GCC10 and above.
+To compile the library, you need to have GCC10 and above. You may also use Clang10 and above with GCC10's libstdc++ for
+the `<concepts>` header.
 
 ## Dependencies
 
@@ -21,18 +22,6 @@ This library currently makes use of C++20 features only available on GCC10 and a
 * [CPM.cmake](https://github.com/TheLartians/CPM.cmake) For downloading packages.
 
 ## Installation
-
-#### Local Install
-To simply build the library as a standalone, you may clone the repository 
-```sh
-git clone https://github.com/Wmbat/monads
-```
-
-And to build it, you may run the python script `build.py`. the `--help` command will list the possible options supported
-by the script
-```sh
-python build.py --help
-```
 
 #### Git-submodule
 

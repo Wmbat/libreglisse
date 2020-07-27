@@ -4,9 +4,11 @@
 
 namespace monad
 {
-   template <class error_, class... args_>
-   auto try_wrap(const std::invocable<args_> auto& fun, args_&&... args)
-      -> either<error_, std::invoke_result_t<decltype(fun), args_...>>
+   // clang-format off
+   template <class error_, class fun_, class... args_>
+      requires std::invocable<fun_, args_> 
+   auto try_wrap(const fun_& fun, args_&&... args)
+      -> either<error_, std::invoke_result_t<fun_, args_...>>
    {
       try
       {
@@ -17,4 +19,5 @@ namespace monad
          return to_left(e);
       }
    }
+   // clang-format on
 } // namespace monad
