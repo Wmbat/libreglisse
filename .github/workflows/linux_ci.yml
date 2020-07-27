@@ -57,7 +57,7 @@ jobs:
               -D CMAKE_C_COMPILER=/usr/bin/clang-10
               -D CMAKE_CXX_COMPILER=/usr/bin/clang++-10
               -D CMAKE_BUILD_TYPE=${{ matrix.config.build_type }}
-              -D MONADS_BUILD_TESTS=ON
+              -D BUILD_TESTS=ON
             RESULT_VARIABLE result
           )
         endif()
