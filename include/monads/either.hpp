@@ -1,7 +1,6 @@
 #pragma once
 
 #include "monads/maybe.hpp"
-#include <memory>
 
 namespace monad
 {
@@ -272,53 +271,21 @@ namespace monad
          using storage_type =
             std::array<std::byte, detail::max(sizeof(left_type), sizeof(right_type))>;
 
-         // clang-format off
-         static inline constexpr bool is_nothrow_default_constructible =
-            std::is_nothrow_default_constructible_v<left_type> && 
-            std::is_nothrow_default_constructible_v<storage_type>;
-
-         static inline constexpr bool is_nothrow_copy_left_constructible =
-            std::is_nothrow_copy_assignable_v<left_type> &&
-            std::is_nothrow_copy_constructible_v<left_type> && 
-            std::is_nothrow_default_constructible_v<storage_type>;
-
-         static inline constexpr bool is_nothrow_move_left_constructible =
-            std::is_nothrow_move_assignable_v<left_type> &&
-            std::is_nothrow_move_constructible_v<left_type> &&
-            std::is_nothrow_default_constructible_v<storage_type>;
-
-         static inline constexpr bool is_nothrow_copy_right_constructible =
-            std::is_nothrow_copy_assignable_v<right_type> &&
-            std::is_nothrow_copy_constructible_v<right_type> && 
-            std::is_nothrow_default_constructible_v<storage_type>;
-
-         static inline constexpr bool is_nothrow_move_right_constructible = 
-            std::is_nothrow_move_assignable_v<right_type> &&
-            std::is_nothrow_move_constructible_v<right_type> &&
-            std::is_nothrow_default_constructible_v<storage_type>;
-         // clang-format on
-
       public:
-         constexpr storage() noexcept(is_nothrow_default_constructible)
-         {
-            std::construct_at(std::addressof(left()), left_type{});
-         };
-         constexpr storage(const left_t<left_type>& l) noexcept(is_nothrow_copy_left_constructible)
+         constexpr storage() noexcept { std::construct_at(std::addressof(left()), left_type{}); };
+         constexpr storage(const left_t<left_type>& l) noexcept
          {
             std::construct_at(std::addressof(left()), l.value);
          }
-         constexpr storage(left_t<left_type>&& l) noexcept(is_nothrow_move_left_constructible)
+         constexpr storage(left_t<left_type>&& l) noexcept
          {
             std::construct_at(std::addressof(left()), std::move(l.value));
          }
-         constexpr storage(const right_t<right_type>& r) noexcept(
-            is_nothrow_copy_right_constructible) :
-            m_is_right{true}
+         constexpr storage(const right_t<right_type>& r) noexcept : m_is_right{true}
          {
             std::construct_at(std::addressof(right()), r.value);
          }
-         constexpr storage(right_t<right_type>&& r) noexcept(is_nothrow_move_right_constructible) :
-            m_is_right{true}
+         constexpr storage(right_t<right_type>&& r) noexcept : m_is_right{true}
          {
             std::construct_at(std::addressof(right()), std::move(r.value));
          }
@@ -458,7 +425,8 @@ namespace monad
       constexpr auto left_map(const std::invocable<left_type> auto& fun) const
          -> left_map_either<decltype(fun)>
       {
-         return is_left() ? to_left(fun(m_storage.left())) : to_right(m_storage.right());
+         return is_left() ? to_left(std::invoke(fun, m_storage.left()))
+                          : to_right(m_storage.right());
       }
 
       constexpr auto left_map(const std::invocable<left_type> auto& fun)
@@ -468,11 +436,11 @@ namespace monad
          {
             if constexpr (std::movable<left_type>)
             {
-               return to_left(fun(std::move(m_storage.left())));
+               return to_left(std::invoke(fun, std::move(m_storage.left())));
             }
             else
             {
-               return to_left(fun(m_storage.left()));
+               return to_left(std::invoke(fun, m_storage.left()));
             }
          }
          else
@@ -491,7 +459,8 @@ namespace monad
       constexpr auto right_map(const std::invocable<right_type> auto& fun) const
          -> right_map_either<decltype(fun)>
       {
-         return is_left() ? to_left(m_storage.left()) : to_right(fun(m_storage.right()));
+         return is_left() ? to_left(m_storage.left())
+                          : to_right(std::invoke(fun, m_storage.right()));
       }
 
       constexpr auto right_map(const std::invocable<right_type> auto& fun)
@@ -512,11 +481,11 @@ namespace monad
          {
             if constexpr (std::movable<right_type>)
             {
-               return to_right(fun(std::move(m_storage.right())));
+               return to_right(std::invoke(fun, std::move(m_storage.right())));
             }
             else
             {
-               return to_value(fun(m_storage.right()));
+               return to_value(std::invoke(fun, m_storage.right()));
             }
          }
       }
@@ -560,7 +529,8 @@ namespace monad
             decltype(right_fun(m_storage.right()))>
       //-> decltype(is_left() ? left_fun(m_storage.error()) : right_fun(m_storage.value()))
       {
-         return is_left() ? left_fun(m_storage.error()) : right_fun(m_storage.value());
+         return is_left() ? std::invoke(left_fun, m_storage.error())
+                          : std::invoke(right_fun, m_storage.value());
       }
 
       // clang-format off
@@ -571,9 +541,8 @@ namespace monad
                right_fun(std::move(m_storage.right()))) 
          requires std::movable<left_type> && std::movable<right_type>
       {
-         return is_left() ? 
-            left_fun(std::move(m_storage.left())) : 
-            right_fun(std::move(m_storage.right()));
+         return is_left() ? std::invoke(left_fun, std::move(m_storage.error()))
+                          : std::invoke(right_fun, std::move(m_storage.value()));
       }
       // clang-format on
    };
