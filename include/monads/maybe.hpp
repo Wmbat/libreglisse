@@ -58,6 +58,14 @@ namespace monad
          static inline constexpr bool is_nothrow_move_assignable =
             is_nothrow_move_value_constructible && 
             is_nothrow_default_constructible;
+
+         static inline constexpr bool is_nothrow_value_copyable =
+            std::is_nothrow_copy_assignable_v<value_type> &&
+            std::is_nothrow_copy_constructible_v<value_type>;
+
+         static inline constexpr bool is_nothrow_value_movable =
+            std::is_nothrow_move_assignable_v<value_type> &&
+            std::is_nothrow_move_constructible_v<value_type>;
          // clang-format on
 
       public:
@@ -148,9 +156,15 @@ namespace monad
          }
 
          constexpr auto value() & noexcept -> value_type& { return *pointer(); }
-         constexpr auto value() const& noexcept -> const value_type& { return *pointer(); }
-         constexpr auto value() && noexcept -> value_type&& { return std::move(*pointer()); }
-         constexpr auto value() const&& noexcept -> const value_type&&
+         constexpr auto value() const& noexcept(is_nothrow_value_copyable) -> const value_type&
+         {
+            return *pointer();
+         }
+         constexpr auto value() && noexcept(is_nothrow_value_movable) -> value_type&&
+         {
+            return std::move(*pointer());
+         }
+         constexpr auto value() const&& noexcept(is_nothrow_value_movable) -> const value_type&&
          {
             return std::move(*pointer());
          }
@@ -214,6 +228,12 @@ namespace monad
       static inline constexpr bool is_nothrow_lvalue_constructible =
          std::is_nothrow_constructible_v<storage_type, any_>;
 
+      static inline constexpr bool is_nothrow_value_copyable =
+         std::is_nothrow_copy_assignable_v<any_> && std::is_nothrow_copy_constructible_v<any_>;
+
+      static inline constexpr bool is_nothrow_value_movable =
+         std::is_nothrow_move_assignable_v<any_> && std::is_nothrow_move_constructible_v<any_>;
+
    public:
       using value_type = typename storage_type::value_type;
 
@@ -241,12 +261,15 @@ namespace monad
       }
 
       constexpr auto operator*() & noexcept -> value_type& { return m_storage.value(); }
-      constexpr auto operator*() const& noexcept -> const value_type& { return m_storage.value(); }
-      constexpr auto operator*() && noexcept -> value_type&&
+      constexpr auto operator*() const& noexcept(is_nothrow_value_copyable) -> const value_type&
+      {
+         return m_storage.value();
+      }
+      constexpr auto operator*() && noexcept(is_nothrow_value_movable) -> value_type&&
       {
          return std::move(m_storage.value());
       }
-      constexpr auto operator*() const&& noexcept -> const value_type&&
+      constexpr auto operator*() const&& noexcept(is_nothrow_value_movable) -> const value_type&&
       {
          return std::move(m_storage.value());
       }
@@ -257,19 +280,19 @@ namespace monad
 
          return m_storage.value();
       }
-      constexpr auto value() const& noexcept -> const value_type&
+      constexpr auto value() const& noexcept(is_nothrow_value_copyable) -> const value_type&
       {
          assert(has_value());
 
          return m_storage.value();
       }
-      constexpr auto value() && noexcept -> value_type&&
+      constexpr auto value() && noexcept(is_nothrow_value_movable) -> value_type&&
       {
          assert(has_value());
 
          return std::move(m_storage.value());
       }
-      constexpr auto value() const&& noexcept -> const value_type&&
+      constexpr auto value() const&& noexcept(is_nothrow_value_movable) -> const value_type&&
       {
          assert(has_value());
 
