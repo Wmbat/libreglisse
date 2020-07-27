@@ -3,6 +3,7 @@
 #include "monads/type_traits.hpp"
 
 #include <cassert>
+#include <functional>
 #include <memory>
 #include <utility>
 
@@ -316,9 +317,7 @@ namespace monad
       }
       constexpr operator bool() const noexcept { return has_value(); }
 
-      // clang-format off
-      constexpr auto map(const std::invocable<value_type> auto& fun) const& 
-         requires std::copyable<value_type>
+      constexpr auto map(const std::invocable<value_type> auto& fun) const
       {
          using result_type = std::invoke_result_t<decltype(fun), value_type>;
          if (!has_value())
@@ -327,11 +326,10 @@ namespace monad
          }
          else
          {
-            return maybe<result_type>(fun(value()));
+            return maybe<result_type>(std::invoke(fun, value()));
          }
       }
-      constexpr auto map(const std::invocable<value_type> auto& fun) &
-         requires std::movable<value_type>
+      constexpr auto map(const std::invocable<value_type> auto& fun)
       {
          using result_type = std::invoke_result_t<decltype(fun), value_type>;
          if (!has_value())
@@ -340,23 +338,16 @@ namespace monad
          }
          else
          {
-            return maybe<result_type>(fun(std::move(value())));
+            if constexpr (std::movable<value_type>)
+            {
+               return maybe<result_type>(std::invoke(fun, std::move(value())));
+            }
+            else
+            {
+               return maybe<result_type>(std::invoke(fun, value()));
+            }
          }
       }
-
-      constexpr auto map(const std::invocable<value_type> auto& fun) && 
-      {
-         using result_type = std::invoke_result_t<decltype(fun), value_type>;
-         if (!has_value())
-         {
-            return maybe<result_type>{};
-         }
-         else
-         {
-            return maybe<result_type>(fun(std::move(value())));
-         }
-      }
-      // clang-format on
 
    private:
       storage<value_type> m_storage{};
