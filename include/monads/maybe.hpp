@@ -361,13 +361,9 @@ namespace monad
       return {std::forward<any_>(value)};
    }
 
-   template <class any_ = void>
-   constexpr auto to_maybe()
-   {
-      return maybe<any_>{};
-   }
+   using none_t = maybe<void>;
 
-   static inline constexpr auto none = to_maybe(); // NOLINT
+   static inline constexpr auto none = none_t{}; // NOLINT
 
    template <class first_, std::equality_comparable_with<first_> second_>
    constexpr auto operator==(const maybe<first_>& lhs, const maybe<second_>& rhs) noexcept(
@@ -387,7 +383,7 @@ namespace monad
       }
    }
    template <class any_>
-   constexpr auto operator==(const maybe<any_>& m, maybe<void>) noexcept
+   constexpr auto operator==(const maybe<any_>& m, none_t) noexcept
    {
       return !m.has_value();
    }
@@ -413,7 +409,7 @@ namespace monad
    }
 
    template <class any_>
-   constexpr auto operator<=>(const maybe<any_>& m, maybe<void>) noexcept -> std::strong_ordering
+   constexpr auto operator<=>(const maybe<any_>& m, none_t) noexcept -> std::strong_ordering
    {
       return m.has_value() <=> false;
    }
