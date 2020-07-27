@@ -22,6 +22,7 @@ jobs:
             name: "Ubuntu Latest Clang",
             os: ubuntu-latest,
             build_type: "Release", cc: "clang", cxx: "clang++"
+          }
 
     steps:
     - uses: actions/checkout@v2
