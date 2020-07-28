@@ -361,9 +361,9 @@ namespace monad
    };
 
    template <class any_>
-   constexpr auto to_maybe(any_&& value) -> maybe<std::remove_reference_t<any_>>
+   constexpr auto make_maybe(any_&& value) -> maybe<std::decay_t<any_>>
    {
-      return {std::forward<any_>(value)};
+      return maybe<std::decay_t<any_>>{std::forward<any_>(value)};
    }
 
    template <class first_, std::equality_comparable_with<first_> second_>

@@ -27,15 +27,15 @@ namespace monad
    };
 
    template <class any_>
-   constexpr auto to_left(any_&& value) -> left_t<std::remove_reference_t<any_>>
+   constexpr auto make_left(any_&& value) -> left_t<std::decay_t<any_>>
    {
-      return {std::forward<std::remove_reference_t<any_>>(value)};
+      return {std::forward<std::decay_t<any_>>(value)};
    }
 
    template <class any_>
-   constexpr auto to_right(any_&& value) -> right_t<std::remove_reference_t<any_>>
+   constexpr auto make_right(any_&& value) -> right_t<std::decay_t<any_>>
    {
-      return {std::forward<std::remove_reference_t<any_>>(value)};
+      return {std::forward<std::decay_t<any_>>(value)};
    }
 
    // clang-format off
@@ -404,36 +404,36 @@ namespace monad
 
       constexpr auto left() const& -> maybe<left_type>
       {
-         return is_left() ? to_maybe(left_type{m_storage.left()}) : none;
+         return is_left() ? make_maybe(m_storage.left()) : none;
       }
       constexpr auto left() & -> maybe<left_type>
       {
-         return is_left() ? to_maybe(left_type{m_storage.left()}) : none;
+         return is_left() ? make_maybe(m_storage.left()) : none;
       }
       constexpr auto left() const&& -> maybe<left_type>
       {
-         return is_left() ? to_maybe(left_type{std::move(m_storage.left())}) : none;
+         return is_left() ? make_maybe(std::move(m_storage.left())) : none;
       }
       constexpr auto left() && -> maybe<left_type>
       {
-         return is_left() ? to_maybe(left_type{std::move(m_storage.left())}) : none;
+         return is_left() ? make_maybe(std::move(m_storage.left())) : none;
       }
 
       constexpr auto right() const& -> maybe<right_type>
       {
-         return is_left() ? none : to_maybe(right_type{m_storage.right()});
+         return is_left() ? none : make_maybe(m_storage.right());
       }
       constexpr auto right() & -> maybe<right_type>
       {
-         return is_left() ? none : to_maybe(right_type{m_storage.right()});
+         return is_left() ? none : make_maybe(m_storage.right());
       }
       constexpr auto right() const&& -> maybe<right_type>
       {
-         return is_left() ? none : to_maybe(right_type{std::move(m_storage.right())});
+         return is_left() ? none : make_maybe(std::move(m_storage.right()));
       }
       constexpr auto right() && -> maybe<right_type>
       {
-         return is_left() ? none : to_maybe(right_type{std::move(m_storage.right())});
+         return is_left() ? none : maybe_maybe(std::move(m_storage.right()));
       }
 
    private:
@@ -443,51 +443,51 @@ namespace monad
       constexpr auto left_map(
          const std::invocable<left_type> auto& fun) const& -> left_map_either<decltype(fun)>
       {
-         return is_left() ? to_left(std::invoke(fun, m_storage.left()))
-                          : to_right(m_storage.right());
+         return is_left() ? make_left(std::invoke(fun, m_storage.left()))
+                          : make_right(m_storage.right());
       }
       constexpr auto left_map(
          const std::invocable<left_type> auto& fun) & -> left_map_either<decltype(fun)>
       {
-         return is_left() ? to_left(std::invoke(fun, m_storage.left()))
-                          : to_right(m_storage.right());
+         return is_left() ? make_left(std::invoke(fun, m_storage.left()))
+                          : make_right(m_storage.right());
       }
       constexpr auto left_map(
          const std::invocable<left_type> auto& fun) const&& -> left_map_either<decltype(fun)>
       {
-         return is_left() ? to_left(std::invoke(fun, std::move(m_storage.left())))
-                          : to_right(std::move(m_storage.right()));
+         return is_left() ? make_left(std::invoke(fun, std::move(m_storage.left())))
+                          : make_right(std::move(m_storage.right()));
       }
       constexpr auto left_map(
          const std::invocable<left_type> auto& fun) && -> left_map_either<decltype(fun)>
       {
-         return is_left() ? to_left(std::invoke(fun, std::move(m_storage.left())))
-                          : to_right(std::move(m_storage.right()));
+         return is_left() ? make_left(std::invoke(fun, std::move(m_storage.left())))
+                          : make_right(std::move(m_storage.right()));
       }
 
       constexpr auto right_map(
          const std::invocable<right_type> auto& fun) const& -> right_map_either<decltype(fun)>
       {
-         return is_left() ? to_left(m_storage.left())
-                          : to_right(std::invoke(fun, m_storage.right()));
+         return is_left() ? make_left(m_storage.left())
+                          : make_right(std::invoke(fun, m_storage.right()));
       }
       constexpr auto right_map(
          const std::invocable<right_type> auto& fun) & -> right_map_either<decltype(fun)>
       {
-         return is_left() ? to_left(m_storage.left())
-                          : to_right(std::invoke(fun, m_storage.right()));
+         return is_left() ? make_left(m_storage.left())
+                          : make_right(std::invoke(fun, m_storage.right()));
       }
       constexpr auto right_map(
          const std::invocable<right_type> auto& fun) const&& -> right_map_either<decltype(fun)>
       {
-         return is_left() ? to_left(std::move(m_storage.left()))
-                          : to_right(std::invoke(fun, std::move(m_storage.right())));
+         return is_left() ? make_left(std::move(m_storage.left()))
+                          : make_right(std::invoke(fun, std::move(m_storage.right())));
       }
       constexpr auto right_map(
          const std::invocable<right_type> auto& fun) && -> right_map_either<decltype(fun)>
       {
-         return is_left() ? to_left(std::move(m_storage.left()))
-                          : to_right(std::invoke(fun, std::move(m_storage.right())));
+         return is_left() ? make_left(std::move(m_storage.left()))
+                          : make_right(std::invoke(fun, std::move(m_storage.right())));
       }
 
       template <class inner_left_ = left_type, class inner_right_ = right_type>

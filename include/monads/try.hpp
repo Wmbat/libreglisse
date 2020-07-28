@@ -14,7 +14,7 @@ namespace monad
       }
       catch (const error_& e)
       {
-         return to_left(e);
+         return {e};
       }
    }
 } // namespace monad
