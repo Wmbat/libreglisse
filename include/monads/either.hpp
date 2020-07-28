@@ -367,6 +367,14 @@ namespace monad
       using right_type = right_;
 
    private:
+      using storage_type = storage<left_type, right_type>;
+
+      static inline constexpr bool is_nothrow_left_copy_constructible =
+         std::is_nothrow_constructible_v<storage_type, left_t<left_type>>;
+
+      static inline constexpr bool is_nothrow_left_move_constructible =
+         std::is_nothrow_constructible_v<storage_type, left_t<left_type>&&>;
+
       template <class any_>
       using left_map_result = std::invoke_result_t<any_, left_type>;
 
@@ -380,10 +388,14 @@ namespace monad
       using right_map_either = either<right_type, right_map_result<fun_>>;
 
    public:
-      constexpr either(const left_t<left_type>& l) : m_storage{l} {}
-      constexpr either(left_t<left_type>&& l) : m_storage{std::move(l)} {}
-      constexpr either(const right_t<right_type>& r) : m_storage{r} {}
-      constexpr either(right_t<right_type>&& r) : m_storage{std::move(r)} {}
+      constexpr either(const left_t<left_type>& left) noexcept(is_nothrow_left_copy_constructible) :
+         m_storage{left}
+      {}
+      constexpr either(left_t<left_type>&& left) noexcept(is_nothrow_left_move_constructible) :
+         m_storage{std::move(left)}
+      {}
+      constexpr either(const right_t<right_type>& right) : m_storage{right} {}
+      constexpr either(right_t<right_type>&& right) : m_storage{std::move(right)} {}
 
       [[nodiscard]] constexpr auto is_left() const -> bool { return !m_storage.is_right(); }
       constexpr operator bool() const { return is_left(); }
@@ -523,7 +535,7 @@ namespace monad
       template <std::copyable inner_left_ = left_type, std::copyable inner_right_ = right_type>
       constexpr auto join() const -> std::common_type_t<inner_left_, inner_right_>
       {
-         return is_left ? m_storage.error() : m_storage.value();
+         return is_left ? m_storage.left() : m_storage.right();
       }
 
       template <class inner_left_ = left_type, class inner_right_ = right_type>
@@ -558,8 +570,8 @@ namespace monad
          -> std::common_type_t<left_map_result<decltype(left_fun)>,
             right_map_result<decltype(right_fun)>>
       {
-         return is_left() ? std::invoke(left_fun, m_storage.error())
-                          : std::invoke(right_fun, m_storage.value());
+         return is_left() ? std::invoke(left_fun, m_storage.left())
+                          : std::invoke(right_fun, m_storage.right());
       }
 
       constexpr auto join(const std::invocable<left_type> auto& left_fun,
@@ -571,22 +583,22 @@ namespace monad
          {
             if constexpr (std::movable<left_type>)
             {
-               return std::invoke(left_fun, std::move(m_storage.error()));
+               return std::invoke(left_fun, std::move(m_storage.left()));
             }
             else
             {
-               return std::invoke(left_fun, m_storage.error());
+               return std::invoke(left_fun, m_storage.left());
             }
          }
          else
          {
             if constexpr (std::movable<right_type>)
             {
-               return std::invoke(right_fun, std::move(m_storage.value()));
+               return std::invoke(right_fun, std::move(m_storage.right()));
             }
             else
             {
-               return std::invoke(right_fun, m_storage.value());
+               return std::invoke(right_fun, m_storage.right());
             }
          }
       }

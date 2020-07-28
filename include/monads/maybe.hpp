@@ -273,6 +273,12 @@ namespace monad
          return std::move(m_storage.value());
       }
 
+      [[nodiscard]] constexpr auto has_value() const noexcept -> bool
+      {
+         return m_storage.engaged();
+      }
+      constexpr operator bool() const noexcept { return has_value(); }
+
       constexpr auto value() & noexcept -> value_type&
       {
          assert(has_value());
@@ -312,11 +318,13 @@ namespace monad
             : static_cast<value_type>(std::forward<decltype(default_value)>(default_value));
       }
 
-      [[nodiscard]] constexpr auto has_value() const noexcept -> bool
+      constexpr void reset() noexcept(std::is_nothrow_destructible_v<value_type>)
       {
-         return m_storage.engaged();
+         if (has_value())
+         {
+            std::destroy_at(m_storage.pointer());
+         }
       }
-      constexpr operator bool() const noexcept { return has_value(); }
 
       constexpr auto map(const std::invocable<value_type> auto& fun) const
       {
