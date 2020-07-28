@@ -387,7 +387,7 @@ namespace monad
       using right_map_result = std::invoke_result_t<any_, right_type>;
 
       template <class fun_>
-      using right_map_either = either<right_type, right_map_result<fun_>>;
+      using right_map_either = either<left_type, right_map_result<fun_>>;
 
    public:
       constexpr either(const left_t<left_type>& left) noexcept(is_nothrow_left_copy_constructible) :
