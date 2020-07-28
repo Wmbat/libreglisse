@@ -140,7 +140,7 @@ namespace monad
          constexpr storage(right_t<right_type>&& r) noexcept(is_nothrow_move_right_constructible) :
             m_is_right{true}
          {
-            std::construct_at(std::addressof(right()), r.value);
+            std::construct_at(std::addressof(right()), std::move(r.value));
          }
          constexpr storage(const storage& rhs) noexcept(is_nothrow_copy_constructible) :
             m_is_right{rhs.is_right()}

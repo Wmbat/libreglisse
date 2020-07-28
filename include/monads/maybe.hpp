@@ -104,6 +104,7 @@ namespace monad
             if (engaged())
             {
                std::destroy_at(pointer());
+               m_is_engaged = false;
             }
          }
 
