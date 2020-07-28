@@ -443,51 +443,99 @@ namespace monad
       constexpr auto left_map(
          const std::invocable<left_type> auto& fun) const& -> left_map_either<decltype(fun)>
       {
-         return is_left() ? make_left(std::invoke(fun, m_storage.left()))
-                          : make_right(m_storage.right());
+         if (is_left())
+         {
+            return make_left(std::invoke(fun, m_storage.left()));
+         }
+         else
+         {
+            return make_right(m_storage.right());
+         }
       }
       constexpr auto left_map(
          const std::invocable<left_type> auto& fun) & -> left_map_either<decltype(fun)>
       {
-         return is_left() ? make_left(std::invoke(fun, m_storage.left()))
-                          : make_right(m_storage.right());
+         if (is_left())
+         {
+            return make_left(std::invoke(fun, m_storage.left()));
+         }
+         else
+         {
+            return make_right(m_storage.right());
+         }
       }
       constexpr auto left_map(
          const std::invocable<left_type> auto& fun) const&& -> left_map_either<decltype(fun)>
       {
-         return is_left() ? make_left(std::invoke(fun, std::move(m_storage.left())))
-                          : make_right(std::move(m_storage.right()));
+         if (is_left())
+         {
+            return make_left(std::invoke(fun, std::move(m_storage.left())));
+         }
+         else
+         {
+            return make_right(std::move(m_storage.right()));
+         }
       }
       constexpr auto left_map(
          const std::invocable<left_type> auto& fun) && -> left_map_either<decltype(fun)>
       {
-         return is_left() ? make_left(std::invoke(fun, std::move(m_storage.left())))
-                          : make_right(std::move(m_storage.right()));
+         if (is_left())
+         {
+            return make_left(std::invoke(fun, std::move(m_storage.left())));
+         }
+         else
+         {
+            return make_right(std::move(m_storage.right()));
+         }
       }
 
       constexpr auto right_map(
          const std::invocable<right_type> auto& fun) const& -> right_map_either<decltype(fun)>
       {
-         return is_left() ? make_left(m_storage.left())
-                          : make_right(std::invoke(fun, m_storage.right()));
+         if (is_left())
+         {
+            return make_left(m_storage.left());
+         }
+         else
+         {
+            return make_right(std::invoke(fun, m_storage.right()));
+         }
       }
       constexpr auto right_map(
          const std::invocable<right_type> auto& fun) & -> right_map_either<decltype(fun)>
       {
-         return is_left() ? make_left(m_storage.left())
-                          : make_right(std::invoke(fun, m_storage.right()));
+         if (is_left())
+         {
+            return make_left(m_storage.left());
+         }
+         else
+         {
+            return make_right(std::invoke(fun, m_storage.right()));
+         }
       }
       constexpr auto right_map(
          const std::invocable<right_type> auto& fun) const&& -> right_map_either<decltype(fun)>
       {
-         return is_left() ? make_left(std::move(m_storage.left()))
-                          : make_right(std::invoke(fun, std::move(m_storage.right())));
+         if (is_left())
+         {
+            return make_left(std::move(m_storage.left()));
+         }
+         else
+         {
+            return make_right(std::invoke(fun, std::move(m_storage.right())));
+         }
       }
       constexpr auto right_map(
          const std::invocable<right_type> auto& fun) && -> right_map_either<decltype(fun)>
       {
-         return is_left() ? make_left(std::move(m_storage.left()))
-                          : make_right(std::invoke(fun, std::move(m_storage.right())));
+         if (is_left())
+         {
+            return make_left(std::move(m_storage.left()));
+         }
+         else
+         {
+            return make_right(std::invoke(fun, std::move(m_storage.right())));
+         }
       }
 
       template <class inner_left_ = left_type, class inner_right_ = right_type>
