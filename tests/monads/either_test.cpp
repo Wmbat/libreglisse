@@ -2,13 +2,6 @@
 
 #include <gtest/gtest.h>
 
-struct default_struct
-{
-   default_struct(int i) { data.at(i) = 5; };
-
-   std::array<int, 5> data{};
-};
-
 struct either_suite : public testing::Test
 {
 };
@@ -23,19 +16,9 @@ TEST_F(either_suite, left_copy_ctor)
 
       either<int, std::string> left_either{temp};
 
-      EXPECT_EQ(left_either.is_left(), true);
+      EXPECT_EQ(left_either.is_right(), false);
       EXPECT_EQ(left_either.left().has_value(), true);
       EXPECT_EQ(left_either.left().value(), 0);
-   }
-   {
-      left_t<default_struct> temp{default_struct{0}};
-      EXPECT_EQ(noexcept(either<default_struct, std::string>{temp}), true);
-
-      either<default_struct, std::string> left_either{temp};
-
-      EXPECT_EQ(left_either.is_left(), true);
-      EXPECT_EQ(left_either.left().has_value(), true);
-      EXPECT_EQ(left_either.left().value().data.size(), 5);
    }
 }
 
@@ -46,17 +29,14 @@ TEST_F(either_suite, left_move_ctor)
 
       either<int, std::string> left_either{left_t<int>{9}};
 
-      EXPECT_EQ(left_either.is_left(), true);
+      EXPECT_EQ(left_either.is_right(), false);
       EXPECT_EQ(left_either.left().has_value(), true);
       EXPECT_EQ(left_either.left().value(), 9);
    }
    {
-      EXPECT_EQ(noexcept(either<default_struct, std::string>{left_t<default_struct>{{0}}}), false);
+      either<std::unique_ptr<int>, std::string> e{make_left(std::make_unique<int>(10))};
 
-      either<default_struct, std::string> left_either{left_t<default_struct>{{0}}};
-
-      EXPECT_EQ(left_either.is_left(), true);
-      EXPECT_EQ(left_either.left().has_value(), true);
-      EXPECT_EQ(left_either.left().value().data.size(), 5);
+      EXPECT_EQ(e.is_right(), false);
+      EXPECT_EQ(std::move(e).left().has_value(), true);
    }
 }

@@ -10,11 +10,11 @@ namespace monad
    {
       try
       {
-         return to_right(std::invoke(fun, std::forward<args_>(args)...));
+         return make_right(std::invoke(fun, std::forward<args_>(args)...));
       }
       catch (const error_& e)
       {
-         return to_left(e);
+         return make_left(e);
       }
    }
 } // namespace monad
