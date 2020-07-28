@@ -21,6 +21,9 @@ namespace monad
    {
    };
 
+   using none_t = maybe<void>;
+   static inline constexpr auto none = none_t{}; // NOLINT
+
    // clang-format off
    template <class any_>
       requires(!std::is_reference_v<any_>) 
@@ -238,13 +241,13 @@ namespace monad
 
    public:
       constexpr maybe() noexcept(is_nothrow_default_constructible) = default;
-      constexpr maybe(const value_type& value) noexcept(is_nothrow_rvalue_constructible) :
+      constexpr maybe(const value_type& value) noexcept(is_nothrow_lvalue_constructible) :
          m_storage{value}
       {}
-      constexpr maybe(value_type&& value) noexcept(is_nothrow_lvalue_constructible) :
+      constexpr maybe(value_type&& value) noexcept(is_nothrow_rvalue_constructible) :
          m_storage{std::move(value)}
       {}
-      constexpr maybe(maybe<void>) noexcept(is_nothrow_default_constructible) {}
+      constexpr maybe(none_t) noexcept(is_nothrow_default_constructible) {}
 
       constexpr auto operator->() noexcept -> value_type*
       {
@@ -314,7 +317,7 @@ namespace monad
       constexpr auto value_or(std::convertible_to<value_type> auto&& default_value) && -> value_type
       {
          return has_value()
-            ? value()
+            ? std::move(value())
             : static_cast<value_type>(std::forward<decltype(default_value)>(default_value));
       }
 
@@ -326,36 +329,31 @@ namespace monad
          }
       }
 
-      constexpr auto map(const std::invocable<value_type> auto& fun) const
+      constexpr auto map(const std::invocable<value_type> auto& fun) const&
       {
          using result_type = std::invoke_result_t<decltype(fun), value_type>;
-         if (!has_value())
-         {
-            return maybe<result_type>{};
-         }
-         else
-         {
-            return maybe<result_type>(std::invoke(fun, value()));
-         }
+
+         return !has_value() ? maybe<result_type>{} : maybe<result_type>{std::invoke(fun, value())};
       }
-      constexpr auto map(const std::invocable<value_type> auto& fun)
+      constexpr auto map(const std::invocable<value_type> auto& fun) &
       {
          using result_type = std::invoke_result_t<decltype(fun), value_type>;
-         if (!has_value())
-         {
-            return maybe<result_type>{};
-         }
-         else
-         {
-            if constexpr (std::movable<value_type>)
-            {
-               return maybe<result_type>(std::invoke(fun, std::move(value())));
-            }
-            else
-            {
-               return maybe<result_type>(std::invoke(fun, value()));
-            }
-         }
+
+         return !has_value() ? maybe<result_type>{} : maybe<result_type>{std::invoke(fun, value())};
+      }
+      constexpr auto map(const std::invocable<value_type> auto& fun) const&&
+      {
+         using result_type = std::invoke_result_t<decltype(fun), value_type>;
+
+         return !has_value() ? maybe<result_type>{}
+                             : maybe<result_type>{std::invoke(fun, std::move(value()))};
+      }
+      constexpr auto map(const std::invocable<value_type> auto& fun) &&
+      {
+         using result_type = std::invoke_result_t<decltype(fun), value_type>;
+
+         return !has_value() ? maybe<result_type>{}
+                             : maybe<result_type>{std::invoke(fun, std::move(value()))};
       }
 
    private:
@@ -363,15 +361,10 @@ namespace monad
    };
 
    template <class any_>
-   constexpr auto to_maybe(any_&& value) noexcept(
-      std::is_nothrow_constructible_v<maybe<any_>, any_>) -> maybe<std::remove_reference_t<any_>>
+   constexpr auto to_maybe(any_&& value) -> maybe<std::remove_reference_t<any_>>
    {
       return {std::forward<any_>(value)};
    }
-
-   using none_t = maybe<void>;
-
-   static inline constexpr auto none = none_t{}; // NOLINT
 
    template <class first_, std::equality_comparable_with<first_> second_>
    constexpr auto operator==(const maybe<first_>& lhs, const maybe<second_>& rhs) noexcept(
