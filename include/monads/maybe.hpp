@@ -181,6 +181,15 @@ namespace monad
             }
          }
 
+         constexpr auto pointer() noexcept -> value_type*
+         {
+            return reinterpret_cast<value_type*>(m_bytes.data()); // NOLINT
+         }
+         constexpr auto pointer() const noexcept -> const value_type*
+         {
+            return reinterpret_cast<const value_type*>(m_bytes.data()); // NOLINT
+         }
+
          constexpr auto value() & noexcept -> value_type& { return *pointer(); }
          constexpr auto value() const& noexcept(is_nothrow_value_copyable) -> const value_type&
          {
@@ -193,16 +202,6 @@ namespace monad
          constexpr auto value() const&& noexcept(is_nothrow_value_movable) -> const value_type&&
          {
             return std::move(*pointer());
-         }
-
-      private:
-         constexpr auto pointer() noexcept -> value_type*
-         {
-            return reinterpret_cast<value_type*>(m_bytes.data()); // NOLINT
-         }
-         constexpr auto pointer() const noexcept -> const value_type*
-         {
-            return reinterpret_cast<const value_type*>(m_bytes.data()); // NOLINT
          }
 
       private:
@@ -249,15 +248,6 @@ namespace monad
             }
          }
 
-         constexpr auto value() & noexcept -> value_type& { return *pointer(); }
-         constexpr auto value() const& noexcept -> const value_type& { return *pointer(); }
-         constexpr auto value() && noexcept -> value_type&& { return std::move(*pointer()); }
-         constexpr auto value() const&& noexcept -> const value_type&&
-         {
-            return std::move(*pointer());
-         }
-
-      private:
          constexpr auto pointer() noexcept -> value_type*
          {
             return reinterpret_cast<value_type*>(m_bytes.data()); // NOLINT
@@ -265,6 +255,14 @@ namespace monad
          constexpr auto pointer() const noexcept -> const value_type*
          {
             return reinterpret_cast<const value_type*>(m_bytes.data()); // NOLINT
+         }
+
+         constexpr auto value() & noexcept -> value_type& { return *pointer(); }
+         constexpr auto value() const& noexcept -> const value_type& { return *pointer(); }
+         constexpr auto value() && noexcept -> value_type&& { return std::move(*pointer()); }
+         constexpr auto value() const&& noexcept -> const value_type&&
+         {
+            return std::move(*pointer());
          }
 
       private:

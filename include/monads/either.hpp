@@ -377,6 +377,9 @@ namespace monad
       static inline constexpr bool is_nothrow_left_move_constructible =
          std::is_nothrow_constructible_v<storage_type, left_t<left_type>&&>;
 
+      static inline constexpr bool copyable = std::copyable<left_type> && std::copyable<right_type>;
+      static inline constexpr bool movable = std::movable<left_type> && std::movable<right_type>;
+
       template <class any_>
       using left_map_result = std::invoke_result_t<any_, left_type>;
 
@@ -406,36 +409,36 @@ namespace monad
       [[nodiscard]] constexpr auto is_right() const -> bool { return m_storage.is_right(); }
       constexpr operator bool() const { return is_right(); }
 
-      constexpr auto left() const& -> maybe<left_type>
+      constexpr auto left() const& -> maybe<left_type> requires copyable
       {
          return !is_right() ? make_maybe(m_storage.left()) : none;
       }
-      constexpr auto left() & -> maybe<left_type>
+      constexpr auto left() & -> maybe<left_type> requires copyable
       {
          return !is_right() ? make_maybe(m_storage.left()) : none;
       }
-      constexpr auto left() const&& -> maybe<left_type>
+      constexpr auto left() const&& -> maybe<left_type> requires movable
       {
          return !is_right() ? make_maybe(std::move(m_storage.left())) : none;
       }
-      constexpr auto left() && -> maybe<left_type>
+      constexpr auto left() && -> maybe<left_type> requires movable
       {
          return !is_right() ? make_maybe(std::move(m_storage.left())) : none;
       }
 
-      constexpr auto right() const& -> maybe<right_type>
+      constexpr auto right() const& -> maybe<right_type> requires copyable
       {
          return !is_right() ? none : make_maybe(m_storage.right());
       }
-      constexpr auto right() & -> maybe<right_type>
+      constexpr auto right() & -> maybe<right_type> requires copyable
       {
          return !is_right() ? none : make_maybe(m_storage.right());
       }
-      constexpr auto right() const&& -> maybe<right_type>
+      constexpr auto right() const&& -> maybe<right_type> requires movable
       {
          return !is_right() ? none : make_maybe(std::move(m_storage.right()));
       }
-      constexpr auto right() && -> maybe<right_type>
+      constexpr auto right() && -> maybe<right_type> requires movable
       {
          return !is_right() ? none : maybe_maybe(std::move(m_storage.right()));
       }
@@ -538,19 +541,26 @@ namespace monad
          }
       }
 
-      constexpr auto join() const& -> std::common_type_t<left_type, right_type>
+      template <class inner_left_ = left_type, class inner_right_ = right_type>
+      constexpr auto
+      join() const& -> std::common_type_t<inner_left_, inner_right_> requires copyable
       {
          return !is_right() ? m_storage.left() : m_storage.right();
       }
-      constexpr auto join() & -> std::common_type_t<left_type, right_type>
+      template <class inner_left_ = left_type, class inner_right_ = right_type>
+      constexpr auto join() & -> std::common_type_t<inner_left_, inner_right_> requires copyable
       {
          return !is_right() ? m_storage.left() : m_storage.right();
       }
-      constexpr auto join() const&& -> std::common_type_t<left_type, right_type>
+
+      template <class inner_left_ = left_type, class inner_right_ = right_type>
+      constexpr auto
+      join() const&& -> std::common_type_t<inner_left_, inner_right_> requires movable
       {
          return !is_right() ? std::move(m_storage.left()) : std::move(m_storage.right());
       }
-      constexpr auto join() && -> std::common_type_t<left_type, right_type>
+      template <class inner_left_ = left_type, class inner_right_ = right_type>
+      constexpr auto join() && -> std::common_type_t<inner_left_, inner_right_> requires movable
       {
          return !is_right() ? std::move(m_storage.left()) : std::move(m_storage.right());
       }
