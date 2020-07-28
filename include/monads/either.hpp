@@ -35,7 +35,7 @@ namespace monad
    template <class any_>
    constexpr auto make_right(any_&& value) -> right_t<std::decay_t<any_>>
    {
-      return left_t<std::decay_t<any_>>{std::forward<any_>(value)};
+      return right_t<std::decay_t<any_>>{std::forward<any_>(value)};
    }
 
    // clang-format off
