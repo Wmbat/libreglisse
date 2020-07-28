@@ -541,22 +541,22 @@ namespace monad
       template <class inner_left_ = left_type, class inner_right_ = right_type>
       constexpr auto join() const& -> std::common_type_t<inner_left_, inner_right_>
       {
-         return is_left ? m_storage.left() : m_storage.right();
+         return is_left() ? m_storage.left() : m_storage.right();
       }
       template <class inner_left_ = left_type, class inner_right_ = right_type>
       constexpr auto join() & -> std::common_type_t<inner_left_, inner_right_>
       {
-         return is_left ? m_storage.left() : m_storage.right();
+         return is_left() ? m_storage.left() : m_storage.right();
       }
       template <class inner_left_ = left_type, class inner_right_ = right_type>
       constexpr auto join() const&& -> std::common_type_t<inner_left_, inner_right_>
       {
-         return is_left ? std::move(m_storage.left()) : std::move(m_storage.right());
+         return is_left() ? std::move(m_storage.left()) : std::move(m_storage.right());
       }
       template <class inner_left_ = left_type, class inner_right_ = right_type>
       constexpr auto join() && -> std::common_type_t<inner_left_, inner_right_>
       {
-         return is_left ? std::move(m_storage.left()) : std::move(m_storage.right());
+         return is_left() ? std::move(m_storage.left()) : std::move(m_storage.right());
       }
 
       constexpr auto join(
