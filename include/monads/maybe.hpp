@@ -68,6 +68,11 @@ namespace monad
          static inline constexpr bool is_nothrow_value_movable =
             std::is_nothrow_move_assignable_v<value_type> &&
             std::is_nothrow_move_constructible_v<value_type>;
+
+         static inline constexpr bool is_nothrow_swappable =
+            std::is_nothrow_move_assignable_v<value_type> &&
+            std::is_nothrow_destructible_v<value_type> &&
+            std::is_nothrow_swappable_v<value_type>;
          // clang-format on
 
       public:
@@ -149,6 +154,33 @@ namespace monad
             return *this;
          }
 
+         [[nodiscard]] constexpr auto engaged() const noexcept -> bool { return m_is_engaged; }
+
+         constexpr void swap(storage& other) noexcept(
+            is_nothrow_swappable) requires std::swappable<value_type>
+         {
+            if (engaged() && other.engaged())
+            {
+               std::swap(value(), other.value());
+            }
+
+            if (engaged() && !other.engaged())
+            {
+               std::swap(m_is_engaged, other.m_is_engaged);
+               other.value() = value();
+
+               std::destroy_at(pointer());
+            }
+
+            if (!engaged() && other.engaged())
+            {
+               std::swap(m_is_engaged, other.m_is_engaged);
+               value() = other.value();
+
+               std::destroy_at(other.pointer());
+            }
+         }
+
          constexpr auto pointer() noexcept -> value_type*
          {
             return reinterpret_cast<value_type*>(m_bytes.data()); // NOLINT
@@ -172,8 +204,6 @@ namespace monad
             return std::move(*pointer());
          }
 
-         [[nodiscard]] constexpr auto engaged() const noexcept -> bool { return m_is_engaged; }
-
       private:
          alignas(value_type) std::array<std::byte, sizeof(value_type)> m_bytes;
          bool m_is_engaged{false};
@@ -196,6 +226,28 @@ namespace monad
             std::construct_at(pointer(), std::move(value));
          }
 
+         [[nodiscard]] constexpr auto engaged() const noexcept -> bool { return m_is_engaged; }
+
+         constexpr void swap(storage& other) noexcept requires std::swappable<value_type>
+         {
+            if (engaged() && other.engaged())
+            {
+               std::swap(value(), other.value());
+            }
+
+            if (engaged() && !other.engaged())
+            {
+               std::swap(m_is_engaged, other.m_is_engaged);
+               other.value() = value();
+            }
+
+            if (!engaged() && other.engaged())
+            {
+               std::swap(m_is_engaged, other.m_is_engaged);
+               value() = other.value();
+            }
+         }
+
          constexpr auto pointer() noexcept -> value_type*
          {
             return reinterpret_cast<value_type*>(m_bytes.data()); // NOLINT
@@ -212,8 +264,6 @@ namespace monad
          {
             return std::move(*pointer());
          }
-
-         [[nodiscard]] constexpr auto engaged() const noexcept -> bool { return m_is_engaged; }
 
       private:
          alignas(value_type) std::array<std::byte, sizeof(value_type)> m_bytes;
@@ -236,6 +286,9 @@ namespace monad
 
       static inline constexpr bool is_nothrow_value_movable =
          std::is_nothrow_move_assignable_v<any_> && std::is_nothrow_move_constructible_v<any_>;
+
+      static inline constexpr bool is_nothrow_swappable =
+         std::is_nothrow_move_constructible_v<any_> && std::is_nothrow_swappable_v<any_>;
 
    public:
       using value_type = typename storage_type::value_type;
@@ -320,6 +373,11 @@ namespace monad
          return has_value()
             ? std::move(value())
             : static_cast<value_type>(std::forward<decltype(default_value)>(default_value));
+      }
+
+      constexpr void swap(maybe& other) noexcept(noexcept(m_storage.swap(other.m_storage)))
+      {
+         m_storage.swap(other.m_storage);
       }
 
       constexpr void reset() noexcept(std::is_nothrow_destructible_v<value_type>)
@@ -424,3 +482,13 @@ namespace monad
       return m.has_value() ? m.value() <=> value : std::strong_ordering::less;
    }
 } // namespace monad
+
+namespace std // NOLINT
+{
+   template <class any_>
+   constexpr void swap(monad::maybe<any_>& lhs, monad::maybe<any_>& rhs) noexcept(
+      noexcept(lhs.swap(rhs)))
+   {
+      lhs.swap(rhs);
+   }
+} // namespace std
