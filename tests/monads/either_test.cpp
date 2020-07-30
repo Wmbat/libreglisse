@@ -8,6 +8,11 @@ struct either_suite : public testing::Test
 
 using namespace monad;
 
+struct my_error_t
+{
+   std::string message;
+};
+
 TEST_F(either_suite, left_copy_ctor)
 {
    {

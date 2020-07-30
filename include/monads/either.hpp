@@ -631,6 +631,24 @@ namespace monad
    private:
       storage<left_type, right_type> m_storage{};
 
+      static constexpr auto left_of(const left_type& r)
+      {
+         return either<left_type, right_type>{left_t{r}};
+      }
+      static constexpr auto left_of(left_type&& r)
+      {
+         return either<left_type, right_type>{left_t{std::move(r)}};
+      }
+
+      static constexpr auto right_of(const right_type& r)
+      {
+         return either<left_type, right_type>{right_t{r}};
+      }
+      static constexpr auto right_of(right_type&& r)
+      {
+         return either<left_type, right_type>{right_t{std::move(r)}};
+      }
+
    public:
       constexpr auto left_flat_map(const std::invocable<left_type> auto& fun) const& -> decltype(
          detail::ensure_either_right(std::invoke(fun, m_storage.left()), m_storage.right()))
@@ -639,11 +657,11 @@ namespace monad
 
          if (!is_right())
          {
-            return std::invoke(fun, left());
+            return std::invoke(fun, m_storage.left());
          }
          else
          {
-            return new_either{make_right(right())};
+            return make_right(m_storage.right());
          }
       }
       constexpr auto left_flat_map(const std::invocable<left_type> auto& fun) & -> decltype(
@@ -653,11 +671,11 @@ namespace monad
 
          if (!is_right())
          {
-            return std::invoke(fun, left());
+            return std::invoke(fun, m_storage.left());
          }
          else
          {
-            return new_either{make_right(right())};
+            return make_right(m_storage.right());
          }
       }
       constexpr auto left_flat_map(const std::invocable<left_type> auto& fun) const&& -> decltype(
@@ -668,11 +686,11 @@ namespace monad
 
          if (!is_right())
          {
-            return std::invoke(fun, std::move(left()));
+            return std::invoke(fun, std::move(m_storage.left()));
          }
          else
          {
-            return new_either{make_right(std::move(right()))};
+            return make_right(std::move(m_storage.right()));
          }
       }
       constexpr auto left_flat_map(const std::invocable<left_type> auto& fun) && -> decltype(
@@ -683,11 +701,11 @@ namespace monad
 
          if (!is_right())
          {
-            return std::invoke(fun, std::move(left()));
+            return std::invoke(fun, std::move(m_storage.left()));
          }
          else
          {
-            return new_either{make_right(std::move(right()))};
+            return make_right(std::move(m_storage.right()));
          }
       }
 
@@ -698,11 +716,11 @@ namespace monad
 
          if (!is_right())
          {
-            return new_either{make_left(left())};
+            return make_left(m_storage.left());
          }
          else
          {
-            return std::invoke(fun, right());
+            return std::invoke(fun, m_storage.right());
          }
       }
       constexpr auto right_flat_map(const std::invocable<right_type> auto& fun) & -> decltype(
@@ -712,11 +730,11 @@ namespace monad
 
          if (!is_right())
          {
-            return new_either{make_left(left())};
+            return make_left(m_storage.left());
          }
          else
          {
-            return std::invoke(fun, right());
+            return std::invoke(fun, m_storage.right());
          }
       }
       constexpr auto right_flat_map(const std::invocable<right_type> auto& fun) const&& -> decltype(
@@ -727,11 +745,11 @@ namespace monad
 
          if (!is_right())
          {
-            return new_either{make_left(std::move(left()))};
+            return make_left(std::move(m_storage.left()));
          }
          else
          {
-            return std::invoke(fun, std::move(right()));
+            return std::invoke(fun, std::move(m_storage.right()));
          }
       }
       constexpr auto right_flat_map(const std::invocable<right_type> auto& fun) && -> decltype(
@@ -742,11 +760,11 @@ namespace monad
 
          if (!is_right())
          {
-            return new_either{make_left(std::move(left()))};
+            return make_left(std::move(m_storage.left()));
          }
          else
          {
-            return std::invoke(fun, std::move(right()));
+            return std::invoke(fun, std::move(m_storage.right()));
          }
       }
    };
