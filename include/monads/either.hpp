@@ -44,7 +44,6 @@ namespace monad
       {
          return e;
       }
-
    } // namespace detail
 
    template <class any_>
@@ -631,30 +630,10 @@ namespace monad
    private:
       storage<left_type, right_type> m_storage{};
 
-      static constexpr auto left_of(const left_type& r)
-      {
-         return either<left_type, right_type>{left_t{r}};
-      }
-      static constexpr auto left_of(left_type&& r)
-      {
-         return either<left_type, right_type>{left_t{std::move(r)}};
-      }
-
-      static constexpr auto right_of(const right_type& r)
-      {
-         return either<left_type, right_type>{right_t{r}};
-      }
-      static constexpr auto right_of(right_type&& r)
-      {
-         return either<left_type, right_type>{right_t{std::move(r)}};
-      }
-
    public:
       constexpr auto left_flat_map(const std::invocable<left_type> auto& fun) const& -> decltype(
          detail::ensure_either_right(std::invoke(fun, m_storage.left()), m_storage.right()))
       {
-         using new_either = std::invoke_result_t<decltype(fun), left_type>;
-
          if (!is_right())
          {
             return std::invoke(fun, m_storage.left());
@@ -667,8 +646,6 @@ namespace monad
       constexpr auto left_flat_map(const std::invocable<left_type> auto& fun) & -> decltype(
          detail::ensure_either_right(std::invoke(fun, m_storage.left()), m_storage.right()))
       {
-         using new_either = std::invoke_result_t<decltype(fun), left_type>;
-
          if (!is_right())
          {
             return std::invoke(fun, m_storage.left());
@@ -682,8 +659,6 @@ namespace monad
          detail::ensure_either_right(std::invoke(fun, std::move(m_storage.left())),
                                      std::move(m_storage.right())))
       {
-         using new_either = std::invoke_result_t<decltype(fun), left_type&&>;
-
          if (!is_right())
          {
             return std::invoke(fun, std::move(m_storage.left()));
@@ -697,8 +672,6 @@ namespace monad
          detail::ensure_either_right(std::invoke(fun, std::move(m_storage.left())),
                                      std::move(m_storage.right())))
       {
-         using new_either = std::invoke_result_t<decltype(fun), left_type&&>;
-
          if (!is_right())
          {
             return std::invoke(fun, std::move(m_storage.left()));
@@ -712,8 +685,6 @@ namespace monad
       constexpr auto right_flat_map(const std::invocable<right_type> auto& fun) const& -> decltype(
          detail::ensure_either_left(std::invoke(fun, m_storage.right()), m_storage.left()))
       {
-         using new_either = std::invoke_result_t<decltype(fun), right_type>;
-
          if (!is_right())
          {
             return make_left(m_storage.left());
@@ -726,8 +697,6 @@ namespace monad
       constexpr auto right_flat_map(const std::invocable<right_type> auto& fun) & -> decltype(
          detail::ensure_either_left(std::invoke(fun, m_storage.right()), m_storage.left()))
       {
-         using new_either = std::invoke_result_t<decltype(fun), right_type>;
-
          if (!is_right())
          {
             return make_left(m_storage.left());
@@ -741,8 +710,6 @@ namespace monad
          detail::ensure_either_left(std::invoke(fun, std::move(m_storage.right())),
                                     std::move(m_storage.left())))
       {
-         using new_either = std::invoke_result_t<decltype(fun), right_type&&>;
-
          if (!is_right())
          {
             return make_left(std::move(m_storage.left()));
@@ -756,8 +723,6 @@ namespace monad
          detail::ensure_either_left(std::invoke(fun, std::move(m_storage.right())),
                                     std::move(m_storage.left())))
       {
-         using new_either = std::invoke_result_t<decltype(fun), right_type&&>;
-
          if (!is_right())
          {
             return make_left(std::move(m_storage.left()));
