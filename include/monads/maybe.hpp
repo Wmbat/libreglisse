@@ -156,8 +156,8 @@ namespace monad
 
          [[nodiscard]] constexpr auto engaged() const noexcept -> bool { return m_is_engaged; }
 
-         constexpr void swap(storage& other) noexcept(
-            is_nothrow_swappable) requires std::swappable<value_type>
+         constexpr void
+         swap(storage& other) noexcept(is_nothrow_swappable) requires std::swappable<value_type>
          {
             if (engaged() && other.engaged())
             {
@@ -215,7 +215,6 @@ namespace monad
       public:
          using value_type = type_;
 
-      public:
          constexpr storage() noexcept = default;
          constexpr storage(const value_type& value) noexcept : m_is_engaged{true}
          {
@@ -293,7 +292,6 @@ namespace monad
    public:
       using value_type = typename storage_type::value_type;
 
-   public:
       constexpr maybe() noexcept(is_nothrow_default_constructible) = default;
       constexpr maybe(const value_type& value) noexcept(is_nothrow_lvalue_constructible) :
          m_storage{value}
@@ -361,8 +359,8 @@ namespace monad
          return std::move(m_storage.value());
       }
 
-      constexpr auto value_or(
-         std::convertible_to<value_type> auto&& default_value) const& -> value_type
+      constexpr auto
+      value_or(std::convertible_to<value_type> auto&& default_value) const& -> value_type
       {
          return has_value()
             ? value()
@@ -426,29 +424,32 @@ namespace monad
    }
 
    template <class first_, std::equality_comparable_with<first_> second_>
-   constexpr auto operator==(const maybe<first_>& lhs, const maybe<second_>& rhs) noexcept(
-      noexcept(lhs.value() == rhs.value())) -> bool
+   constexpr auto
+   operator==(const maybe<first_>& lhs,
+              const maybe<second_>& rhs) noexcept(noexcept(lhs.value() == rhs.value())) -> bool
    {
       if (lhs.has_value() != rhs.has_value())
       {
          return false;
       }
-      else if (!lhs.has_value())
+
+      if (!lhs.has_value())
       {
          return true;
       }
-      else
-      {
-         return lhs.value() == rhs.value();
-      }
+
+      return lhs.value() == rhs.value();
    }
+
    template <class any_>
    constexpr auto operator==(const maybe<any_>& m, none_t) noexcept
    {
       return !m.has_value();
    }
+
    template <class any_>
-   constexpr auto operator==(const maybe<any_>& m,
+   constexpr auto operator==(
+      const maybe<any_>& m,
       const std::equality_comparable_with<any_> auto& value) noexcept(noexcept(m.value() == value))
    {
       return m.has_value() ? m.value() == value : false;
@@ -462,10 +463,8 @@ namespace monad
       {
          return lhs.value() <=> rhs.has_value();
       }
-      else
-      {
-         return lhs.has_value() <=> rhs.has_value();
-      }
+
+      return lhs.has_value() <=> rhs.has_value();
    }
 
    template <class any_>
@@ -476,8 +475,9 @@ namespace monad
 
    template <class any_>
    constexpr auto operator<=>(const maybe<any_>& m,
-      const std::three_way_comparable_with<any_> auto& value) noexcept(noexcept(m.value() <=>
-      value)) -> std::compare_three_way_result_t<any_, decltype(value)>
+                              const std::three_way_comparable_with<any_> auto&
+                                 value) noexcept(noexcept(m.value() <=> value))
+      -> std::compare_three_way_result_t<any_, decltype(value)>
    {
       return m.has_value() ? m.value() <=> value : std::strong_ordering::less;
    }
@@ -486,8 +486,8 @@ namespace monad
 namespace std // NOLINT
 {
    template <class any_>
-   constexpr void swap(monad::maybe<any_>& lhs, monad::maybe<any_>& rhs) noexcept(
-      noexcept(lhs.swap(rhs)))
+   constexpr void swap(monad::maybe<any_>& lhs,
+                       monad::maybe<any_>& rhs) noexcept(noexcept(lhs.swap(rhs)))
    {
       lhs.swap(rhs);
    }
