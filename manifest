@@ -1,0 +1,9 @@
+: 1
+name: monads
+version: 0.1.0-a.0.z
+summary: A header-only library that implements maybe and either monad
+license: MIT
+description-file: README.md
+email: wmbat@protonmail.com
+depends: * build2 >= 0.13.0
+depends: * bpkg >= 0.13.0
