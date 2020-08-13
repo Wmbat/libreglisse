@@ -31,9 +31,6 @@ target_link_libraries(monads_test
 target_sources(monads_test
     PRIVATE
         monads/main.cpp
-        monads/maybe_test.cpp
-        monads/either_test.cpp
-        monads/try_test.cpp
 )
 
 add_test( NAME monads_test COMMAND monads_test )

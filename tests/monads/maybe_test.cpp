@@ -1,5 +1,6 @@
 #include <monads/maybe.hpp>
 
+/*
 #include <gtest/gtest.h>
 
 struct default_struct
@@ -86,3 +87,5 @@ TEST_F(maybe_suite, pointer_operator)
       EXPECT_EQ(maybe_str->size(), 5);
    }
 }
+
+*/

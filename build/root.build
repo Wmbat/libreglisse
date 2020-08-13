@@ -2,7 +2,5 @@ cxx.std = c++20
 
 using cxx
 
-hxx{*}: extension = hpp;
-ixx{*}: extension = ipp;
-txx{*}: extension = tpp;
-cxx{*}: extension = cpp;
+hxx{*}: extension = hpp
+cxx{*}: extension = cpp

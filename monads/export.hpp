@@ -9,20 +9,20 @@
 // the end it's all trial and error.
 
 #if defined(MONADS_STATIC)         // Using static.
-#  define MONADS_SYMEXPORT
+#  define MONADS_API
 #elif defined(MONADS_STATIC_BUILD) // Building static.
-#  define MONADS_SYMEXPORT
+#  define MONADS_API
 #elif defined(MONADS_SHARED)       // Using shared.
 #  ifdef _WIN32
-#    define MONADS_SYMEXPORT __declspec(dllimport)
+#    define MONADS_API __declspec(dllimport)
 #  else
-#    define MONADS_SYMEXPORT
+#    define MONADS_API
 #  endif
 #elif defined(MONADS_SHARED_BUILD) // Building shared.
 #  ifdef _WIN32
-#    define MONADS_SYMEXPORT __declspec(dllexport)
+#    define MONADS_API __declspec(dllexport)
 #  else
-#    define MONADS_SYMEXPORT
+#    define MONADS_API
 #  endif
 #else
 // If none of the above macros are defined, then we assume we are being used
@@ -34,7 +34,7 @@
 // then you will probably want to replace the fallback with the (commented
 // out) error since it won't work for the shared case.
 //
-#  define MONADS_SYMEXPORT         // Using static or shared.
+#  define MONADS_API         // Using static or shared.
 //#  error define MONADS_STATIC or MONADS_SHARED preprocessor macro to signal hello library type being linked
 #endif
 

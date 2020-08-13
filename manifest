@@ -7,3 +7,4 @@ description-file: README.md
 email: wmbat@protonmail.com
 depends: * build2 >= 0.13.0
 depends: * bpkg >= 0.13.0
+depends: doctest ^2.3.6

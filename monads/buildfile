@@ -2,7 +2,7 @@ intf_libs = # Interface dependencies.
 impl_libs = # Implementation dependencies.
 #import impl_libs += libmonads%lib{monads}
 
-lib{monads}: {hxx ixx txx cxx}{** -version} hxx{version} $impl_libs $intf_libs
+lib{monads}: {hxx cxx}{** -version} hxx{version} $impl_libs $intf_libs
 
 # Include the generated version header into the distribution (so that we don't
 # pick up an installed one) and don't remove it when cleaning in src (so that
@@ -44,7 +44,7 @@ else
 # Install into the monads/ subdirectory of, say, /usr/include/
 # recreating subdirectories.
 #
-{hxx ixx txx}{*}:
+{hxx}{*}:
 {
   install         = include/monads/
   install.subdirs = true
