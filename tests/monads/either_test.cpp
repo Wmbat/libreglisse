@@ -1,4 +1,5 @@
 #include <monads/either.hpp>
+#include <monads/result.hpp>
 
 #include <gtest/gtest.h>
 
