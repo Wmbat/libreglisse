@@ -472,7 +472,7 @@ namespace monad
       }
       constexpr auto right() && -> maybe<right_type> requires movable
       {
-         return !is_right() ? none : maybe_maybe(std::move(m_storage.right()));
+         return !is_right() ? none : make_maybe(std::move(m_storage.right()));
       }
 
       constexpr auto
