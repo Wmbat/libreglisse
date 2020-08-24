@@ -38,45 +38,37 @@ namespace monad
 
       private:
          // clang-format off
-         static inline constexpr bool is_nothrow_default_constructible =
-            std::is_nothrow_default_constructible_v<std::array<std::byte, sizeof(value_type)>>;
-
-         static inline constexpr bool is_nothrow_copy_value_constructible =
-            std::is_nothrow_copy_constructible_v<value_type> && 
-            std::is_nothrow_default_constructible_v<std::array<std::byte, sizeof(value_type)>>;
+         static constexpr bool is_nothrow_copy_value_constructible =
+            std::is_nothrow_copy_constructible_v<value_type>;
          
-         static inline constexpr bool is_nothrow_move_value_constructible =
-            std::is_nothrow_move_constructible_v<value_type> &&
-            std::is_nothrow_default_constructible_v<std::array<std::byte, sizeof(value_type)>>;
+         static constexpr bool is_nothrow_move_value_constructible =
+            std::is_nothrow_move_constructible_v<value_type>;
 
-         static inline constexpr bool is_nothrow_destructible = 
-            std::is_nothrow_destructible_v<value_type> &&
-            std::is_nothrow_destructible_v<std::array<std::byte, sizeof(value_type)>>;
+         static constexpr bool is_nothrow_destructible = 
+            std::is_nothrow_destructible_v<value_type>;
 
-         static inline constexpr bool is_nothrow_copy_assignable =
-            is_nothrow_copy_value_constructible && 
-            is_nothrow_default_constructible;
+         static constexpr bool is_nothrow_copy_assignable =
+            is_nothrow_copy_value_constructible;
 
-         static inline constexpr bool is_nothrow_move_assignable =
-            is_nothrow_move_value_constructible && 
-            is_nothrow_default_constructible;
+         static constexpr bool is_nothrow_move_assignable =
+            is_nothrow_move_value_constructible;
 
-         static inline constexpr bool is_nothrow_value_copyable =
+         static constexpr bool is_nothrow_value_copyable =
             std::is_nothrow_copy_assignable_v<value_type> &&
             std::is_nothrow_copy_constructible_v<value_type>;
 
-         static inline constexpr bool is_nothrow_value_movable =
+         static constexpr bool is_nothrow_value_movable =
             std::is_nothrow_move_assignable_v<value_type> &&
             std::is_nothrow_move_constructible_v<value_type>;
 
-         static inline constexpr bool is_nothrow_swappable =
+         static constexpr bool is_nothrow_swappable =
             std::is_nothrow_move_assignable_v<value_type> &&
             std::is_nothrow_destructible_v<value_type> &&
             std::is_nothrow_swappable_v<value_type>;
          // clang-format on
 
       public:
-         constexpr storage() noexcept(is_nothrow_default_constructible) = default;
+         constexpr storage() noexcept = default;
          constexpr storage(const value_type& value) noexcept(is_nothrow_copy_value_constructible) :
             m_is_engaged{true}
          {
@@ -86,6 +78,12 @@ namespace monad
             m_is_engaged{true}
          {
             std::construct_at(pointer(), std::move(value));
+         }
+         constexpr storage(std::in_place_t, auto&&... args) noexcept(
+            std::is_nothrow_constructible_v<value_type, decltype(args)...>) :
+            m_is_engaged{true}
+         {
+            std::construct_at(pointer(), std::forward<decltype(args)>(args)...);
          }
          constexpr storage(const storage& rhs) noexcept(is_nothrow_copy_value_constructible) :
             m_is_engaged{rhs.engaged()}
@@ -224,6 +222,10 @@ namespace monad
          {
             std::construct_at(pointer(), std::move(value));
          }
+         constexpr storage(std::in_place_t, auto&&... args) noexcept : m_is_engaged{true}
+         {
+            std::construct_at(pointer(), std::forward<decltype(args)>(args)...);
+         }
 
          [[nodiscard]] constexpr auto engaged() const noexcept -> bool { return m_is_engaged; }
 
@@ -271,35 +273,37 @@ namespace monad
 
       using storage_type = storage<any_>;
 
-      static inline constexpr bool is_nothrow_default_constructible =
-         std::is_nothrow_default_constructible_v<storage_type>;
-
-      static inline constexpr bool is_nothrow_rvalue_constructible =
+      static constexpr bool is_nothrow_rvalue_constructible =
          std::is_nothrow_constructible_v<storage_type, any_&&>;
 
-      static inline constexpr bool is_nothrow_lvalue_constructible =
+      static constexpr bool is_nothrow_lvalue_constructible =
          std::is_nothrow_constructible_v<storage_type, any_>;
 
-      static inline constexpr bool is_nothrow_value_copyable =
+      static constexpr bool is_nothrow_value_copyable =
          std::is_nothrow_copy_assignable_v<any_> && std::is_nothrow_copy_constructible_v<any_>;
 
-      static inline constexpr bool is_nothrow_value_movable =
+      static constexpr bool is_nothrow_value_movable =
          std::is_nothrow_move_assignable_v<any_> && std::is_nothrow_move_constructible_v<any_>;
 
-      static inline constexpr bool is_nothrow_swappable =
+      static constexpr bool is_nothrow_swappable =
          std::is_nothrow_move_constructible_v<any_> && std::is_nothrow_swappable_v<any_>;
 
    public:
       using value_type = typename storage_type::value_type;
 
-      constexpr maybe() noexcept(is_nothrow_default_constructible) = default;
+      constexpr maybe() noexcept = default;
+      constexpr maybe(none_t) noexcept {}
       constexpr maybe(const value_type& value) noexcept(is_nothrow_lvalue_constructible) :
          m_storage{value}
       {}
       constexpr maybe(value_type&& value) noexcept(is_nothrow_rvalue_constructible) :
          m_storage{std::move(value)}
       {}
-      constexpr maybe(none_t) noexcept(is_nothrow_default_constructible) {}
+      constexpr maybe(std::in_place_t u, auto&&... args) noexcept(
+         std::is_nothrow_constructible_v<value_type, decltype(args)...>) requires std::
+         constructible_from<value_type, decltype(args)...> :
+         m_storage{u, std::forward<decltype(args)>(args)...}
+      {}
 
       constexpr auto operator->() noexcept -> value_type*
       {

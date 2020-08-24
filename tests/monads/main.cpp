@@ -1,4 +1,7 @@
 #include <monads/maybe.hpp>
+#include <monads/either.hpp>
+#include <monads/result.hpp>
+#include <monads/try.hpp>
 
 #include <string>
 
