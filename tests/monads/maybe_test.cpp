@@ -9,6 +9,16 @@ struct default_struct
    int i = 0;
 };
 
+struct test_struct
+{
+   test_struct() = default;
+   test_struct(int a, int b, int c) : i{a}, j{b}, k{c} {}
+
+   int i = 0;
+   int j = 0;
+   int k = 0;
+};
+
 struct maybe_suite : public testing::Test
 {
 };
