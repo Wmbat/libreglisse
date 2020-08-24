@@ -2,8 +2,7 @@
 
 ![Linux](https://github.com/Wmbat/monads/workflows/Linux/badge.svg)
 
-Monads is a library to emulate the behaviour of `either` and `maybe` monads in C++20. This library was strongly inspired by the
-[neither](https://github.com/LoopPerfect/neither) library.
+Monads is a library to emulate the behaviour of `either`, `result` and `maybe` monads in C++20.
 
 ## Table of Content
 * [Requirements](#requirements)
