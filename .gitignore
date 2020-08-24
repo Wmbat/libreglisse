@@ -1,6 +1,7 @@
 .gdb_history
 
 .bdep/
+.clangd/
 
 # Compiler/linker output.
 
@@ -26,6 +27,4 @@
 
 compile_commands.json
 
-# LSP data
-
-.clangd/
+out/

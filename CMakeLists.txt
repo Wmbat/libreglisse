@@ -58,5 +58,5 @@ target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
 target_include_directories(${PROJECT_NAME}
     INTERFACE 
         $<INSTALL_INTERFACE:include>    
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>
 )

@@ -1,10 +1,11 @@
 cmake_minimum_required( VERSION 3.14...3.17 FATAL_ERROR )
 
 CPMAddPackage(
-    NAME gtest
-    VERSION 1.10.0
-    GITHUB_REPOSITORY google/googletest
-    GIT_TAG release-1.10.0)
+    NAME doctest
+    VERSION 2.4.0
+    GITHUB_REPOSITORY onqtam/doctest
+    GIT_TAG 2.4.0
+)
 
 add_executable(monads_test)
 
@@ -23,7 +24,7 @@ target_compile_options(monads_test
 target_link_libraries(monads_test
     PUBLIC
         monads::monads 
-        gtest
+        doctest::doctest
     PRIVATE
         $<$<AND:$<CXX_COMPILER_ID:GNU>,$<CONFIG:DEBUG>>:-lasan>
         $<$<AND:$<CXX_COMPILER_ID:GNU>,$<CONFIG:DEBUG>>:-lubsan>)
