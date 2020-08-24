@@ -8,6 +8,7 @@ Monads is a library to emulate the behaviour of `either`, `result` and `maybe` m
 * [Requirements](#requirements)
 * [Dependencies](#dependencies)
 * [Installation](#installation)
+* [Examples](#examples)
 * [License](#license)
 
 ## Requirements
@@ -72,6 +73,10 @@ and finally, you will have to link the library against your project
 ```cmake 
 target_link_libraries(your_project PUBLIC monads::monads
 ```
+
+## Examples
+
+For examples on how to use the monadic types, refer to the [wiki](https://github.com/Wmbat/monads/wiki)
 
 ## License
 

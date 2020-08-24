@@ -11,8 +11,7 @@
 namespace monad
 {
    // clang-format off
-   template <class any_>
-      requires(!std::is_reference_v<any_>) 
+   template <class any_> requires(!std::is_reference_v<any_>) 
    class maybe;
    // clang-format on
    //
@@ -25,8 +24,7 @@ namespace monad
    static inline constexpr auto none = none_t{}; // NOLINT
 
    // clang-format off
-   template <class any_>
-      requires(!std::is_reference_v<any_>) 
+   template <class any_> requires(!std::is_reference_v<any_>) 
    class maybe
    // clang-format on
    {
@@ -397,6 +395,20 @@ namespace monad
       }
 
       /**
+<<<<<<< HEAD:monads/maybe.hpp
+       * Take the value out of the optional into another optional,
+       * leaving it empty
+       */
+      constexpr auto take() -> maybe
+      {
+         maybe ret = std::move(*this);
+         reset();
+         return ret;
+      }
+
+      /**
+=======
+>>>>>>> master:include/monads/maybe.hpp
        * Return the stored value or a specified value
        */
       constexpr auto
@@ -569,7 +581,7 @@ namespace monad
          using result_type = typename std::invoke_result_t<decltype(fun), value_type>::value_type;
 
          return !has_value() ? maybe<result_type>{}
-                             : std::invoke(std::forward<decltype(fun)>(fun), std::move(value()));
+                             : std::invoke(std::forward<decltype(fun)>(fun), value());
       }
 
       /**
