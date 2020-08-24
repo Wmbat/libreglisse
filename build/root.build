@@ -1,0 +1,6 @@
+cxx.std = c++20
+
+using cxx
+
+hxx{*}: extension = hpp
+cxx{*}: extension = cpp

@@ -1,0 +1,6 @@
+$out_root/
+{
+  include monads/
+}
+
+export $out_root/monads/$import.target
