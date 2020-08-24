@@ -637,6 +637,54 @@ namespace monad
          }
       }
 
+      /**
+       * Carries out an operation on the stored object if there is one, or return
+       * a the result of a given function
+       */
+      constexpr auto map_or_else(std::invocable<value_type> auto&& fun, std::invocable auto&& def)
+         const& -> std::invoke_result_t<decltype(def)> requires std::convertible_to<
+            std::invoke_result_t<decltype(fun), value_type>, std::invoke_result_t<decltype(def)>>
+      {
+         return has_value() ? std::invoke(std::forward<decltype(fun)>, value())
+                            : std::invoke(std::forward<decltype(def)>);
+      }
+      /**
+       * Carries out an operation on the stored object if there is one, or return
+       * a the result of a given function
+       */
+      constexpr auto
+      map_or_else(std::invocable<value_type> auto&& fun,
+                  std::invocable auto&& def) & -> std::invoke_result_t<decltype(def)> requires std::
+         convertible_to<std::invoke_result_t<decltype(fun), value_type>,
+                        std::invoke_result_t<decltype(def)>>
+      {
+         return has_value() ? std::invoke(std::forward<decltype(fun)>, value())
+                            : std::invoke(std::forward<decltype(def)>);
+      }
+      /**
+       * Carries out an operation on the stored object if there is one, or return
+       * a the result of a given function
+       */
+      constexpr auto map_or_else(std::invocable<value_type> auto&& fun, std::invocable auto&& def)
+         const&& -> std::invoke_result_t<decltype(def)> requires std::convertible_to<
+            std::invoke_result_t<decltype(fun), value_type>, std::invoke_result_t<decltype(def)>>
+      {
+         return has_value() ? std::invoke(std::forward<decltype(fun)>, std::move(value()))
+                            : std::invoke(std::forward<decltype(def)>);
+      }
+      /**
+       * Carries out an operation on the stored object if there is one, or return
+       * a the result of a given function
+       */
+      constexpr auto map_or_else(std::invocable<value_type> auto&& fun,
+                                 std::invocable auto&& def) && -> std::
+         invoke_result_t<decltype(def)> requires std::convertible_to<
+            std::invoke_result_t<decltype(fun), value_type>, std::invoke_result_t<decltype(def)>>
+      {
+         return has_value() ? std::invoke(std::forward<decltype(fun)>, std::move(value()))
+                            : std::invoke(std::forward<decltype(def)>);
+      }
+
    private:
       storage<value_type> m_storage{};
    };
