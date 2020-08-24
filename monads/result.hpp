@@ -405,8 +405,7 @@ namespace monad
       static constexpr bool is_nothrow_value_move_constructible =
          std::is_nothrow_constructible_v<storage_type, value_t<value_type>&&>;
 
-      static constexpr bool copyable =
-         std::copyable<value_type> && std::copyable<error_type>;
+      static constexpr bool copyable = std::copyable<value_type> && std::copyable<error_type>;
       static constexpr bool movable = std::movable<value_type> && std::movable<error_type>;
 
       template <class any_>

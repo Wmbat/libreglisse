@@ -11,11 +11,10 @@
 namespace monad
 {
    // clang-format off
-   template <class any_>
-      requires(!std::is_reference_v<any_>) 
+   template <class any_> requires(!std::is_reference_v<any_>) 
    class maybe;
    // clang-format on
-   //
+
    template <>
    class maybe<void>
    {
@@ -25,8 +24,7 @@ namespace monad
    static inline constexpr auto none = none_t{}; // NOLINT
 
    // clang-format off
-   template <class any_>
-      requires(!std::is_reference_v<any_>) 
+   template <class any_> requires(!std::is_reference_v<any_>) 
    class maybe
    // clang-format on
    {
@@ -394,6 +392,17 @@ namespace monad
          assert(has_value());
 
          return std::move(m_storage.value());
+      }
+
+      /**
+       * Take the value out of the optional into another optional,
+       * leaving it empty
+       */
+      constexpr auto take() -> maybe
+      {
+         maybe ret = std::move(*this);
+         reset();
+         return ret;
       }
 
       /**
