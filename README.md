@@ -18,7 +18,7 @@ the `<concepts>` header.
 
 ## Dependencies
 
-* [googletest](https://github.com/google/googletest) For the unit tests.
+* [doctest](https://github.com/onqtam/doctest) For the unit tests.
 * [CPM.cmake](https://github.com/TheLartians/CPM.cmake) For downloading packages.
 
 ## Installation

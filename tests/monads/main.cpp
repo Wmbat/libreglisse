@@ -1,5 +1,5 @@
-#include <monads/maybe.hpp>
 #include <monads/either.hpp>
+#include <monads/maybe.hpp>
 #include <monads/result.hpp>
 #include <monads/try.hpp>
 
@@ -9,6 +9,20 @@
 #include <doctest/doctest.h>
 
 using namespace monad;
+
+class in_place_struct
+{
+public:
+   in_place_struct() noexcept = default;
+   in_place_struct(int x, int y) noexcept : m_x{x}, m_y{y} {}
+
+   auto x() const noexcept -> int { return m_x; }
+   auto y() const noexcept -> int { return m_y; }
+
+private:
+   int m_x{0};
+   int m_y{0};
+};
 
 TEST_CASE("maybe monad test suite")
 {
@@ -61,5 +75,15 @@ TEST_CASE("maybe monad test suite")
          REQUIRE(maybe_str.has_value() == true);
          CHECK(maybe_str.value() == "Hello");
       }
+   }
+
+   SUBCASE("in-place constructor")
+   {
+      CHECK(noexcept(maybe<in_place_struct>{std::in_place, 10, 10}) == true);
+
+      const maybe<in_place_struct> m{std::in_place, 10, 10};
+
+      REQUIRE(m.has_value() == true);
+      CHECK(m->x() == 10);
    }
 }
