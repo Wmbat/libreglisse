@@ -169,7 +169,7 @@ namespace monad
             std::construct_at(std::addressof(error()), std::move(r.value));
          }
          constexpr storage(const storage& rhs) noexcept(is_nothrow_copy_constructible) :
-            m_is_error{rhs.is_error()}
+            m_is_error{rhs.m_is_error}
          {
             if (is_value())
             {
@@ -181,7 +181,7 @@ namespace monad
             }
          }
          constexpr storage(storage&& rhs) noexcept(is_nothrow_move_constructible) :
-            m_is_error{rhs.is_error()}
+            m_is_error{rhs.m_is_error}
          {
             if (is_value())
             {
@@ -219,7 +219,7 @@ namespace monad
                   std::destroy_at(std::addressof(error()));
                }
 
-               m_is_error = rhs.is_error();
+               m_is_error = rhs.m_is_error;
 
                if (is_value())
                {
@@ -246,7 +246,7 @@ namespace monad
                   std::destroy_at(std::addressof(error()));
                }
 
-               m_is_error = rhs.is_error();
+               m_is_error = rhs.m_is_error;
                rhs.m_is_error = false;
 
                if (is_value())
