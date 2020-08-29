@@ -1,6 +1,7 @@
 # monads
 
 ![Linux](https://github.com/Wmbat/monads/workflows/Linux/badge.svg)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FWmbat%2Fmonads.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FWmbat%2Fmonads?ref=badge_shield)
 
 Monads is a library to emulate the behaviour of `either`, `result` and `maybe` monads in C++20.
 
@@ -84,3 +85,6 @@ For examples on how to use the monadic types, refer to the [wiki](https://github
 
 This project is licensed under the terms of the **MIT** license.
 
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FWmbat%2Fmonads.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FWmbat%2Fmonads?ref=badge_large)
