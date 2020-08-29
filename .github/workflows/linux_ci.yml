@@ -90,3 +90,5 @@ jobs:
         if (NOT result EQUAL 0)
           message(FATAL_ERROR "Bad exit status")
         endif()
+    - name: Upload coverage to codecov
+      uses: codecov/codecov-action@v1
