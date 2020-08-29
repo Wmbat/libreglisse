@@ -90,3 +90,6 @@ jobs:
         if (NOT result EQUAL 0)
           message(FATAL_ERROR "Bad exit status")
         endif()
+    - name: Post code coverage
+      run: bash <(curl -s https://codecov.io/bash)
+      env: CODECOV_TOKEN: "dbeabb76-c320-4dc4-9ab6-2a89ce2d75eb"
