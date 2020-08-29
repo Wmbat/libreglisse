@@ -93,7 +93,9 @@ jobs:
           message(FATAL_ERROR "Bad exit status")
         endif()
     - name: Test
-      run: ls ./
+      run: |
+        ls -lah ./
+        ls -lah ./build/
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
