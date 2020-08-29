@@ -31,12 +31,6 @@ jobs:
     - name: Download Clang
       if: ${{ matrix.config.name == 'Ubuntu Latest Clang' }}
       run: sudo apt update && sudo apt-get install clang-10 gcc-10 g++-10
-    - name: Download build2
-      run: |
-        mkdir build2-build && cd build2-build
-        curl -sSfO https://download.build2.org/0.13.0/build2-install-0.13.0.sh
-        shasum -a 256 -b build2-install-0.13.0.sh
-        sh build2-install-0.13.0.sh
     - name: Configure
       shell: cmake -P {0}
       run: |
@@ -96,5 +90,7 @@ jobs:
         if (NOT result EQUAL 0)
           message(FATAL_ERROR "Bad exit status")
         endif()
-    - name: Upload coverage to codecov
-      run: bash <(curl -s https://codecov.io/bash)
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        directory: ./build/tests/
