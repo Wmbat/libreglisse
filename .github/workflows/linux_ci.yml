@@ -92,9 +92,9 @@ jobs:
         endif()
     - name: Test
       run: | 
-        ls -lah /usr/bin/ | grep "gcov"
+        gcov --version
         sudo rm /usr/bin/gcov && sudo ln -sf /usr/bin/gcov-10 /usr/bin/gcov
-        ls -lah /usr/bin/ | grep "gcov"
+        gcov --version
     - name: Upload coverage to Codecov
       if: ${{ matrix.config.name == 'Ubuntu Latest Clang' }}
       run: bash <(curl -s https://codecov.io/bash)
