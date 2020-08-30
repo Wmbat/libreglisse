@@ -98,11 +98,8 @@ jobs:
         llvm-profdata merge -sparse ./build/tests/default.profraw -o ./coverage.profdata
         llvm-cov show ./build/tests/monads_test -instr-profile=./coverage.profdata > ./coverage.txt
         bash <(curl -s https://codecov.io/bash) \
-          -f /coverage.txt \
+          -f ./coverage.txt \
           -X gcov \
           -X coveragepy \
-          -X search \
-          -X xcode \
-          -R /repo \
           -F unittests \
           -Z || echo "Codecov did not collect coverage reports"
