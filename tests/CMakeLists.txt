@@ -7,8 +7,6 @@ CPMAddPackage(
     GIT_TAG 2.4.0
 )
 
-option(TEST_ENABLE_COVERAGE "" OFF)
-
 add_executable(monads_test)
 
 set_target_properties(monads_test PROPERTIES CXX_EXTENSIONS OFF)
@@ -27,8 +25,9 @@ target_link_libraries(monads_test
     PUBLIC
         monads::monads 
         doctest::doctest
-        --coverage
     PRIVATE
+        $<$<AND:$<CXX_COMPILER_ID:Clang>,$<CONFIG:DEBUG>>:-fcoverage-mapping>
+        $<$<AND:$<CXX_COMPILER_ID:Clang>,$<CONFIG:DEBUG>>:-fprofile-instr-generate>
         $<$<AND:$<CXX_COMPILER_ID:Clang>,$<CONFIG:DEBUG>>:-lasan>
         $<$<AND:$<CXX_COMPILER_ID:GNU>,$<CONFIG:DEBUG>>:-lasan>
         $<$<AND:$<CXX_COMPILER_ID:GNU>,$<CONFIG:DEBUG>>:-lubsan>)
@@ -39,9 +38,3 @@ target_sources(monads_test
 )
 
 add_test( NAME monads_test COMMAND monads_test )
-
-if (TEST_ENABLE_COVERAGE)
-    add_coverage(monads_test)
-    list(APPEND LCOV_REMOVE_PATTERNS "/usr/")
-    coverage_evaluate()
-endif ()
