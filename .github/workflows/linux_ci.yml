@@ -93,7 +93,7 @@ jobs:
     - name: Test
       run: |
         sudo ln -sf /usr/lib/llvm-10/bin/llvm-cov /usr/bin/llvm-cov 
-        llvm-cov gtest ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcno
+        llvm-cov gcov ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcno
     - name: Upload coverage to Codecov
       if: ${{ matrix.config.name == 'Ubuntu Latest Clang' }}
       run: bash <(curl -s https://codecov.io/bash) -X gcov
