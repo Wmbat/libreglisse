@@ -94,7 +94,7 @@ jobs:
         endif()
     - name: Test
       run: |
-        ls -lah ./build/tests/CMakeFiles/monads_test.dir/
+        ls -lah ./build/tests/CMakeFiles/monads_test.dir/monads/
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
