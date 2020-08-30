@@ -25,8 +25,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Download pre-requisites
-      run: sudo apt update && sudo apt-get install lcov
     - name: Download GCC
       if: ${{ matrix.config.name == 'Ubuntu Latest GCC' }}
       run: sudo apt-get install gcc-10 g++-10
@@ -92,10 +90,10 @@ jobs:
         if (NOT result EQUAL 0)
           message(FATAL_ERROR "Bad exit status")
         endif()
-    - name: Test
-      run: |
-        find .
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      if: ${{ matrix.config.name == 'Ubuntu Latest Clang' }}
+      uses: codecov/codecov-action@v1   
       with:
         files: ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcno,./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcda
+        fail_ci_if_error: true
+        path_to_write_report: ./coverage/codecov_report.gz
