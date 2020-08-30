@@ -1,6 +1,7 @@
 # monads
 
 ![Linux](https://github.com/Wmbat/monads/workflows/Linux/badge.svg)
+[![codecov](https://codecov.io/gh/Wmbat/monads/branch/master/graph/badge.svg)](https://codecov.io/gh/Wmbat/monads)
 
 Monads is a library to emulate the behaviour of `either`, `result` and `maybe` monads in C++20.
 
