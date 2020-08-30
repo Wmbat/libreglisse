@@ -3,7 +3,7 @@ name: Linux
 on: [push, pull_request]
 
 env:
-  BUILD_TYPE: Release
+  BUILD_TYPE: Debug
 
 jobs:
   build:
@@ -46,7 +46,7 @@ jobs:
               -B build
               -D CMAKE_C_COMPILER=/usr/bin/gcc-10
               -D CMAKE_CXX_COMPILER=/usr/bin/g++-10
-              -D CMAKE_BUILD_TYPE=${{ matrix.config.build_type }}
+              -D CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
               -D BUILD_TESTS=ON
             RESULT_VARIABLE result
           )
@@ -94,7 +94,7 @@ jobs:
         endif()
     - name: Test
       run: |
-        ls -lah ./build/tests/CMakeFiles/monads_test.dir/monads/
+        find .
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
