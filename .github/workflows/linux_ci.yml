@@ -25,6 +25,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Download prereq
+      name: sudo apt-get install lcov
     - name: Download GCC
       if: ${{ matrix.config.name == 'Ubuntu Latest GCC' }}
       run: sudo apt-get install gcc-10 g++-10
@@ -91,9 +93,11 @@ jobs:
           message(FATAL_ERROR "Bad exit status")
         endif()
     - name: Create coverage file
-      run: gcov ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcno
-    - name: Test
-      run: find .
+      run: |
+        find .
+        sudo ln -sf /usr/bin/gcov-10 /usr/bin/gcov
+        gcov ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcno
+        find .
     - name: Upload coverage to Codecov
       if: ${{ matrix.config.name == 'Ubuntu Latest Clang' }}
       uses: codecov/codecov-action@v1   
