@@ -494,10 +494,9 @@ namespace monad
        * Carries out an operation on the stored object if there is one, or returns
        * a default value
        */
-      constexpr auto
-      map_or(std::invocable<value_type> auto&& fun,
-             std::convertible_to<std::invoke_result_t<decltype(fun), value_type>> auto&& other)
-         const& -> decltype(other)
+      constexpr auto map_or(std::invocable<value_type> auto&& fun, auto&& other)
+         const& -> std::common_type_t<std::invoke_result_t<decltype(fun), value_type>,
+                                      decltype(other)>
       {
          return has_value() ? std::invoke(std::forward<decltype(fun)>(fun), value())
                             : std::forward<decltype(other)>(other);
@@ -508,8 +507,8 @@ namespace monad
        */
       constexpr auto
       map_or(std::invocable<value_type> auto&& fun,
-             std::convertible_to<std::invoke_result_t<decltype(fun), value_type>> auto&&
-                other) & -> decltype(other)
+             auto&& other) & -> std::common_type_t<std::invoke_result_t<decltype(fun), value_type>,
+                                                   decltype(other)>
       {
          return has_value() ? std::invoke(std::forward<decltype(fun)>(fun), value())
                             : std::forward<decltype(other)>(other);
@@ -518,10 +517,9 @@ namespace monad
        * Carries out an operation on the stored object if there is one, or returns
        * a default value
        */
-      constexpr auto
-      map_or(std::invocable<value_type> auto&& fun,
-             std::convertible_to<std::invoke_result_t<decltype(fun), value_type>> auto&& other)
-         const&& -> decltype(other)
+      constexpr auto map_or(std::invocable<value_type> auto&& fun, auto&& other)
+         const&& -> std::common_type_t<std::invoke_result_t<decltype(fun), value_type>,
+                                       decltype(other)>
       {
          return has_value() ? std::invoke(std::forward<decltype(fun)>(fun), std::move(value()))
                             : std::forward<decltype(other)>(other);
@@ -532,8 +530,8 @@ namespace monad
        */
       constexpr auto
       map_or(std::invocable<value_type> auto&& fun,
-             std::convertible_to<std::invoke_result_t<decltype(fun), value_type>> auto&&
-                other) && -> decltype(other)
+             auto&& other) && -> std::common_type_t<std::invoke_result_t<decltype(fun), value_type>,
+                                                    decltype(other)>
       {
          return has_value() ? std::invoke(std::forward<decltype(fun)>(fun), std::move(value()))
                             : std::forward<decltype(other)>(other);
