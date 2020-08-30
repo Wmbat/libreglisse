@@ -96,4 +96,3 @@ jobs:
       with:
         files: ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcno,./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcda
         fail_ci_if_error: true
-        path_to_write_report: ./coverage/codecov_report.gz
