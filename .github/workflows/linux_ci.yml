@@ -46,7 +46,6 @@ jobs:
               -D CMAKE_CXX_COMPILER=/usr/bin/g++-10
               -D CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
               -D BUILD_TESTS=ON
-              -D ENABLE_COVERAGE=ON
             RESULT_VARIABLE result
           )
         else ()
@@ -58,7 +57,6 @@ jobs:
               -D CMAKE_CXX_COMPILER=/usr/bin/clang++-10
               -D CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
               -D BUILD_TESTS=ON
-              -D ENABLE_COVERAGE=ON
             RESULT_VARIABLE result
           )
         endif()
@@ -100,6 +98,6 @@ jobs:
         ls -lah ./
         ls -lah ./build/
         ls -lah ./build/tests/
-        llvm-profdata merge -sparse /build/tests/default.profraw -o coverage.profdata
-        llvm-cov show monads_test -instr-profile=coverage.profdata > coverage.txt
+        llvm-profdata merge -sparse ./build/tests/default.profraw -o ./coverage.profdata
+        llvm-cov show monads_test -instr-profile=./coverage.profdata > ./coverage.txt
         bash <(curl -s https://codecov.io/bash) -X gcov || echo "Codecov did not collect coverage reports"
