@@ -94,7 +94,6 @@ jobs:
         endif()
     - name: Create coverage file
       run: |
-        find .
         sudo ln -sf /usr/bin/gcov-10 /usr/bin/gcov
         gcov ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcno
         find .
