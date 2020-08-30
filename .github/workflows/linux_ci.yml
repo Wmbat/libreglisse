@@ -97,7 +97,9 @@ jobs:
       run: |
         sudo ln -sf /usr/lib/llvm-10/bin/llvm-cov /usr/bin/llvm-cov 
         sudo ln -sf /usr/lib/llvm-10/bin/llvm-profdata /usr/bin/llvm-profdata
-        ls -lah /build/tests/
+        ls -lah ./
+        ls -lah ./build/
+        ls -lah ./build/tests/
         llvm-profdata merge -sparse /build/tests/default.profraw -o coverage.profdata
         llvm-cov show monads_test -instr-profile=coverage.profdata > coverage.txt
         bash <(curl -s https://codecov.io/bash) -X gcov || echo "Codecov did not collect coverage reports"
