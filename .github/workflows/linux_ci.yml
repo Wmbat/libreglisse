@@ -91,7 +91,7 @@ jobs:
           message(FATAL_ERROR "Bad exit status")
         endif()
     - name: Test
-      run: cd /usr/bin && find .
+      run: cd /usr/bin && ls | grep "gcov"
     - name: Upload coverage to Codecov
       if: ${{ matrix.config.name == 'Ubuntu Latest Clang' }}
       run: bash <(curl -s https://codecov.io/bash)
