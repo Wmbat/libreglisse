@@ -26,7 +26,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Download prereq
-      run: sudo apt-get install lcov
+      run: sudo apt-get install lcov && sudo apt-get install ggcov
     - name: Download GCC
       if: ${{ matrix.config.name == 'Ubuntu Latest GCC' }}
       run: sudo apt-get install gcc-10 g++-10
