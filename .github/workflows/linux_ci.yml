@@ -98,4 +98,5 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
-        files: ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcno, ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcda
+        directory: ./build/tests/CMakeFiles/monads_test.dir/monads/
+        #files: ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcno, ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcda
