@@ -92,14 +92,6 @@ jobs:
         if (NOT result EQUAL 0)
           message(FATAL_ERROR "Bad exit status")
         endif()
-    - name: Create coverage file
-      run: |
-        sudo ln -sf /usr/bin/gcov-10 /usr/bin/gcov
-        gcov ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcno
-        find .
     - name: Upload coverage to Codecov
       if: ${{ matrix.config.name == 'Ubuntu Latest Clang' }}
-      uses: codecov/codecov-action@v1   
-      with:
-        files: ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcno,./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcda
-        fail_ci_if_error: true
+      run: bash <(curl -s https://codecov.io.bash)
