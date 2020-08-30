@@ -437,36 +437,36 @@ namespace monad
       [[nodiscard]] constexpr auto is_value() const -> bool { return m_storage.is_value(); }
       constexpr operator bool() const { return is_value(); }
 
-      constexpr auto value() const& -> maybe<value_type> requires copyable
+      constexpr auto value() const& -> maybe<value_type>
       {
          return is_value() ? make_maybe(m_storage.value()) : none;
       }
-      constexpr auto value() & -> maybe<value_type> requires copyable
+      constexpr auto value() & -> maybe<value_type>
       {
          return is_value() ? make_maybe(m_storage.value()) : none;
       }
-      constexpr auto value() const&& -> maybe<value_type> requires movable
+      constexpr auto value() const&& -> maybe<value_type>
       {
          return is_value() ? make_maybe(std::move(m_storage.value())) : none;
       }
-      constexpr auto value() && -> maybe<value_type> requires movable
+      constexpr auto value() && -> maybe<value_type>
       {
          return is_value() ? make_maybe(std::move(m_storage.value())) : none;
       }
 
-      constexpr auto error() const& -> maybe<error_type> requires copyable
+      constexpr auto error() const& -> maybe<error_type>
       {
          return is_value() ? none : make_maybe(m_storage.error());
       }
-      constexpr auto error() & -> maybe<error_type> requires copyable
+      constexpr auto error() & -> maybe<error_type>
       {
          return is_value() ? none : make_maybe(m_storage.error());
       }
-      constexpr auto error() const&& -> maybe<error_type> requires movable
+      constexpr auto error() const&& -> maybe<error_type>
       {
          return is_value() ? none : make_maybe(std::move(m_storage.error()));
       }
-      constexpr auto error() && -> maybe<error_type> requires movable
+      constexpr auto error() && -> maybe<error_type>
       {
          return is_value() ? none : make_maybe(std::move(m_storage.error()));
       }
