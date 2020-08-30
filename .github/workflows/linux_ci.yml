@@ -91,10 +91,7 @@ jobs:
           message(FATAL_ERROR "Bad exit status")
         endif()
     - name: Test
-      run: | 
-        gcov --version
-        sudo rm /usr/bin/gcov && sudo ln -sf /usr/bin/gcov-10 /usr/bin/gcov
-        gcov --version
+      run: llvm-cov gtest ./build/tests/CMakeFiles/monads_test.dir/monads/main.cpp.gcno
     - name: Upload coverage to Codecov
       if: ${{ matrix.config.name == 'Ubuntu Latest Clang' }}
-      run: bash <(curl -s https://codecov.io/bash)
+      run: bash <(curl -s https://codecov.io/bash) -X gcov
