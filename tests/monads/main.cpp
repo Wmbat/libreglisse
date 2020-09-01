@@ -237,27 +237,27 @@ TEST_CASE("result monad test suite")
    SUBCASE("error copy ctor")
    {
       {
-         int i = 0;
+         monad::error_t<int> i = make_error(0);
 
-         result<int, int> test{make_error(i)};
-
-         REQUIRE(test.is_value() == false);
-         CHECK(test.error().value() == i);
-      }
-      {
-         const std::string hello = "hello, world!";
-
-         result<int, std::string> test{make_error(hello)};
+         result<int, int> test{i};
 
          REQUIRE(test.is_value() == false);
-         CHECK(test.error().value() == hello);
+         CHECK(test.error().value() == i.val);
       }
       {
-         std::string hello = "hello, world!";
+         const auto hello = make_error<std::string>("hello, world!");
+
+         result<int, std::string> test{hello};
+
+         REQUIRE(test.is_value() == false);
+         CHECK(test.error().value() == hello.val);
+      }
+      {
+         const auto hello = make_error<std::string>("hello, world!");
          const auto lambda = [&](int i) noexcept -> result<int, std::string> {
             if (i > 10)
             {
-               return make_error(hello);
+               return hello;
             }
             else
             {
@@ -268,9 +268,77 @@ TEST_CASE("result monad test suite")
          const auto test = lambda(11);
 
          REQUIRE(test.is_value() == false);
-         CHECK(test.error().value() == hello);
+         CHECK(test.error().value() == hello.val);
       }
    }
+   SUBCASE("error move ctor")
+   {
+      {
+         result<int, int> test{make_error<int>(0)};
+
+         REQUIRE(test.is_value() == false);
+         CHECK(test.error().value() == 0);
+      }
+      {
+         result<std::string, std::string> test{make_error<std::string>("hello, world!")};
+
+         REQUIRE(test.is_value() == false);
+         CHECK(test.error().value() == "hello, world!");
+      }
+      {
+         const auto lambda = [&]() noexcept -> result<int, std::string> {
+            return make_error<std::string>("hello, world!");
+         };
+
+         const auto test = lambda();
+
+         REQUIRE(test.is_value() == false);
+         CHECK(test.error().value() == "hello, world!");
+      }
+      {
+         result<std::unique_ptr<int>, int> test{std::make_unique<int>(10)}; // NOLINT
+
+         REQUIRE(test.is_value() == true);
+         CHECK(*std::move(test).value().value() == 10);
+      }
+   }
+   SUBCASE("error in-place ctor")
+   {
+      {
+         result<int, int_field> test{error_in_place, 10, 10, 10, 10}; // NOLINT
+
+         REQUIRE(test.is_value() == false);
+
+         const auto field = test.error();
+
+         CHECK(field->m_a == 10);
+         CHECK(field->m_b == 10);
+         CHECK(field->m_c == 10);
+         CHECK(field->m_d == 10);
+      }
+      {
+         result<int, movable_int_field> test{error_in_place, 10, 10, 10, 10}; // NOLINT
+
+         REQUIRE(test.is_value() == false);
+
+         const auto field = std::move(test).error();
+
+         CHECK(field->m_a == 10);
+         CHECK(field->m_b == 10);
+         CHECK(field->m_c == 10);
+         CHECK(field->m_d == 10);
+      }
+   }
+
+   SUBCASE("const l-value value") {}
+   SUBCASE("l-value value") {}
+   SUBCASE("const r-value value") {}
+   SUBCASE("r-value value") {}
+
+   SUBCASE("const l-value error") {}
+   SUBCASE("l-value error") {}
+   SUBCASE("const r-value error") {}
+   SUBCASE("r-value error") {}
 
    SUBCASE("const l-value map")
    {
@@ -419,6 +487,11 @@ TEST_CASE("result monad test suite")
          CHECK(test.value().value() == 10);
       }
    }
+
+   SUBCASE("const l-value map_error") {}
+   SUBCASE("l-value map_error") {}
+   SUBCASE("const r-value map_error") {}
+   SUBCASE("r-value map_error") {}
 }
 
 TEST_CASE("try_wrap test suite")

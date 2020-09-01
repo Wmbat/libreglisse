@@ -50,12 +50,12 @@ namespace monad
       return {.val = std::forward<decltype(err)>(err)};
    }
 
-   struct in_place_error_t
+   struct error_in_place_t
    {
-      constexpr in_place_error_t() noexcept = default;
+      constexpr error_in_place_t() noexcept = default;
    };
 
-   static constexpr in_place_error_t in_place_error;
+   static constexpr error_in_place_t error_in_place;
 
    // static constexpr error_t error;
 
@@ -162,8 +162,9 @@ namespace monad
          {
             std::construct_at(std::addressof(error()), std::move(err.val));
          }
-         constexpr storage(in_place_error_t, auto&&... args) noexcept(
-            std::is_nothrow_constructible_v<error_type, decltype(args)...>)
+         constexpr storage(error_in_place_t, auto&&... args) noexcept(
+            std::is_nothrow_constructible_v<error_type, decltype(args)...>) :
+            m_is_error{true}
          {
             std::construct_at(std::addressof(error()), std::forward<decltype(args)>(args)...);
          }
@@ -352,7 +353,7 @@ namespace monad
          {
             std::construct_at(std::addressof(error()), std::move(err.val));
          }
-         constexpr storage(in_place_error_t, auto&&... args) noexcept
+         constexpr storage(error_in_place_t, auto&&... args) noexcept : m_is_error{true}
          {
             std::construct_at(std::addressof(error()), std::forward<decltype(args)>(args)...);
          }
@@ -440,13 +441,19 @@ namespace monad
       {}
       constexpr result(const error_t<error_type>& err) : m_storage{err} {}
       constexpr result(error_t<error_type>&& err) : m_storage{std::move(err)} {}
-      constexpr result(in_place_error_t, auto&&... args) noexcept(
+      constexpr result(error_in_place_t, auto&&... args) noexcept(
          std::is_nothrow_constructible_v<storage_type, decltype(args)...>) requires std::
          constructible_from<error_type, decltype(args)...> :
-         m_storage{in_place_error, std::forward<decltype(args)>(args)...}
+         m_storage{error_in_place, std::forward<decltype(args)>(args)...}
       {}
 
+      /**
+       * Check if the result has a value or an error
+       */
       [[nodiscard]] constexpr auto is_value() const -> bool { return m_storage.is_value(); }
+      /**
+       * Check if the result has a value or an error
+       */
       constexpr operator bool() const { return is_value(); }
 
       constexpr auto value() const& -> maybe<value_type>
