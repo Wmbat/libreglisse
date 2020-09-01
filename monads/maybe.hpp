@@ -1,6 +1,6 @@
 #pragma once
 
-#include "monads/type_traits.hpp"
+#include <monads/type_traits.hpp>
 
 #include <cassert>
 #include <compare>
@@ -10,6 +10,13 @@
 
 namespace monad
 {
+   struct in_place_t
+   {
+      in_place_t() noexcept = default;
+   };
+
+   static constexpr in_place_t in_place;
+
    // clang-format off
    template <class any_> requires(!std::is_reference_v<any_>) 
    class maybe;
@@ -77,7 +84,7 @@ namespace monad
          {
             std::construct_at(pointer(), std::move(value));
          }
-         constexpr storage(std::in_place_t, auto&&... args) noexcept(
+         constexpr storage(in_place_t, auto&&... args) noexcept(
             std::is_nothrow_constructible_v<value_type, decltype(args)...>) :
             m_is_engaged{true}
          {
@@ -220,7 +227,7 @@ namespace monad
          {
             std::construct_at(pointer(), std::move(value));
          }
-         constexpr storage(std::in_place_t, auto&&... args) noexcept : m_is_engaged{true}
+         constexpr storage(in_place_t, auto&&... args) noexcept : m_is_engaged{true}
          {
             std::construct_at(pointer(), std::forward<decltype(args)>(args)...);
          }
@@ -297,10 +304,10 @@ namespace monad
       constexpr maybe(value_type&& value) noexcept(is_nothrow_rvalue_constructible) :
          m_storage{std::move(value)}
       {}
-      constexpr maybe(std::in_place_t u, auto&&... args) noexcept(
+      constexpr maybe(in_place_t, auto&&... args) noexcept(
          std::is_nothrow_constructible_v<value_type, decltype(args)...>) requires std::
          constructible_from<value_type, decltype(args)...> :
-         m_storage{u, std::forward<decltype(args)>(args)...}
+         m_storage{in_place, std::forward<decltype(args)>(args)...}
       {}
 
       /**

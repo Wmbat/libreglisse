@@ -39,29 +39,25 @@ namespace monad
       }
    } // namespace detail
 
-   template <class any_>
-   struct value_t
-   {
-      any_ value;
-   };
-
-   template <class any_>
+   template <typename any_>
    struct error_t
    {
-      any_ value;
+      any_ val;
    };
 
-   template <class any_>
-   constexpr auto make_value(any_&& value) -> value_t<std::decay_t<any_>>
+   constexpr auto make_error(auto&& err) -> error_t<std::decay_t<decltype(err)>>
    {
-      return value_t<std::decay_t<any_>>{std::forward<any_>(value)};
+      return {.val = std::forward<decltype(err)>(err)};
    }
 
-   template <class any_>
-   constexpr auto make_error(any_&& value) -> error_t<std::decay_t<any_>>
+   struct error_in_place_t
    {
-      return error_t<std::decay_t<any_>>{std::forward<any_>(value)};
-   }
+      constexpr error_in_place_t() noexcept = default;
+   };
+
+   static constexpr error_in_place_t error_in_place;
+
+   // static constexpr error_t error;
 
    // clang-format off
    template <class value_, class error_> 
@@ -81,15 +77,6 @@ namespace monad
             std::array<std::byte, detail::max(sizeof(value_type), sizeof(error_type))>;
 
          // clang-format off
-         static inline constexpr bool is_nothrow_default_constructible =
-            std::is_nothrow_default_constructible_v<value_type> && 
-            std::is_nothrow_default_constructible_v<storage_type>;
-
-         static inline constexpr bool is_nothrow_copy_value_constructible =
-            std::is_nothrow_copy_assignable_v<value_type> &&
-            std::is_nothrow_copy_constructible_v<value_type> && 
-            std::is_nothrow_default_constructible_v<storage_type>;
-
          static inline constexpr bool is_nothrow_move_value_constructible =
             std::is_nothrow_move_assignable_v<value_type> &&
             std::is_nothrow_move_constructible_v<value_type> &&
@@ -106,7 +93,7 @@ namespace monad
             std::is_nothrow_default_constructible_v<storage_type>;
 
          static inline constexpr bool is_nothrow_copy_constructible =
-            is_nothrow_copy_value_constructible && 
+            std::is_nothrow_copy_constructible_v<value_type> && 
             is_nothrow_copy_error_constructible;
 
          static inline constexpr bool is_nothrow_move_constructible =
@@ -144,29 +131,42 @@ namespace monad
          // clang-format on
 
       public:
-         constexpr storage() noexcept(is_nothrow_default_constructible)
+         constexpr storage() noexcept(std::is_nothrow_default_constructible_v<error_type>) :
+            m_is_error{true}
          {
-            std::construct_at(std::addressof(value()), value_type{});
+            std::construct_at(std::addressof(error()), error_type{});
          };
-         constexpr storage(const value_t<value_type>& l) noexcept(
-            is_nothrow_copy_value_constructible)
+         constexpr storage(const value_type& val) noexcept(
+            std::is_nothrow_copy_constructible_v<value_type>)
          {
-            std::construct_at(std::addressof(value()), l.value);
+            std::construct_at(std::addressof(value()), val);
          }
-         constexpr storage(value_t<value_type>&& l) noexcept(is_nothrow_move_value_constructible)
+         constexpr storage(value_type&& val) noexcept(is_nothrow_move_value_constructible)
          {
-            std::construct_at(std::addressof(value()), std::move(l.value));
+            std::construct_at(std::addressof(value()), std::move(val));
          }
-         constexpr storage(const error_t<error_type>& r) noexcept(
+         constexpr storage(in_place_t, auto&&... args) noexcept(
+            std::is_nothrow_constructible_v<value_type, decltype(args)...>)
+         {
+            std::construct_at(std::addressof(value()), std::forward<decltype(args)>(args)...);
+         }
+         constexpr storage(const error_t<error_type>& err) noexcept(
             is_nothrow_copy_error_constructible) :
             m_is_error{true}
          {
-            std::construct_at(std::addressof(error()), r.value);
+            std::construct_at(std::addressof(error()), err.val);
          }
-         constexpr storage(error_t<error_type>&& r) noexcept(is_nothrow_move_error_constructible) :
+         constexpr storage(error_t<error_type>&& err) noexcept(
+            is_nothrow_move_error_constructible) :
             m_is_error{true}
          {
-            std::construct_at(std::addressof(error()), std::move(r.value));
+            std::construct_at(std::addressof(error()), std::move(err.val));
+         }
+         constexpr storage(error_in_place_t, auto&&... args) noexcept(
+            std::is_nothrow_constructible_v<error_type, decltype(args)...>) :
+            m_is_error{true}
+         {
+            std::construct_at(std::addressof(error()), std::forward<decltype(args)>(args)...);
          }
          constexpr storage(const storage& rhs) noexcept(is_nothrow_copy_constructible) :
             m_is_error{rhs.m_is_error}
@@ -206,7 +206,7 @@ namespace monad
             }
          }
 
-         constexpr auto operator=(const storage& rhs) -> storage&
+         constexpr auto operator=(const storage& rhs) -> storage& // NOLINT
          {
             if (this != &rhs)
             {
@@ -333,21 +333,29 @@ namespace monad
 
       public:
          constexpr storage() noexcept { std::construct_at(std::addressof(value()), value_type{}); };
-         constexpr storage(const value_t<value_type>& l) noexcept
+         constexpr storage(const value_type& val) noexcept
          {
-            std::construct_at(std::addressof(value()), l.value);
+            std::construct_at(std::addressof(value()), val);
          }
-         constexpr storage(value_t<value_type>&& l) noexcept
+         constexpr storage(value_type&& val) noexcept
          {
-            std::construct_at(std::addressof(value()), std::move(l.value));
+            std::construct_at(std::addressof(value()), std::move(val));
          }
-         constexpr storage(const error_t<error_type>& r) noexcept : m_is_error{true}
+         constexpr storage(in_place_t, auto&&... args) noexcept
          {
-            std::construct_at(std::addressof(error()), r.value);
+            std::construct_at(std::addressof(value()), std::forward<decltype(args)>(args)...);
          }
-         constexpr storage(error_t<error_type>&& r) noexcept : m_is_error{true}
+         constexpr storage(const error_t<error_type>& err) noexcept : m_is_error{true}
          {
-            std::construct_at(std::addressof(error()), std::move(r.value));
+            std::construct_at(std::addressof(error()), err.val);
+         }
+         constexpr storage(error_t<error_type>&& err) noexcept : m_is_error{true}
+         {
+            std::construct_at(std::addressof(error()), std::move(err.val));
+         }
+         constexpr storage(error_in_place_t, auto&&... args) noexcept : m_is_error{true}
+         {
+            std::construct_at(std::addressof(error()), std::forward<decltype(args)>(args)...);
          }
 
          constexpr auto value() & noexcept -> value_type& { return *v_pointer(); }
@@ -399,12 +407,6 @@ namespace monad
    private:
       using storage_type = storage<value_type, error_type>;
 
-      static constexpr bool is_nothrow_value_copy_constructible =
-         std::is_nothrow_constructible_v<storage_type, value_t<value_type>>;
-
-      static constexpr bool is_nothrow_value_move_constructible =
-         std::is_nothrow_constructible_v<storage_type, value_t<value_type>&&>;
-
       static constexpr bool copyable = std::copyable<value_type> && std::copyable<error_type>;
       static constexpr bool movable = std::movable<value_type> && std::movable<error_type>;
 
@@ -424,17 +426,34 @@ namespace monad
       using join_result = std::common_type_t<map_value_type<value_fun>, map_error_type<error_fun>>;
 
    public:
-      constexpr result(const value_t<value_type>& value) noexcept(
-         is_nothrow_value_copy_constructible) :
-         m_storage{value}
+      constexpr result(const value_type& val) noexcept(
+         std::is_nothrow_constructible_v<storage_type, value_type>) :
+         m_storage{val}
       {}
-      constexpr result(value_t<value_type>&& value) noexcept(is_nothrow_value_move_constructible) :
-         m_storage{std::move(value)}
+      constexpr result(value_type&& val) noexcept(
+         std::is_nothrow_constructible_v<storage_type, value_type&&>) :
+         m_storage{std::move(val)}
       {}
-      constexpr result(const error_t<error_type>& error) : m_storage{error} {}
-      constexpr result(error_t<error_type>&& error) : m_storage{std::move(error)} {}
+      constexpr result(in_place_t, auto&&... args) noexcept(
+         std::is_nothrow_constructible_v<storage_type, decltype(args)...>) requires std::
+         constructible_from<value_type, decltype(args)...> :
+         m_storage{in_place, std::forward<decltype(args)>(args)...}
+      {}
+      constexpr result(const error_t<error_type>& err) : m_storage{err} {}
+      constexpr result(error_t<error_type>&& err) : m_storage{std::move(err)} {}
+      constexpr result(error_in_place_t, auto&&... args) noexcept(
+         std::is_nothrow_constructible_v<storage_type, decltype(args)...>) requires std::
+         constructible_from<error_type, decltype(args)...> :
+         m_storage{error_in_place, std::forward<decltype(args)>(args)...}
+      {}
 
+      /**
+       * Check if the result has a value or an error
+       */
       [[nodiscard]] constexpr auto is_value() const -> bool { return m_storage.is_value(); }
+      /**
+       * Check if the result has a value or an error
+       */
       constexpr operator bool() const { return is_value(); }
 
       constexpr auto value() const& -> maybe<value_type>
@@ -471,48 +490,59 @@ namespace monad
          return is_value() ? none : make_maybe(std::move(m_storage.error()));
       }
 
+      /**
+       * Perform an operation on the value stored within the result
+       */
       constexpr auto
-      map(const std::invocable<value_type> auto& fun) const& -> map_value_result<decltype(fun)>
+      map(std::invocable<value_type> auto&& fun) const& -> map_value_result<decltype(fun)>
       {
          if (is_value())
          {
-            return make_value(std::invoke(fun, m_storage.value()));
+            return {std::invoke(std::forward<decltype(fun)>(fun), m_storage.value())};
          }
          else
          {
             return make_error(m_storage.error());
          }
       }
-      constexpr auto
-      map(const std::invocable<value_type> auto& fun) & -> map_value_result<decltype(fun)>
+      /**
+       * Perform an operation on the value stored within the result
+       */
+      constexpr auto map(std::invocable<value_type> auto&& fun) & -> map_value_result<decltype(fun)>
       {
          if (is_value())
          {
-            return make_value(std::invoke(fun, m_storage.value()));
+            return {std::invoke(std::forward<decltype(fun)>(fun), m_storage.value())};
          }
          else
          {
             return make_error(m_storage.error());
          }
       }
+      /**
+       * Perform an operation on the value stored within the result
+       */
       constexpr auto
-      map(const std::invocable<value_type> auto& fun) const&& -> map_value_result<decltype(fun)>
+      map(std::invocable<value_type> auto&& fun) const&& -> map_value_result<decltype(fun)>
       {
          if (is_value())
          {
-            return make_value(std::invoke(fun, std::move(m_storage.value())));
+            return std::invoke(std::forward<decltype(fun)>(fun), std::move(m_storage.value()));
          }
          else
          {
             return make_error(std::move(m_storage.error()));
          }
       }
+      /**
+       * Perform an operation on the value stored within the result
+       */
       constexpr auto
-      map(const std::invocable<value_type> auto& fun) && -> map_value_result<decltype(fun)>
+      map(std::invocable<value_type> auto&& fun) && -> map_value_result<decltype(fun)>
       {
          if (is_value())
          {
-            return make_value(std::invoke(fun, std::move(m_storage.value())));
+            return std::invoke(std::forward<decltype(fun)>(fun), std::move(m_storage.value()));
          }
          else
          {
@@ -520,157 +550,171 @@ namespace monad
          }
       }
 
-      constexpr auto map_error(
-         const std::invocable<error_type> auto& fun) const& -> map_error_result<decltype(fun)>
-      {
-         if (is_value())
-         {
-            return make_value(m_storage.value());
-         }
-         else
-         {
-            return make_error(std::invoke(fun, m_storage.error()));
-         }
-      }
+      /**
+       * Perform an operation on the error stored within the result
+       */
       constexpr auto
-      map_error(const std::invocable<error_type> auto& fun) & -> map_error_result<decltype(fun)>
+      map_error(std::invocable<error_type> auto&& fun) const& -> map_error_result<decltype(fun)>
       {
          if (is_value())
          {
-            return make_value(m_storage.value());
+            return m_storage.value();
          }
          else
          {
-            return make_error(std::invoke(fun, m_storage.error()));
+            return make_error(std::invoke(std::forward<decltype(fun)>(fun), m_storage.error()));
          }
       }
-      constexpr auto map_error(
-         const std::invocable<error_type> auto& fun) const&& -> map_error_result<decltype(fun)>
-      {
-         if (is_value())
-         {
-            return make_value(std::move(m_storage.value()));
-         }
-         else
-         {
-            return make_error(std::invoke(fun, std::move(m_storage.error())));
-         }
-      }
+      /**
+       * Perform an operation on the error stored within the result
+       */
       constexpr auto
-      map_error(const std::invocable<error_type> auto& fun) && -> map_error_result<decltype(fun)>
+      map_error(std::invocable<error_type> auto&& fun) & -> map_error_result<decltype(fun)>
       {
          if (is_value())
          {
-            return make_value(std::move(m_storage.value()));
+            return m_storage.value();
          }
          else
          {
-            return make_error(std::invoke(fun, std::move(m_storage.error())));
+            return make_error(std::invoke(std::forward<decltype(fun)>(fun), m_storage.error()));
+         }
+      }
+      /**
+       * Perform an operation on the error stored within the result
+       */
+      constexpr auto
+      map_error(std::invocable<error_type> auto&& fun) const&& -> map_error_result<decltype(fun)>
+      {
+         if (is_value())
+         {
+            return std::move(m_storage.value());
+         }
+         else
+         {
+            return make_error(
+               std::invoke(std::forward<decltype(fun)>(fun), std::move(m_storage.error())));
+         }
+      }
+      /**
+       * Perform an operation on the error stored within the result
+       */
+      constexpr auto
+      map_error(std::invocable<error_type> auto&& fun) && -> map_error_result<decltype(fun)>
+      {
+         if (is_value())
+         {
+            return std::move(m_storage.value());
+         }
+         else
+         {
+            return make_error(
+               std::invoke(std::forward<decltype(fun)>(fun), std::move(m_storage.error())));
          }
       }
 
       template <class inner_value_ = value_type, class inner_error_ = error_type>
-      constexpr auto
-      join() const& -> std::common_type_t<inner_value_, inner_error_> requires copyable
+      constexpr auto join() const& -> std::common_type_t<inner_value_, inner_error_>
       {
          return is_value() ? m_storage.value() : m_storage.error();
       }
       template <class inner_value_ = value_type, class inner_error_ = error_type>
-      constexpr auto join() & -> std::common_type_t<inner_value_, inner_error_> requires copyable
+      constexpr auto join() & -> std::common_type_t<inner_value_, inner_error_>
       {
          return is_value() ? m_storage.value() : m_storage.error();
       }
 
       template <class inner_value_ = value_type, class inner_error_ = error_type>
-      constexpr auto
-      join() const&& -> std::common_type_t<inner_value_, inner_error_> requires movable
+      constexpr auto join() const&& -> std::common_type_t<inner_value_, inner_error_>
       {
          return is_value() ? std::move(m_storage.value()) : std::move(m_storage.error());
       }
       template <class inner_value_ = value_type, class inner_error_ = error_type>
-      constexpr auto join() && -> std::common_type_t<inner_value_, inner_error_> requires movable
+      constexpr auto join() && -> std::common_type_t<inner_value_, inner_error_>
       {
          return is_value() ? std::move(m_storage.value()) : std::move(m_storage.error());
       }
 
-      constexpr auto join(const std::invocable<value_type> auto& l_fun,
-                          const std::invocable<error_type> auto& r_fun)
+      constexpr auto join(std::invocable<value_type> auto&& l_fun,
+                          std::invocable<error_type> auto&& r_fun)
          const& -> join_result<decltype(l_fun), decltype(r_fun)>
       {
-         return is_value() ? std::invoke(l_fun, m_storage.value())
-                           : std::invoke(r_fun, m_storage.error());
+         return is_value() ? std::invoke(std::forward<decltype(l_fun)>(l_fun), m_storage.value())
+                           : std::invoke(std::forward<decltype(r_fun)>(r_fun), m_storage.error());
       }
-      constexpr auto join(const std::invocable<value_type> auto& l_fun,
-                          const std::invocable<error_type> auto&
-                             r_fun) & -> join_result<decltype(l_fun), decltype(r_fun)>
+      constexpr auto join(
+         std::invocable<value_type> auto&& l_fun,
+         std::invocable<error_type> auto&& r_fun) & -> join_result<decltype(l_fun), decltype(r_fun)>
       {
-         return is_value() ? std::invoke(l_fun, m_storage.value())
-                           : std::invoke(r_fun, m_storage.error());
+         return is_value() ? std::invoke(std::forward<decltype(l_fun)>(l_fun), m_storage.value())
+                           : std::invoke(std::forward<decltype(r_fun)>(r_fun), m_storage.error());
       }
-      constexpr auto join(const std::invocable<value_type> auto& l_fun,
-                          const std::invocable<error_type> auto& r_fun)
+      constexpr auto join(std::invocable<value_type> auto&& l_fun,
+                          std::invocable<error_type> auto&& r_fun)
          const&& -> join_result<decltype(l_fun), decltype(r_fun)>
       {
-         return is_value() ? std::invoke(l_fun, std::move(m_storage.value()))
-                           : std::invoke(r_fun, std::move(m_storage.error()));
+         return is_value()
+            ? std::invoke(std::forward<decltype(l_fun)>(l_fun), std::move(m_storage.value()))
+            : std::invoke(std::forward<decltype(r_fun)>(r_fun), std::move(m_storage.error()));
       }
 
-      constexpr auto join(const std::invocable<value_type> auto& l_fun,
-                          const std::invocable<error_type> auto&
+      constexpr auto join(std::invocable<value_type> auto&& l_fun,
+                          std::invocable<error_type> auto&&
                              r_fun) && -> join_result<decltype(l_fun), decltype(r_fun)>
       {
-         return is_value() ? std::invoke(l_fun, std::move(m_storage.value()))
-                           : std::invoke(r_fun, std::move(m_storage.error()));
+         return is_value()
+            ? std::invoke(std::forward<decltype(l_fun)>(l_fun), std::move(m_storage.value()))
+            : std::invoke(std::forward<decltype(r_fun)>(r_fun), std::move(m_storage.error()));
       }
 
    private:
       storage<value_type, error_type> m_storage{};
 
    public:
-      constexpr auto and_then(const std::invocable<value_type> auto& fun) const& -> decltype(
+      constexpr auto and_then(std::invocable<value_type> auto&& fun) const& -> decltype(
          detail::ensure_result_error(std::invoke(fun, m_storage.value()), m_storage.error()))
       {
          if (is_value())
          {
-            return std::invoke(fun, m_storage.value());
+            return std::invoke(std::forward<decltype(fun)>(fun), m_storage.value());
          }
          else
          {
             return make_error(m_storage.error());
          }
       }
-      constexpr auto and_then(const std::invocable<value_type> auto& fun) & -> decltype(
+      constexpr auto and_then(std::invocable<value_type> auto&& fun) & -> decltype(
          detail::ensure_result_error(std::invoke(fun, m_storage.value()), m_storage.error()))
       {
          if (is_value())
          {
-            return std::invoke(fun, m_storage.value());
+            return std::invoke(std::forward<decltype(fun)>(fun), m_storage.value());
          }
          else
          {
             return make_error(m_storage.error());
          }
       }
-      constexpr auto and_then(const std::invocable<value_type> auto& fun) const&& -> decltype(
+      constexpr auto and_then(std::invocable<value_type> auto&& fun) const&& -> decltype(
          detail::ensure_result_error(std::invoke(fun, std::move(m_storage.value())),
                                      std::move(m_storage.error())))
       {
          if (is_value())
          {
-            return std::invoke(fun, std::move(m_storage.value()));
+            return std::invoke(std::forward<decltype(fun)>(fun), std::move(m_storage.value()));
          }
          else
          {
             return make_error(std::move(m_storage.error()));
          }
       }
-      constexpr auto and_then(const std::invocable<value_type> auto& fun) && -> decltype(
+      constexpr auto and_then(std::invocable<value_type> auto&& fun) && -> decltype(
          detail::ensure_result_error(std::invoke(fun, std::move(m_storage.value())),
                                      std::move(m_storage.error())))
       {
          if (is_value())
          {
-            return std::invoke(fun, std::move(m_storage.value()));
+            return std::invoke(std::forward<decltype(fun)>(fun), std::move(m_storage.value()));
          }
          else
          {
@@ -678,54 +722,55 @@ namespace monad
          }
       }
 
-      constexpr auto or_else(const std::invocable<error_type> auto& fun) const& -> decltype(
-         detail::ensure_result_value(std::invoke(fun, m_storage.error()), m_storage.value()))
+      constexpr auto
+      or_else(std::invocable<error_type> auto&& fun) const& -> decltype(detail::ensure_result_value(
+         std::invoke(std::forward<decltype(fun)>(fun), m_storage.error()), m_storage.value()))
       {
          if (is_value())
          {
-            return make_value(m_storage.value());
+            return m_storage.value();
          }
          else
          {
             return std::invoke(fun, m_storage.error());
          }
       }
-      constexpr auto or_else(const std::invocable<error_type> auto& fun) & -> decltype(
+      constexpr auto or_else(std::invocable<error_type> auto&& fun) & -> decltype(
          detail::ensure_result_value(std::invoke(fun, m_storage.error()), m_storage.value()))
       {
          if (is_value())
          {
-            return make_value(m_storage.value());
+            return m_storage.value();
          }
          else
          {
-            return std::invoke(fun, m_storage.error());
+            return std::invoke(std::forward<decltype(fun)>(fun), m_storage.error());
          }
       }
-      constexpr auto or_else(const std::invocable<error_type> auto& fun) const&& -> decltype(
+      constexpr auto or_else(std::invocable<error_type> auto&& fun) const&& -> decltype(
          detail::ensure_result_value(std::invoke(fun, std::move(m_storage.error())),
                                      std::move(m_storage.value())))
       {
          if (is_value())
          {
-            return make_value(std::move(m_storage.value()));
+            return std::move(m_storage.value());
          }
          else
          {
-            return std::invoke(fun, std::move(m_storage.error()));
+            return std::invoke(std::forward<decltype(fun)>(fun), std::move(m_storage.error()));
          }
       }
-      constexpr auto or_else(const std::invocable<error_type> auto& fun) && -> decltype(
+      constexpr auto or_else(std::invocable<error_type> auto&& fun) && -> decltype(
          detail::ensure_result_value(std::invoke(fun, std::move(m_storage.error())),
                                      std::move(m_storage.value())))
       {
          if (is_value())
          {
-            return make_value(std::move(m_storage.value()));
+            return std::move(m_storage.value());
          }
          else
          {
-            return std::invoke(fun, std::move(m_storage.error()));
+            return std::invoke(std::forward<decltype(fun)>(fun), std::move(m_storage.error()));
          }
       }
    };
