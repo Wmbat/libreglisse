@@ -1,8 +1,8 @@
-#include <monads/either.hpp>
 #include <monads/maybe.hpp>
 #include <monads/result.hpp>
 #include <monads/try.hpp>
 
+#include <exception>
 #include <string>
 #include <utility>
 
@@ -163,7 +163,6 @@ TEST_CASE("result monad test suite")
          CHECK(test.value().value() == hello);
       }
    }
-
    SUBCASE("value move ctor")
    {
       {
@@ -207,7 +206,6 @@ TEST_CASE("result monad test suite")
          CHECK(*std::move(test).value().value() == 10);
       }
    }
-
    SUBCASE("value in-place ctor")
    {
       {
@@ -233,6 +231,44 @@ TEST_CASE("result monad test suite")
          CHECK(field->m_b == 10);
          CHECK(field->m_c == 10);
          CHECK(field->m_d == 10);
+      }
+   }
+
+   SUBCASE("error copy ctor")
+   {
+      {
+         int i = 0;
+
+         result<int, int> test{make_error(i)};
+
+         REQUIRE(test.is_value() == false);
+         CHECK(test.error().value() == i);
+      }
+      {
+         const std::string hello = "hello, world!";
+
+         result<int, std::string> test{make_error(hello)};
+
+         REQUIRE(test.is_value() == false);
+         CHECK(test.error().value() == hello);
+      }
+      {
+         std::string hello = "hello, world!";
+         const auto lambda = [&](int i) noexcept -> result<int, std::string> {
+            if (i > 10)
+            {
+               return make_error(hello);
+            }
+            else
+            {
+               return i;
+            }
+         };
+
+         const auto test = lambda(11);
+
+         REQUIRE(test.is_value() == false);
+         CHECK(test.error().value() == hello);
       }
    }
 
@@ -340,6 +376,25 @@ TEST_CASE("result monad test suite")
          CHECK(test.value().value() == 6);
       }
       {
+         auto create_result = [](int i) -> result<int_field, int> {
+            if (i > 10)
+            {
+               return int_field{0, 1, 2, 3};
+            }
+            else
+            {
+               return make_error(i);
+            }
+         };
+
+         auto test = create_result(9).map([](int_field&& field) {
+            return field.m_a + field.m_b + field.m_c + field.m_d;
+         });
+
+         REQUIRE(test.is_value() == false);
+         CHECK(test.error().value() == 9);
+      }
+      {
          auto create_result = []() -> result<movable_int_field, int> {
             return movable_int_field{0, 1, 2, 3};
          };
@@ -363,5 +418,26 @@ TEST_CASE("result monad test suite")
          REQUIRE(test.is_value() == true);
          CHECK(test.value().value() == 10);
       }
+   }
+}
+
+TEST_CASE("try_wrap test suite")
+{
+   {
+      auto test = try_wrap<std::exception>([] {
+         return std::vector<int>{{1, 2, 3, 4, 5, 6, 7, 8, 9}}; // NOLINT
+      });
+
+      REQUIRE(test.is_value() == true);
+      CHECK(test.value().value().size() == 9);
+   }
+   {
+      auto test = try_wrap<std::exception>([] {
+         throw std::exception{};
+
+         return int{10};
+      });
+
+      REQUIRE(test.is_value() == false);
    }
 }
