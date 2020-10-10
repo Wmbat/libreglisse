@@ -1,7 +1,9 @@
 .gdb_history
 
 .bdep/
+.bdep/bdep.sqlite3
 .clangd/
+.vimspector.json
 
 # Compiler/linker output.
 

@@ -17,17 +17,17 @@ public:
    in_place_struct() noexcept = default;
    in_place_struct(int x, int y) noexcept : m_x{x}, m_y{y} {}
 
-   auto x() const noexcept -> int { return m_x; }
-   auto y() const noexcept -> int { return m_y; }
+   [[nodiscard]] auto x() const noexcept -> int { return m_x; }
+   [[nodiscard]] auto y() const noexcept -> int { return m_y; }
 
 private:
    int m_x{0};
    int m_y{0};
 };
 
-TEST_CASE("maybe monad test suite")
+TEST_SUITE("maybe test suite")
 {
-   SUBCASE("Default constructor")
+   TEST_CASE("Default constructor")
    {
       CHECK(noexcept(maybe<int>{}) == true);
 
@@ -36,8 +36,9 @@ TEST_CASE("maybe monad test suite")
       CHECK(m.has_value() == false);
    }
 
-   SUBCASE("const reference based constructor")
+   TEST_CASE("const reference based constructor")
    {
+      SUBCASE("trivial")
       {
          int i = 0;
          CHECK(noexcept(maybe<int>{i}) == true);
@@ -47,6 +48,8 @@ TEST_CASE("maybe monad test suite")
          REQUIRE(m.has_value() == true);
          CHECK(m.value() == 0);
       }
+
+      SUBCASE("non-trivial")
       {
          const std::string test{"Hello World, this is a magic string."};
          CHECK(noexcept(maybe<std::string>{test}) == true);
@@ -58,8 +61,9 @@ TEST_CASE("maybe monad test suite")
       }
    }
 
-   SUBCASE("rvalue based constructor")
+   TEST_CASE("rvalue based constructor")
    {
+      SUBCASE("trivial")
       {
          CHECK(noexcept(maybe<int>{0}) == true);
 
@@ -68,6 +72,8 @@ TEST_CASE("maybe monad test suite")
          REQUIRE(maybe_int.has_value() == true);
          CHECK(maybe_int.value() == 0);
       }
+
+      SUBCASE("non-trivial")
       {
          CHECK(noexcept(maybe<std::string>{std::string{"Hello"}}) == false);
 
@@ -78,18 +84,495 @@ TEST_CASE("maybe monad test suite")
       }
    }
 
-   SUBCASE("in-place constructor")
+   TEST_CASE("in-place constructor")
    {
-      CHECK(noexcept(maybe<in_place_struct>{in_place, 10, 10}) == true);
+      SUBCASE("trivial")
+      {
+         CHECK(noexcept(maybe<in_place_struct>{in_place, 10, 10}) == true);
 
-      const maybe<in_place_struct> m{in_place, 10, 10};
+         const maybe<in_place_struct> m{in_place, 10, 10};
+
+         REQUIRE(m.has_value() == true);
+         CHECK(m->x() == 10);
+      }
+
+      SUBCASE("non-trivial")
+      {
+         using my_tuple = std::tuple<int, std::string, in_place_struct>;
+
+         CHECK(noexcept(maybe<my_tuple>{in_place, 10, "hello", in_place_struct{}}) == false);
+
+         const maybe<my_tuple> m{in_place, 10, "hello", in_place_struct{}};
+
+         REQUIRE(m.has_value() == true);
+      }
+   }
+
+   TEST_CASE("operator->")
+   {
+      struct test
+      {
+         int x;
+         int y;
+      };
+
+      SUBCASE("const")
+      {
+         const maybe<test> const_test_maybe{test{.x = 10, .y = 20}};
+
+         REQUIRE(const_test_maybe.has_value() == true);
+         CHECK(const_test_maybe->x == 10);
+         CHECK(const_test_maybe->y == 20);
+      }
+
+      SUBCASE("non-const")
+      {
+         maybe<test> trivial_maybe{test{.x = 10, .y = 20}};
+
+         REQUIRE(trivial_maybe.has_value() == true);
+         CHECK(trivial_maybe->x == 10);
+         CHECK(trivial_maybe->y == 20);
+
+         trivial_maybe->x = 20;
+
+         CHECK(trivial_maybe->x == 20);
+      }
+   }
+
+   TEST_CASE("operator* const l-value") { REQUIRE(false); }
+   TEST_CASE("operator* l-value") { REQUIRE(false); }
+   TEST_CASE("operator* const r-value") { REQUIRE(false); }
+   TEST_CASE("operator* r-value") { REQUIRE(false); }
+
+   TEST_CASE("has_value")
+   {
+      SUBCASE("non-mutable empty maybe")
+      {
+         CHECK(noexcept(maybe<int>{none}) == true);
+
+         const maybe<int> empty_maybe = none;
+
+         CHECK(empty_maybe.has_value() == false);
+      }
+
+      SUBCASE("mutable empty maybe")
+      {
+         CHECK(noexcept(maybe<int>{none}) == true);
+
+         maybe<int> empty_maybe = none;
+
+         CHECK(empty_maybe.has_value() == false);
+
+         empty_maybe = maybe<int>{10};
+
+         CHECK(empty_maybe.has_value() == true);
+      }
+
+      SUBCASE("const non-empty maybe")
+      {
+         using my_tuple = std::tuple<int, std::string, in_place_struct>;
+
+         CHECK(noexcept(maybe<my_tuple>{in_place, 10, "hello", in_place_struct{}}) == false);
+
+         const maybe<my_tuple> m{in_place, 10, "hello", in_place_struct{}};
+
+         REQUIRE(m.has_value() == true);
+      }
+
+      SUBCASE("non-empty maybe")
+      {
+         using my_tuple = std::tuple<int, std::string, in_place_struct>;
+
+         CHECK(noexcept(maybe<my_tuple>{in_place, 10, "hello", in_place_struct{}}) == false);
+
+         maybe<my_tuple> m{in_place, 10, "hello", in_place_struct{}};
+
+         REQUIRE(m.has_value() == true);
+
+         m.reset();
+
+         REQUIRE(m.has_value() == false);
+      }
+   }
+
+   TEST_CASE("value const l-value") { REQUIRE(false); }
+   TEST_CASE("value l-value") { REQUIRE(false); }
+   TEST_CASE("value const r-value") { REQUIRE(false); }
+   TEST_CASE("value r-value") { REQUIRE(false); }
+
+   TEST_CASE("reset")
+   {
+      using my_tuple = std::tuple<int, std::string, in_place_struct>;
+
+      CHECK(noexcept(maybe<my_tuple>{in_place, 10, "hello", in_place_struct{}}) == false);
+
+      maybe<my_tuple> m{in_place, 10, "hello", in_place_struct{}};
 
       REQUIRE(m.has_value() == true);
-      CHECK(m->x() == 10);
+
+      m.reset();
+
+      REQUIRE(m.has_value() == false);
+   }
+
+   TEST_CASE("map const l-value")
+   {
+      SUBCASE("trivial")
+      {
+         const maybe<int> trivial_maybe{10};
+
+         REQUIRE(trivial_maybe.has_value() == true);
+         CHECK(trivial_maybe.value() == 10);
+
+         const maybe new_maybe = trivial_maybe.map([](int i) {
+            return std::to_string(i);
+         });
+
+         REQUIRE(new_maybe.has_value() == true);
+         CHECK(trivial_maybe.has_value() == true);
+         CHECK(new_maybe.value() == std::string{"10"});
+      }
+
+      SUBCASE("non-trivial")
+      {
+         const maybe<std::string> non_trivial_maybe{"10"};
+
+         REQUIRE(non_trivial_maybe.has_value() == true);
+         CHECK(non_trivial_maybe.value() == std::string{"10"});
+
+         const maybe new_maybe = non_trivial_maybe.map([]([[maybe_unused]] const std::string& str) {
+            return 10;
+         });
+
+         REQUIRE(new_maybe.has_value() == true);
+         CHECK(non_trivial_maybe.has_value() == true);
+         CHECK(new_maybe.value() == 10);
+      }
+   }
+   TEST_CASE("map l-value")
+   {
+      SUBCASE("trivial")
+      {
+         maybe<int> trivial_maybe{10};
+
+         REQUIRE(trivial_maybe.has_value() == true);
+         CHECK(trivial_maybe.value() == 10);
+
+         maybe new_maybe = trivial_maybe.map([](int i) {
+            return std::to_string(i);
+         });
+
+         REQUIRE(new_maybe.has_value() == true);
+         CHECK(trivial_maybe.has_value() == true);
+         CHECK(new_maybe.value() == std::string{"10"});
+      }
+
+      SUBCASE("non-trivial")
+      {
+         maybe<std::string> non_trivial_maybe{"10"};
+
+         REQUIRE(non_trivial_maybe.has_value() == true);
+         CHECK(non_trivial_maybe.value() == std::string{"10"});
+
+         maybe new_maybe = non_trivial_maybe.map([]([[maybe_unused]] const std::string& str) {
+            return 10;
+         });
+
+         REQUIRE(new_maybe.has_value() == true);
+         CHECK(non_trivial_maybe.has_value() == true);
+         CHECK(new_maybe.value() == 10);
+      }
+   }
+   TEST_CASE("map const r-value")
+   {
+      SUBCASE("trivial")
+      {
+         maybe new_maybe = maybe<int>{10}.map([](int i) {
+            return std::to_string(i);
+         });
+
+         REQUIRE(new_maybe.has_value() == true);
+         CHECK(new_maybe.value() == std::string{"10"});
+      }
+
+      SUBCASE("non-trivial")
+      {
+         maybe new_maybe =
+            maybe<std::string>{"10"}.map([]([[maybe_unused]] const std::string& str) {
+               return 10;
+            });
+
+         REQUIRE(new_maybe.has_value() == true);
+         CHECK(new_maybe.value() == 10);
+
+         new_maybe.value() = 20;
+
+         CHECK(new_maybe.value() == 20);
+      }
+   }
+   TEST_CASE("map r-value")
+   {
+      SUBCASE("trivial")
+      {
+         maybe new_maybe = maybe<int>{10}.map([](int i) {
+            return i * i;
+         });
+
+         REQUIRE(new_maybe.has_value() == true);
+         CHECK(new_maybe.value() == 100);
+      }
+
+      SUBCASE("non-trivial")
+      {
+         maybe new_maybe =
+            maybe<std::string>{"10"}.map([]([[maybe_unused]] const std::string& str) {
+               return 10;
+            });
+
+         REQUIRE(new_maybe.has_value() == true);
+         CHECK(new_maybe.value() == 10);
+
+         new_maybe.value() = 20;
+
+         CHECK(new_maybe.value() == 20);
+      }
+   }
+
+   // TODO: NOT DONE
+   TEST_CASE("map_or const l-value")
+   {
+      SUBCASE("trivial with value")
+      {
+         const maybe<int> my_maybe{10};
+
+         REQUIRE(my_maybe.has_value() == true);
+         CHECK(my_maybe.value() == 10);
+
+         const int result = my_maybe.map_or(
+            [](int i) {
+               return i * i;
+            },
+            0);
+
+         CHECK(result == 100);
+      }
+      SUBCASE("trivial without value")
+      {
+         const maybe<int> my_maybe{};
+
+         CHECK(my_maybe.has_value() == false);
+
+         const int result = my_maybe.map_or(
+            [](int i) {
+               return i * i;
+            },
+            0);
+
+         CHECK(result == 0);
+      }
+      SUBCASE("non-trivial with value") { REQUIRE(false); }
+      SUBCASE("non-trivial without value") { REQUIRE(false); }
+   }
+   TEST_CASE("map_or l-value") { REQUIRE(false); }
+   TEST_CASE("map_or const r-value") { REQUIRE(false); }
+   TEST_CASE("map_or r-value") { REQUIRE(false); }
+
+   TEST_CASE("and_then const l-value") { REQUIRE(false); }
+   TEST_CASE("and_then l-value") { REQUIRE(false); }
+   TEST_CASE("and_then const r-value") { REQUIRE(false); }
+   TEST_CASE("and_then r-value") { REQUIRE(false); }
+
+   TEST_CASE("or_else const l-value") { REQUIRE(false); }
+   TEST_CASE("or_else l-value") { REQUIRE(false); }
+   TEST_CASE("or_else const r-value") { REQUIRE(false); }
+   TEST_CASE("or_else r-value") { REQUIRE(false); }
+
+   TEST_CASE("map_or_else const l-value") { REQUIRE(false); }
+   TEST_CASE("map_or_else l-value") { REQUIRE(false); }
+   TEST_CASE("map_or_else const r-value") { REQUIRE(false); }
+   TEST_CASE("map_or_else r-value") { REQUIRE(false); }
+
+   TEST_CASE("make_maybe") { REQUIRE(false); }
+
+   TEST_CASE("maybe to maybe equality") { REQUIRE(false); }
+   TEST_CASE("maybe to none equality") { REQUIRE(false); }
+   /*
+   TEST_CASE("maybe to any equality") { REQUIRE(false); }
+   */
+
+   TEST_CASE("maybe to maybe <=> equality")
+   {
+      SUBCASE("trivial >=")
+      {
+         {
+            maybe<int> first_maybe{10};
+            maybe<int> second_maybe{10};
+
+            REQUIRE(first_maybe.has_value() == true);
+            CHECK(first_maybe.value() == 10);
+            REQUIRE(second_maybe.has_value() == true);
+            CHECK(second_maybe.value() == 10);
+
+            CHECK((first_maybe >= second_maybe) == true);
+            CHECK((second_maybe >= first_maybe) == true);
+         }
+         {
+            maybe<int> first_maybe{10};
+            maybe<int> second_maybe{11};
+
+            REQUIRE(first_maybe.has_value() == true);
+            CHECK(first_maybe.value() == 10);
+            REQUIRE(second_maybe.has_value() == true);
+            CHECK(second_maybe.value() == 11);
+
+            CHECK((first_maybe >= second_maybe) == false);
+            CHECK((second_maybe >= first_maybe) == true);
+         }
+      }
+      SUBCASE("trivial >")
+      {
+         {
+            maybe<int> first_maybe{10};
+            maybe<int> second_maybe{10};
+
+            REQUIRE(first_maybe.has_value() == true);
+            CHECK(first_maybe.value() == 10);
+            REQUIRE(second_maybe.has_value() == true);
+            CHECK(second_maybe.value() == 10);
+
+            CHECK((first_maybe > second_maybe) == false);
+            CHECK((second_maybe > first_maybe) == false);
+         }
+         {
+            maybe<int> first_maybe{10};
+            maybe<int> second_maybe{11};
+
+            REQUIRE(first_maybe.has_value() == true);
+            CHECK(first_maybe.value() == 10);
+            REQUIRE(second_maybe.has_value() == true);
+            CHECK(second_maybe.value() == 11);
+
+            CHECK((first_maybe > second_maybe) == false);
+            CHECK((second_maybe > first_maybe) == true);
+         }
+      }
+      SUBCASE("trivial <=") {}
+      SUBCASE("trivial <") { CHECK(false); }
+      SUBCASE("non-trivial >=") { CHECK(false); }
+      SUBCASE("non-trivial >") { CHECK(false); }
+      SUBCASE("non-trivial <=") { CHECK(false); }
+      SUBCASE("non-trivial <") { CHECK(false); }
+   }
+   TEST_CASE("maybe to none <=> equality")
+   {
+      SUBCASE("trivial >=") { CHECK(false); }
+      SUBCASE("trivial >") { CHECK(false); }
+      SUBCASE("trivial <=") { CHECK(false); }
+      SUBCASE("trivial <") { CHECK(false); }
+      SUBCASE("non-trivial >=") { CHECK(false); }
+      SUBCASE("non-trivial >") { CHECK(false); }
+      SUBCASE("non-trivial <=") { CHECK(false); }
+      SUBCASE("non-trivial <") { CHECK(false); }
+   }
+   /*
+   TEST_CASE("maybe to any <=> equality")
+   {
+      SUBCASE("trivial >=") { CHECK(false); }
+      SUBCASE("trivial >") { CHECK(false); }
+      SUBCASE("trivial <=") { CHECK(false); }
+      SUBCASE("trivial <") { CHECK(false); }
+      SUBCASE("non-trivial >=") { CHECK(false); }
+      SUBCASE("non-trivial >") { CHECK(false); }
+      SUBCASE("non-trivial <=") { CHECK(false); }
+      SUBCASE("non-trivial <") { CHECK(false); }
+   }
+   */
+
+   TEST_CASE("std::swap")
+   {
+      SUBCASE("both valid")
+      {
+         maybe<int> first_maybe{10};
+         maybe<int> second_maybe{20};
+
+         REQUIRE(first_maybe.has_value() == true);
+         CHECK(first_maybe.value() == 10);
+         REQUIRE(second_maybe.has_value() == true);
+         CHECK(second_maybe.value() == 20);
+
+         CHECK(noexcept(std::swap(first_maybe, second_maybe)) == true);
+
+         std::swap(first_maybe, second_maybe);
+
+         REQUIRE(first_maybe.has_value() == true);
+         CHECK(first_maybe.value() == 20);
+         REQUIRE(second_maybe.has_value() == true);
+         CHECK(second_maybe.value() == 10);
+      }
+
+      SUBCASE("one valid")
+      {
+         {
+            maybe<int> first_maybe{10};
+            maybe<int> second_maybe{none};
+
+            REQUIRE(first_maybe.has_value() == true);
+            CHECK(first_maybe.value() == 10);
+            REQUIRE(second_maybe.has_value() == false);
+
+            std::swap(first_maybe, second_maybe);
+
+            CHECK(first_maybe.has_value() == false);
+            REQUIRE(second_maybe.has_value() == true);
+            CHECK(second_maybe.value() == 10);
+
+            std::swap(first_maybe, second_maybe);
+
+            REQUIRE(first_maybe.has_value() == true);
+            CHECK(first_maybe.value() == 10);
+            REQUIRE(second_maybe.has_value() == false);
+         }
+         {
+            maybe<std::string> first_maybe{"10"};
+            maybe<std::string> second_maybe{none};
+
+            REQUIRE(first_maybe.has_value() == true);
+            CHECK(first_maybe.value() == std::string{"10"});
+            REQUIRE(second_maybe.has_value() == false);
+
+            std::swap(first_maybe, second_maybe);
+
+            CHECK(first_maybe.has_value() == false);
+            REQUIRE(second_maybe.has_value() == true);
+            CHECK(second_maybe.value() == std::string{"10"});
+
+            CHECK(noexcept(std::swap(first_maybe, second_maybe)) == true);
+
+            std::swap(first_maybe, second_maybe);
+
+            REQUIRE(first_maybe.has_value() == true);
+            CHECK(first_maybe.value() == std::string{"10"});
+            REQUIRE(second_maybe.has_value() == false);
+         }
+      }
+
+      SUBCASE("both invalid")
+      {
+         maybe<int> first_maybe{none};
+         maybe<int> second_maybe{none};
+
+         CHECK(first_maybe.has_value() == false);
+         CHECK(second_maybe.has_value() == false);
+
+         std::swap(first_maybe, second_maybe);
+
+         CHECK(first_maybe.has_value() == false);
+         CHECK(second_maybe.has_value() == false);
+      }
    }
 }
 
-TEST_CASE("result monad test suite")
+TEST_CASE("result test suite")
 {
    struct int_field
    {

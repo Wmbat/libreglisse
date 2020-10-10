@@ -10,6 +10,9 @@
 
 namespace monad
 {
+   /**
+    * Helper struct for the "in place" construction of an object within a maybe monad
+    */
    struct in_place_t
    {
       in_place_t() noexcept = default;
@@ -18,16 +21,29 @@ namespace monad
    static constexpr in_place_t in_place;
 
    // clang-format off
+
+   /**
+    * A class used for a functional programming way of holding values that may or may not be returned from a function
+    */
    template <class any_> requires(!std::is_reference_v<any_>) 
    class [[nodiscard("a maybe should never be discarded")]] maybe;
+
    // clang-format on
-   //
+
+   /**
+    * Specialization of the maybe monad class for void types. Used for the representation of an
+    * empty maybe monad
+    */
    template <>
    class maybe<void>
    {
    };
 
+   /**
+    * Helper type alias for a maybe<void> monad, used to represent an empty maybe monad
+    */
    using none_t = maybe<void>;
+
    static inline constexpr auto none = none_t{}; // NOLINT
 
    // clang-format off
@@ -43,21 +59,6 @@ namespace monad
 
       private:
          // clang-format off
-         static constexpr bool is_nothrow_copy_value_constructible =
-            std::is_nothrow_copy_constructible_v<value_type>;
-         
-         static constexpr bool is_nothrow_move_value_constructible =
-            std::is_nothrow_move_constructible_v<value_type>;
-
-         static constexpr bool is_nothrow_destructible = 
-            std::is_nothrow_destructible_v<value_type>;
-
-         static constexpr bool is_nothrow_copy_assignable =
-            is_nothrow_copy_value_constructible;
-
-         static constexpr bool is_nothrow_move_assignable =
-            is_nothrow_move_value_constructible;
-
          static constexpr bool is_nothrow_value_copyable =
             std::is_nothrow_copy_assignable_v<value_type> &&
             std::is_nothrow_copy_constructible_v<value_type>;
@@ -68,18 +69,20 @@ namespace monad
 
          static constexpr bool is_nothrow_swappable =
             std::is_nothrow_move_assignable_v<value_type> &&
-            std::is_nothrow_destructible_v<value_type> &&
+            std::is_nothrow_destructible_v<value_type> && 
             std::is_nothrow_swappable_v<value_type>;
          // clang-format on
 
       public:
          constexpr storage() noexcept = default;
-         constexpr storage(const value_type& value) noexcept(is_nothrow_copy_value_constructible) :
+         constexpr storage(const value_type& value) noexcept(
+            std::is_nothrow_copy_constructible_v<value_type>) :
             m_is_engaged{true}
          {
             std::construct_at(pointer(), value);
          }
-         constexpr storage(value_type&& value) noexcept(is_nothrow_move_value_constructible) :
+         constexpr storage(value_type&& value) noexcept(
+            std::is_nothrow_move_constructible_v<value_type>) :
             m_is_engaged{true}
          {
             std::construct_at(pointer(), std::move(value));
@@ -90,7 +93,8 @@ namespace monad
          {
             std::construct_at(pointer(), std::forward<decltype(args)>(args)...);
          }
-         constexpr storage(const storage& rhs) noexcept(is_nothrow_copy_value_constructible) :
+         constexpr storage(const storage& rhs) noexcept(
+            std::is_nothrow_copy_constructible_v<value_type>) :
             m_is_engaged{rhs.engaged()}
          {
             if (engaged())
@@ -98,7 +102,8 @@ namespace monad
                std::construct_at(pointer(), rhs.value());
             }
          }
-         constexpr storage(storage&& rhs) noexcept(is_nothrow_move_value_constructible) :
+         constexpr storage(storage&& rhs) noexcept(
+            std::is_nothrow_move_constructible_v<value_type>) :
             m_is_engaged{rhs.engaged()}
          {
             if (engaged())
@@ -107,7 +112,7 @@ namespace monad
                rhs.m_is_engaged = false;
             }
          }
-         ~storage() noexcept(is_nothrow_destructible)
+         ~storage() noexcept(std::is_nothrow_destructible_v<value_type>)
          {
             if (engaged())
             {
@@ -116,7 +121,8 @@ namespace monad
             }
          }
 
-         constexpr auto operator=(const storage& rhs) noexcept(is_nothrow_copy_assignable)
+         constexpr auto
+         operator=(const storage& rhs) noexcept(std::is_nothrow_copy_constructible_v<value_type>)
             -> storage&
          {
             if (this != &rhs)
@@ -136,7 +142,9 @@ namespace monad
 
             return *this;
          }
-         constexpr auto operator=(storage&& rhs) noexcept(is_nothrow_move_assignable) -> storage&
+         constexpr auto
+         operator=(storage&& rhs) noexcept(std::is_nothrow_move_constructible_v<value_type>)
+            -> storage&
          {
             if (this != &rhs)
             {
@@ -166,20 +174,20 @@ namespace monad
             {
                std::swap(value(), other.value());
             }
-
-            if (engaged() && !other.engaged())
+            else if (engaged() && !other.engaged())
             {
-               std::swap(m_is_engaged, other.m_is_engaged);
+               other.m_is_engaged = true;
                other.value() = value();
 
+               m_is_engaged = false;
                std::destroy_at(pointer());
             }
-
-            if (!engaged() && other.engaged())
+            else if (!engaged() && other.engaged())
             {
-               std::swap(m_is_engaged, other.m_is_engaged);
+               m_is_engaged = true;
                value() = other.value();
 
+               other.m_is_engaged = false;
                std::destroy_at(other.pointer());
             }
          }
@@ -205,6 +213,15 @@ namespace monad
          constexpr auto value() const&& noexcept(is_nothrow_value_movable) -> const value_type&&
          {
             return std::move(*pointer());
+         }
+
+         constexpr void reset() noexcept(std::is_nothrow_destructible_v<value_type>)
+         {
+            if (engaged())
+            {
+               std::destroy_at(pointer());
+               m_is_engaged = false;
+            }
          }
 
       private:
@@ -240,17 +257,17 @@ namespace monad
             {
                std::swap(value(), other.value());
             }
-
-            if (engaged() && !other.engaged())
+            else if (engaged() && !other.engaged())
             {
-               std::swap(m_is_engaged, other.m_is_engaged);
+               other.m_is_engaged = true;
                other.value() = value();
+               m_is_engaged = false;
             }
-
-            if (!engaged() && other.engaged())
+            else if (!engaged() && other.engaged())
             {
-               std::swap(m_is_engaged, other.m_is_engaged);
+               m_is_engaged = true;
                value() = other.value();
+               other.m_is_engaged = false;
             }
          }
 
@@ -271,18 +288,21 @@ namespace monad
             return std::move(*pointer());
          }
 
+         constexpr void reset() noexcept(std::is_nothrow_destructible_v<value_type>)
+         {
+            if (engaged())
+            {
+               std::destroy_at(pointer());
+               m_is_engaged = false;
+            }
+         }
+
       private:
          alignas(value_type) std::array<std::byte, sizeof(value_type)> m_bytes;
          bool m_is_engaged{false};
       };
 
       using storage_type = storage<any_>;
-
-      static constexpr bool is_nothrow_rvalue_constructible =
-         std::is_nothrow_constructible_v<storage_type, any_&&>;
-
-      static constexpr bool is_nothrow_lvalue_constructible =
-         std::is_nothrow_constructible_v<storage_type, any_>;
 
       static constexpr bool is_nothrow_value_copyable =
          std::is_nothrow_copy_assignable_v<any_> && std::is_nothrow_copy_constructible_v<any_>;
@@ -296,14 +316,31 @@ namespace monad
    public:
       using value_type = typename storage_type::value_type;
 
+      /**
+       * Default construct a maybe monad. It will be interpret as being an empty maybe
+       */
       constexpr maybe() noexcept = default;
+      /**
+       * Construct a empty monad
+       */
       constexpr maybe(none_t) noexcept {}
-      constexpr maybe(const value_type& value) noexcept(is_nothrow_lvalue_constructible) :
+      /**
+       * Construct a maybe monad using a `value` by copy
+       */
+      constexpr maybe(const value_type& value) noexcept(
+         std::is_nothrow_constructible_v<storage_type, any_>) :
          m_storage{value}
       {}
-      constexpr maybe(value_type && value) noexcept(is_nothrow_rvalue_constructible) :
+      /**
+       * Construct a maybe monad using a `value` by move
+       */
+      constexpr maybe(value_type &&
+                      value) noexcept(std::is_nothrow_constructible_v<storage_type, any_&&>) :
          m_storage{std::move(value)}
       {}
+      /**
+       * Construct a maybe monad by creating a value in place from a range of variadic arguments
+       */
       constexpr maybe(in_place_t, auto&&... args) noexcept(
          std::is_nothrow_constructible_v<value_type, decltype(args)...>) requires std::
          constructible_from<value_type, decltype(args)...> :
@@ -311,7 +348,8 @@ namespace monad
       {}
 
       /**
-       * Access the stored value
+       * A shorthand operator to acces the underlying value. This operator does not guarentee the
+       * returned value will be valid
        */
       constexpr auto operator->() noexcept->value_type*
       {
@@ -320,7 +358,8 @@ namespace monad
          return m_storage.pointer();
       }
       /**
-       * Access the stored value
+       * A shorthand operator to acces the underlying value. This operator does not guarentee the
+       * returned value will be valid
        */
       constexpr auto operator->() const noexcept->const value_type*
       {
@@ -399,7 +438,6 @@ namespace monad
       }
 
       /**
-<<<<<<< HEAD:monads/maybe.hpp
        * Take the value out of the optional into another optional,
        * leaving it empty
        */
@@ -411,8 +449,6 @@ namespace monad
       }
 
       /**
-=======
->>>>>>> master:include/monads/maybe.hpp
        * Return the stored value or a specified value
        */
       constexpr auto value_or(std::convertible_to<value_type> auto&& default_value)
@@ -442,11 +478,7 @@ namespace monad
        */
       constexpr void reset() noexcept(std::is_nothrow_destructible_v<value_type>)
       {
-         if (has_value())
-         {
-            std::destroy_at(m_storage.pointer());
-            m_storage.has_value = false;
-         }
+         m_storage.reset();
       }
 
       /**
@@ -742,13 +774,13 @@ namespace monad
       return m.has_value() ? m.value() == value : false;
    }
 
-   template <class first_, std::three_way_comparable_with<first_> second_>
+   template <class first_, class second_>
    constexpr auto operator<=>(const maybe<first_>& lhs, const maybe<second_>& rhs)
       -> std::compare_three_way_result_t<first_, second_>
    {
       if (lhs.has_value() && rhs.has_value())
       {
-         return lhs.value() <=> rhs.has_value();
+         return lhs.value() <=> rhs.value();
       }
 
       return lhs.has_value() <=> rhs.has_value();
@@ -762,8 +794,7 @@ namespace monad
 
    template <class any_>
    constexpr auto operator<=>(const maybe<any_>& m,
-                              const std::three_way_comparable_with<any_> auto&
-                                 value) noexcept(noexcept(m.value() <=> value))
+                              const any_& value) noexcept(noexcept(m.value() <=> value))
       -> std::compare_three_way_result_t<any_, decltype(value)>
    {
       return m.has_value() ? m.value() <=> value : std::strong_ordering::less;
