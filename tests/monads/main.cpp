@@ -394,13 +394,91 @@ TEST_SUITE("maybe test suite")
 
    TEST_CASE("make_maybe") { REQUIRE(false); }
 
-   TEST_CASE("maybe to maybe equality") { REQUIRE(false); }
-   TEST_CASE("maybe to none equality") { REQUIRE(false); }
-   /*
-   TEST_CASE("maybe to any equality") { REQUIRE(false); }
-   */
+   TEST_CASE("maybe to maybe equality")
+   {
+      SUBCASE("trivial")
+      {
+         {
+            maybe<int> maybe_1{10};
+            maybe<int> maybe_2{10};
 
-   TEST_CASE("maybe to maybe <=> equality")
+            CHECK((maybe_1 == maybe_2) == true);
+         }
+         {
+            maybe<int> maybe_1{10};
+            maybe<int> maybe_2{20};
+
+            CHECK((maybe_1 == maybe_2) == false);
+         }
+         {
+            maybe<int> maybe_1{10};
+            maybe<int> maybe_2{};
+
+            CHECK((maybe_1 == maybe_2) == false);
+         }
+      }
+      SUBCASE("trivial")
+      {
+         {
+            maybe<std::string> maybe_1{"hello"};
+            maybe<std::string> maybe_2{"hello"};
+
+            CHECK((maybe_1 == maybe_2) == true);
+         }
+         {
+            maybe<std::string> maybe_1{"hello"};
+            maybe<std::string> maybe_2{"hello!"};
+
+            CHECK((maybe_1 == maybe_2) == false);
+         }
+         {
+            maybe<std::string> maybe_1{"hello"};
+            maybe<std::string> maybe_2{};
+
+            CHECK((maybe_1 == maybe_2) == false);
+         }
+      }
+   }
+   TEST_CASE("maybe to none equality")
+   {
+      SUBCASE("trivial")
+      {
+         maybe<int> my_maybe{10};
+         maybe<int> empty{};
+
+         CHECK((my_maybe == none) == false);
+         CHECK((my_maybe != none) == true);
+         CHECK((empty == none) == true);
+      }
+      SUBCASE("non-trivial")
+      {
+         maybe<std::string> my_maybe{"hello"};
+         maybe<std::string> empty{};
+
+         CHECK((my_maybe == none) == false);
+         CHECK((my_maybe != none) == true);
+         CHECK((empty == none) == true);
+      }
+   }
+   TEST_CASE("maybe to any equality")
+   {
+      SUBCASE("trivial")
+      {
+         maybe<int> my_maybe{10};
+
+         CHECK((my_maybe == 10) == true);
+         CHECK((my_maybe != 100) == true);
+      }
+      SUBCASE("non-trivial")
+      {
+         maybe<std::string> my_maybe{"hello"};
+
+         CHECK((my_maybe == std::string{"hello"}) == true);
+         CHECK((my_maybe != std::string{"hello!"}) == true);
+      }
+   }
+
+   TEST_CASE("maybe to maybe comparison")
    {
       SUBCASE("trivial >=")
       {
@@ -408,22 +486,12 @@ TEST_SUITE("maybe test suite")
             maybe<int> first_maybe{10};
             maybe<int> second_maybe{10};
 
-            REQUIRE(first_maybe.has_value() == true);
-            CHECK(first_maybe.value() == 10);
-            REQUIRE(second_maybe.has_value() == true);
-            CHECK(second_maybe.value() == 10);
-
             CHECK((first_maybe >= second_maybe) == true);
             CHECK((second_maybe >= first_maybe) == true);
          }
          {
             maybe<int> first_maybe{10};
             maybe<int> second_maybe{11};
-
-            REQUIRE(first_maybe.has_value() == true);
-            CHECK(first_maybe.value() == 10);
-            REQUIRE(second_maybe.has_value() == true);
-            CHECK(second_maybe.value() == 11);
 
             CHECK((first_maybe >= second_maybe) == false);
             CHECK((second_maybe >= first_maybe) == true);
@@ -435,11 +503,6 @@ TEST_SUITE("maybe test suite")
             maybe<int> first_maybe{10};
             maybe<int> second_maybe{10};
 
-            REQUIRE(first_maybe.has_value() == true);
-            CHECK(first_maybe.value() == 10);
-            REQUIRE(second_maybe.has_value() == true);
-            CHECK(second_maybe.value() == 10);
-
             CHECK((first_maybe > second_maybe) == false);
             CHECK((second_maybe > first_maybe) == false);
          }
@@ -447,46 +510,243 @@ TEST_SUITE("maybe test suite")
             maybe<int> first_maybe{10};
             maybe<int> second_maybe{11};
 
-            REQUIRE(first_maybe.has_value() == true);
-            CHECK(first_maybe.value() == 10);
-            REQUIRE(second_maybe.has_value() == true);
-            CHECK(second_maybe.value() == 11);
-
             CHECK((first_maybe > second_maybe) == false);
             CHECK((second_maybe > first_maybe) == true);
          }
       }
-      SUBCASE("trivial <=") {}
-      SUBCASE("trivial <") { CHECK(false); }
-      SUBCASE("non-trivial >=") { CHECK(false); }
-      SUBCASE("non-trivial >") { CHECK(false); }
-      SUBCASE("non-trivial <=") { CHECK(false); }
-      SUBCASE("non-trivial <") { CHECK(false); }
+      SUBCASE("trivial <=")
+      {
+         {
+            maybe<int> first_maybe{10};
+            maybe<int> second_maybe{10};
+
+            CHECK((first_maybe <= second_maybe) == true);
+            CHECK((second_maybe <= first_maybe) == true);
+         }
+         {
+            maybe<int> first_maybe{10};
+            maybe<int> second_maybe{11};
+
+            CHECK((first_maybe <= second_maybe) == true);
+            CHECK((second_maybe <= first_maybe) == false);
+         }
+      }
+      SUBCASE("trivial <")
+      {
+         {
+            maybe<int> first_maybe{10};
+            maybe<int> second_maybe{10};
+
+            CHECK((first_maybe < second_maybe) == false);
+            CHECK((second_maybe < first_maybe) == false);
+         }
+         {
+            maybe<int> first_maybe{10};
+            maybe<int> second_maybe{11};
+
+            CHECK((first_maybe < second_maybe) == true);
+            CHECK((second_maybe < first_maybe) == false);
+         }
+      }
+      SUBCASE("non-trivial >=")
+      {
+         {
+            maybe<std::string> first_maybe{"hello"};
+            maybe<std::string> second_maybe{"hello"};
+
+            CHECK((first_maybe >= second_maybe) == true);
+            CHECK((second_maybe >= first_maybe) == true);
+         }
+         {
+            maybe<std::string> first_maybe{"hello"};
+            maybe<std::string> second_maybe{"hell"};
+            maybe<std::string> third_maybe{"hello!"};
+
+            CHECK((first_maybe >= second_maybe) == true);
+            CHECK((first_maybe >= third_maybe) == false);
+            CHECK((second_maybe >= first_maybe) == false);
+            CHECK((second_maybe >= third_maybe) == false);
+            CHECK((third_maybe >= first_maybe) == true);
+            CHECK((third_maybe >= second_maybe) == true);
+         }
+      }
+      SUBCASE("non-trivial >")
+      {
+         {
+            maybe<std::string> first_maybe{"hello"};
+            maybe<std::string> second_maybe{"hello"};
+
+            CHECK((first_maybe > second_maybe) == false);
+            CHECK((second_maybe > first_maybe) == false);
+         }
+         {
+            maybe<std::string> first_maybe{"hello"};
+            maybe<std::string> second_maybe{"hell"};
+            maybe<std::string> third_maybe{"hello!"};
+
+            CHECK((first_maybe > second_maybe) == true);
+            CHECK((first_maybe > third_maybe) == false);
+            CHECK((second_maybe > first_maybe) == false);
+            CHECK((second_maybe > third_maybe) == false);
+            CHECK((third_maybe > first_maybe) == true);
+            CHECK((third_maybe > second_maybe) == true);
+         }
+      }
+      SUBCASE("non-trivial <=")
+      {
+         {
+            maybe<std::string> first_maybe{"hello"};
+            maybe<std::string> second_maybe{"hello"};
+
+            CHECK((first_maybe <= second_maybe) == true);
+            CHECK((second_maybe <= first_maybe) == true);
+         }
+         {
+            maybe<std::string> first_maybe{"hello"};
+            maybe<std::string> second_maybe{"hell"};
+            maybe<std::string> third_maybe{"hello!"};
+
+            CHECK((first_maybe <= second_maybe) == false);
+            CHECK((first_maybe <= third_maybe) == true);
+            CHECK((second_maybe <= first_maybe) == true);
+            CHECK((second_maybe <= third_maybe) == true);
+            CHECK((third_maybe <= first_maybe) == false);
+            CHECK((third_maybe <= second_maybe) == false);
+         }
+      }
+      SUBCASE("non-trivial <")
+      {
+         {
+            maybe<std::string> first_maybe{"hello"};
+            maybe<std::string> second_maybe{"hello"};
+
+            CHECK((first_maybe < second_maybe) == false);
+            CHECK((second_maybe < first_maybe) == false);
+         }
+         {
+            maybe<std::string> first_maybe{"hello"};
+            maybe<std::string> second_maybe{"hell"};
+            maybe<std::string> third_maybe{"hello!"};
+
+            CHECK((first_maybe < second_maybe) == false);
+            CHECK((first_maybe < third_maybe) == true);
+            CHECK((second_maybe < first_maybe) == true);
+            CHECK((second_maybe < third_maybe) == true);
+            CHECK((third_maybe < first_maybe) == false);
+            CHECK((third_maybe < second_maybe) == false);
+         }
+      }
    }
-   TEST_CASE("maybe to none <=> equality")
+   TEST_CASE("maybe to none comparison")
    {
-      SUBCASE("trivial >=") { CHECK(false); }
-      SUBCASE("trivial >") { CHECK(false); }
-      SUBCASE("trivial <=") { CHECK(false); }
-      SUBCASE("trivial <") { CHECK(false); }
-      SUBCASE("non-trivial >=") { CHECK(false); }
-      SUBCASE("non-trivial >") { CHECK(false); }
-      SUBCASE("non-trivial <=") { CHECK(false); }
-      SUBCASE("non-trivial <") { CHECK(false); }
+      SUBCASE(">=")
+      {
+         maybe<int> my_maybe{10};
+
+         CHECK((my_maybe >= none) == true);
+      }
+      SUBCASE(">")
+      {
+         maybe<int> my_maybe{10};
+
+         CHECK((my_maybe > none) == true);
+      }
+      SUBCASE("<=")
+      {
+         maybe<int> my_maybe{10};
+
+         CHECK((my_maybe <= none) == false);
+      }
+      SUBCASE("<")
+      {
+         maybe<int> my_maybe{10};
+
+         CHECK((my_maybe < none) == false);
+      }
    }
-   /*
-   TEST_CASE("maybe to any <=> equality")
+   TEST_CASE("maybe to any comparison")
    {
-      SUBCASE("trivial >=") { CHECK(false); }
-      SUBCASE("trivial >") { CHECK(false); }
-      SUBCASE("trivial <=") { CHECK(false); }
-      SUBCASE("trivial <") { CHECK(false); }
-      SUBCASE("non-trivial >=") { CHECK(false); }
-      SUBCASE("non-trivial >") { CHECK(false); }
-      SUBCASE("non-trivial <=") { CHECK(false); }
-      SUBCASE("non-trivial <") { CHECK(false); }
+      SUBCASE("trivial >=")
+      {
+         maybe<int> my_maybe{10};
+
+         CHECK(noexcept(my_maybe >= 10) == true);
+
+         CHECK((my_maybe >= 10) == true);  // NOLINT
+         CHECK((my_maybe >= 0) == true);   // NOLINT
+         CHECK((my_maybe >= 20) == false); // NOLINT
+      }
+      SUBCASE("trivial >")
+      {
+         maybe<int> my_maybe{10};
+
+         CHECK(noexcept(my_maybe > 10) == true);
+
+         CHECK((my_maybe > 10) == false); // NOLINT
+         CHECK((my_maybe > 0) == true);   // NOLINT
+         CHECK((my_maybe > 20) == false); // NOLINT
+      }
+      SUBCASE("trivial <=")
+      {
+         maybe<int> my_maybe{10};
+
+         CHECK(noexcept(my_maybe <= 10) == true);
+
+         CHECK((my_maybe <= 10) == true); // NOLINT
+         CHECK((my_maybe <= 0) == false); // NOLINT
+         CHECK((my_maybe <= 20) == true); // NOLINT
+      }
+      SUBCASE("trivial <")
+      {
+         maybe<int> my_maybe{10};
+
+         CHECK(noexcept(my_maybe < 10) == true);
+
+         CHECK((my_maybe < 10) == false); // NOLINT
+         CHECK((my_maybe < 0) == false);  // NOLINT
+         CHECK((my_maybe < 20) == true);  // NOLINT
+      }
+      SUBCASE("non-trivial >=")
+      {
+         maybe<std::string> my_maybe{"hello"};
+
+         CHECK(noexcept(my_maybe >= std::string{"hello"}) == false);
+
+         CHECK((my_maybe >= std::string{"hello"}) == true);   // NOLINT
+         CHECK((my_maybe >= std::string{"hell"}) == true);    // NOLINT
+         CHECK((my_maybe >= std::string{"hello!"}) == false); // NOLINT
+      }
+      SUBCASE("non-trivial >")
+      {
+         maybe<std::string> my_maybe{"hello"};
+
+         CHECK(noexcept(my_maybe > std::string{"hello"}) == false);
+
+         CHECK((my_maybe > std::string{"hello"}) == false);  // NOLINT
+         CHECK((my_maybe > std::string{"hell"}) == true);    // NOLINT
+         CHECK((my_maybe > std::string{"hello!"}) == false); // NOLINT
+      }
+      SUBCASE("non-trivial <=")
+      {
+         maybe<std::string> my_maybe{"hello"};
+
+         CHECK(noexcept(my_maybe <= std::string{"hello"}) == false);
+
+         CHECK((my_maybe <= std::string{"hello"}) == true);  // NOLINT
+         CHECK((my_maybe <= std::string{"hell"}) == false);  // NOLINT
+         CHECK((my_maybe <= std::string{"hello!"}) == true); // NOLINT
+      }
+      SUBCASE("non-trivial <")
+      {
+         maybe<std::string> my_maybe{"hello"};
+
+         CHECK(noexcept(my_maybe < std::string{"hello"}) == false);
+
+         CHECK((my_maybe < std::string{"hello"}) == false); // NOLINT
+         CHECK((my_maybe < std::string{"hell"}) == false);  // NOLINT
+         CHECK((my_maybe < std::string{"hello!"}) == true); // NOLINT
+      }
    }
-   */
 
    TEST_CASE("std::swap")
    {

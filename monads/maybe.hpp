@@ -736,12 +736,20 @@ namespace monad
       storage<value_type> m_storage{};
    };
 
+   /**
+    * Handy function to create a maybe from any value.
+    */
    template <class any_>
    constexpr auto make_maybe(any_&& value) -> maybe<std::decay_t<any_>>
    {
       return maybe<std::decay_t<any_>>{std::forward<any_>(value)};
    }
 
+   /**
+    * Compare two maybe monads. If either of the two monads are empty, it will return false. If both
+    * monads are empty, true will be returned, and if both monads have values, a comparison between
+    * the value held by the monads will be performed
+    */
    template <class first_, std::equality_comparable_with<first_> second_>
    constexpr auto
    operator==(const maybe<first_>& lhs,
@@ -760,20 +768,32 @@ namespace monad
       return lhs.value() == rhs.value();
    }
 
+   /**
+    * Compare a maybe monad to an empty maybe. Returns true if the first maybe is empty.
+    */
    template <class any_>
    constexpr auto operator==(const maybe<any_>& m, none_t) noexcept
    {
       return !m.has_value();
    }
 
+   /**
+    * Compare a maybe monad to a generic type that may be compared with the inner type of the maybe
+    * monad. If the maybe monad does not hold a value, otherwise, a comparison between the value
+    * held by the maybe monad and the value provided will be performed.
+    */
    template <class any_>
-   constexpr auto operator==(
-      const maybe<any_>& m,
-      const std::equality_comparable_with<any_> auto& value) noexcept(noexcept(m.value() == value))
+   constexpr auto operator==(const maybe<any_>& m,
+                             const auto& value) noexcept(noexcept(m.value() == value))
    {
       return m.has_value() ? m.value() == value : false;
    }
 
+   /**
+    * three-way compare two maybe monads. If both monads have values, a three-way comparison will be
+    * performed on their inner values otherwise, a three-way comparison will be performed on whether
+    * they hold values or not.
+    */
    template <class first_, class second_>
    constexpr auto operator<=>(const maybe<first_>& lhs, const maybe<second_>& rhs)
       -> std::compare_three_way_result_t<first_, second_>
@@ -786,12 +806,22 @@ namespace monad
       return lhs.has_value() <=> rhs.has_value();
    }
 
+   /**
+    * Compare a maybe to an empty maybe. Returns a `strong_ordering` based on whether the first
+    * maybe has a value or not
+    */
    template <class any_>
    constexpr auto operator<=>(const maybe<any_>& m, none_t) noexcept -> std::strong_ordering
    {
       return m.has_value() <=> false;
    }
 
+   /**
+    * Perform a three-way comparison between a maybe monad and a value. If the maybe monad does not
+    * hold a value, `strong_ordering::less` will be returned. Otherwise, a three-way comparison
+    * between the value held by the monad and the value provided as parameter will be performed and
+    * its ordering returned.
+    */
    template <class any_>
    constexpr auto operator<=>(const maybe<any_>& m,
                               const any_& value) noexcept(noexcept(m.value() <=> value))
