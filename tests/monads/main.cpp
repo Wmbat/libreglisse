@@ -2583,23 +2583,50 @@ TEST_CASE("result test suite")
    SUBCASE("r-value map_error") {}
 }
 
-TEST_CASE("try_wrap test suite")
+TEST_CASE("either test suite") {}
+
+TEST_SUITE("try_wrap test suite")
 {
+   TEST_CASE("maybe return")
    {
-      auto test = try_wrap<std::exception>([] {
-         return std::vector<int>{{1, 2, 3, 4, 5, 6, 7, 8, 9}}; // NOLINT
-      });
+      SUBCASE("expection thrown")
+      {
+         const maybe my_maybe = try_wrap<std::exception>([] {
+            throw std::exception{};
+         });
 
-      REQUIRE(test.is_value() == true);
-      CHECK(test.value().value().size() == 9);
+         REQUIRE(my_maybe);
+      }
+      SUBCASE("no exception thrown")
+      {
+         int value = 0;
+         const maybe my_maybe = try_wrap<std::exception>([&] {
+            value = 10;
+         });
+
+         REQUIRE(!my_maybe);
+         CHECK(value == 10);
+      }
    }
+   TEST_CASE("result return")
    {
-      auto test = try_wrap<std::exception>([] {
-         throw std::exception{};
+      SUBCASE("exception thrown")
+      {
+         const result my_result = try_wrap<std::exception>([] {
+            throw std::exception{};
+            return 0;
+         });
 
-         return int{10};
-      });
+         REQUIRE(!my_result);
+      }
+      SUBCASE("normal value returned")
+      {
+         const result my_result = try_wrap<std::exception>([] {
+            return 0;
+         });
 
-      REQUIRE(test.is_value() == false);
+         REQUIRE(my_result);
+         CHECK(my_result.value() == 0);
+      }
    }
 }

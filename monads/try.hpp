@@ -30,13 +30,13 @@ namespace monad
       try
       {
          std::invoke(std::forward<fun_>(fun), std::forward<args_>(args)...);
+
+         return none;
       }
       catch (const error_& e)
       {
          return {e};
       }
-     
-      return none;
    }
    // clang-format on
 } // namespace monad
