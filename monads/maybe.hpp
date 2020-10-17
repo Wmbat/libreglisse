@@ -673,7 +673,7 @@ namespace monad
       /**
        * Carries out an operation if there is no value stored
        */
-      constexpr auto or_else(std::invocable auto&& fun) const&->maybe<value_type>
+      constexpr auto or_else(std::invocable auto&& fun) const& -> maybe<value_type>
       {
          if (has_value())
          {
@@ -746,8 +746,14 @@ namespace monad
          std::invoke_result_t<decltype(fun), value_type>, 
          std::invoke_result_t<decltype(def)>>
       {
-         return has_value() ? std::invoke(std::forward<decltype(fun)>, value())
-                            : std::invoke(std::forward<decltype(def)>);
+         if(has_value())
+         {
+            return std::invoke(std::forward<decltype(fun)>(fun), value());
+         }
+         else
+         {
+            return std::invoke(std::forward<decltype(def)>(def));
+         }
       }
       /**
        * Carries out an operation on the stored object if there is one, or return
@@ -760,8 +766,14 @@ namespace monad
          std::invoke_result_t<decltype(fun), value_type>,
          std::invoke_result_t<decltype(def)>>
       {
-         return has_value() ? std::invoke(std::forward<decltype(fun)>, value())
-                            : std::invoke(std::forward<decltype(def)>);
+         if(has_value())
+         {
+            return std::invoke(std::forward<decltype(fun)>(fun), value());
+         }
+         else
+         {
+            return std::invoke(std::forward<decltype(def)>(def));
+         }
       }
       /**
        * Carries out an operation on the stored object if there is one, or return
@@ -774,8 +786,14 @@ namespace monad
          std::invoke_result_t<decltype(fun), value_type&&>, 
          std::invoke_result_t<decltype(def)>>
       {
-         return has_value() ? std::invoke(std::forward<decltype(fun)>, std::move(value()))
-                            : std::invoke(std::forward<decltype(def)>);
+         if (has_value())
+         {
+            return std::invoke(std::forward<decltype(fun)>(fun), std::move(value()));
+         }
+         else
+         {
+            return std::invoke(std::forward<decltype(def)>(def));
+         }
       }
       /**
        * Carries out an operation on the stored object if there is one, or return
@@ -788,8 +806,14 @@ namespace monad
          std::invoke_result_t<decltype(fun), value_type&&>,
          std::invoke_result_t<decltype(def)>>
       {
-         return has_value() ? std::invoke(std::forward<decltype(fun)>, std::move(value()))
-                            : std::invoke(std::forward<decltype(def)>);
+         if (has_value())
+         {
+            return std::invoke(std::forward<decltype(fun)>(fun), std::move(value()));
+         }
+         else
+         {
+            return std::invoke(std::forward<decltype(def)>(def));
+         }
       }
       // clang-format off
 

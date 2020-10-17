@@ -279,10 +279,82 @@ TEST_SUITE("maybe test suite")
       }
    }
 
-   TEST_CASE("operator* const l-value") { REQUIRE(false); }
-   TEST_CASE("operator* l-value") { REQUIRE(false); }
-   TEST_CASE("operator* const r-value") { REQUIRE(false); }
-   TEST_CASE("operator* r-value") { REQUIRE(false); }
+   TEST_CASE("operator* const l-value")
+   {
+      SUBCASE("trivial")
+      {
+         const maybe<in_place_struct> m{in_place, 10, 10};
+
+         const auto my_struct = *m;
+
+         CHECK(my_struct.x() == 10);
+         CHECK(my_struct.y() == 10);
+      }
+      SUBCASE("non-trivial")
+      {
+         const maybe<std::string> my_maybe{"hello"};
+
+         REQUIRE(my_maybe);
+
+         const std::string str = *my_maybe;
+
+         CHECK(str == "hello");
+      }
+   }
+   TEST_CASE("operator* l-value")
+   {
+      SUBCASE("trivial")
+      {
+         maybe<in_place_struct> m{in_place, 10, 10};
+
+         auto& my_struct = *m;
+
+         CHECK(my_struct.x() == 10);
+         CHECK(my_struct.y() == 10);
+      }
+      SUBCASE("non-trivial")
+      {
+         maybe<std::string> my_maybe{"hello"};
+
+         REQUIRE(my_maybe);
+
+         std::string& str = *my_maybe;
+
+         CHECK(str == "hello");
+      }
+   }
+   TEST_CASE("operator* const r-value")
+   {
+      SUBCASE("trivial")
+      {
+         auto my_struct = *maybe<in_place_struct>{in_place, 10, 10};
+
+         CHECK(my_struct.x() == 10);
+         CHECK(my_struct.y() == 10);
+      }
+      SUBCASE("non-trivial")
+      {
+         std::string str = *maybe<std::string>{"hello"};
+
+         CHECK(str == "hello");
+      }
+   }
+   TEST_CASE("operator* r-value")
+   {
+      SUBCASE("trivial")
+      {
+         auto my_struct = *maybe<in_place_struct>{in_place, 10, 10};
+
+         CHECK(my_struct.x() == 10);
+         CHECK(my_struct.y() == 10);
+      }
+      SUBCASE("non-trivial")
+      {
+         std::string str = *maybe<std::string>{"hello"};
+
+         CHECK(str == "hello");
+      }
+   }
 
    TEST_CASE("has_value")
    {
@@ -609,7 +681,6 @@ TEST_SUITE("maybe test suite")
          CHECK(trivial_maybe.has_value() == true);
          CHECK(new_maybe.value() == std::string{"10"});
       }
-
       SUBCASE("non-trivial")
       {
          const maybe<std::string> non_trivial_maybe{"10"};
@@ -1091,7 +1162,7 @@ TEST_SUITE("maybe test suite")
             return i * i;
          });
 
-         CHECK(result.has_value());
+         CHECK(!result);
       }
       SUBCASE("non-trivial with value")
       {
@@ -1099,31 +1170,555 @@ TEST_SUITE("maybe test suite")
             return str + ", world!";
          });
 
-         REQUIRE(result.has_value());
+         REQUIRE(result);
          CHECK(result == "hello, world!");
       }
       SUBCASE("non-trivial without value")
       {
-         const std::string result = get_str("world").map_or(
-            [](const std::string&& str) {
+         const maybe result = get_str("world").and_then([](const std::string&& str) {
+            return str + ", world!";
+         });
+
+         CHECK(!result);
+      }
+   }
+   TEST_CASE("and_then r-value")
+   {
+      SUBCASE("trivial with value")
+      {
+         const maybe result = maybe<int>{10}.and_then([](int i) {
+            return i * i;
+         });
+
+         REQUIRE(result);
+         CHECK(result == 100);
+      }
+      SUBCASE("trivial without value")
+      {
+         const maybe result = maybe<int>{}.and_then([](int i) {
+            return i * i;
+         });
+
+         CHECK(!result);
+      }
+      SUBCASE("non-trivial with value")
+      {
+         const maybe result = maybe<std::string>{"hello"}.and_then([](std::string&& str) {
+            return str + ", world!";
+         });
+
+         REQUIRE(result);
+         CHECK(result == "hello, world!");
+      }
+      SUBCASE("non-trivial without value")
+      {
+         const maybe result = maybe<std::string>{}.and_then([](std::string&& str) {
+            return str + ", world!";
+         });
+
+         CHECK(!result);
+      }
+   }
+
+   TEST_CASE("or_else const l-value")
+   {
+      SUBCASE("trivial with value")
+      {
+         const maybe<int> my_maybe{10};
+
+         REQUIRE(my_maybe);
+         CHECK(my_maybe == 10);
+
+         int test = 0;
+         const maybe result = my_maybe.or_else([&test] {
+            test = 10;
+         });
+
+         REQUIRE(result);
+         CHECK(result == 10);
+         CHECK(test == 0);
+      }
+      SUBCASE("trivial without value")
+      {
+         const maybe<int> my_maybe{};
+
+         CHECK(!my_maybe.has_value());
+
+         int test = 0;
+         const maybe result = my_maybe.or_else([&test] {
+            test = 10;
+         });
+
+         CHECK(!result.has_value());
+         CHECK(test == 10);
+      }
+      SUBCASE("non-trivial with value")
+      {
+         const maybe<std::string> my_maybe{"hello"};
+
+         REQUIRE(my_maybe);
+         CHECK(my_maybe == "hello");
+
+         std::string other{};
+         const maybe result = my_maybe.or_else([&other] {
+            other = "goodbye";
+         });
+
+         REQUIRE(result);
+         CHECK(result == "hello");
+         CHECK(other == std::string{});
+      }
+      SUBCASE("non-trivial without value")
+      {
+         const maybe<std::string> my_maybe{};
+
+         CHECK(!my_maybe.has_value());
+
+         std::string other{};
+         const maybe result = my_maybe.or_else([&other] {
+            other = "goodbye";
+         });
+
+         CHECK(!result.has_value());
+         CHECK(other == "goodbye");
+      }
+   }
+   TEST_CASE("or_else l-value")
+   {
+      SUBCASE("trivial with value")
+      {
+         maybe<int> my_maybe{10};
+
+         REQUIRE(my_maybe);
+         CHECK(my_maybe == 10);
+
+         int test = 0;
+         const maybe result = my_maybe.or_else([&test] {
+            test = 10;
+         });
+
+         REQUIRE(result);
+         CHECK(result == 10);
+         CHECK(test == 0);
+      }
+      SUBCASE("trivial without value")
+      {
+         maybe<int> my_maybe{};
+
+         CHECK(!my_maybe.has_value());
+
+         int test = 0;
+         const maybe result = my_maybe.or_else([&test] {
+            test = 10;
+         });
+
+         CHECK(!result.has_value());
+         CHECK(test == 10);
+      }
+      SUBCASE("non-trivial with value")
+      {
+         maybe<std::string> my_maybe{"hello"};
+
+         REQUIRE(my_maybe);
+         CHECK(my_maybe == "hello");
+
+         std::string other{};
+         const maybe result = my_maybe.or_else([&other] {
+            other = "goodbye";
+         });
+
+         REQUIRE(result);
+         CHECK(result == "hello");
+         CHECK(other == std::string{});
+      }
+      SUBCASE("non-trivial without value")
+      {
+         maybe<std::string> my_maybe{};
+
+         CHECK(!my_maybe.has_value());
+
+         std::string other{};
+         const maybe result = my_maybe.or_else([&other] {
+            other = "goodbye";
+         });
+
+         CHECK(!result.has_value());
+         CHECK(other == "goodbye");
+      }
+   }
+   TEST_CASE("or_else const r-value")
+   {
+      const auto get_int = [](int i) -> const maybe<int> {
+         if (i <= 10)
+         {
+            return i;
+         }
+         else
+         {
+            return none;
+         }
+      };
+      const auto get_str = [](const std::string& str) -> const maybe<std::string> {
+         if (str == std::string{"hello"})
+         {
+            return str;
+         }
+         else
+         {
+            return none;
+         }
+      };
+
+      SUBCASE("trivial with value")
+      {
+         int test = 0;
+         const maybe result = get_int(10).or_else([&test] {
+            test = 10;
+         });
+
+         REQUIRE(result);
+         CHECK(result == 10);
+         CHECK(test == 0);
+      }
+      SUBCASE("trivial without value")
+      {
+         int test = 0;
+         const maybe result = get_int(20).or_else([&test] {
+            test = 10;
+         });
+
+         CHECK(!result);
+         CHECK(test == 10);
+      }
+      SUBCASE("non-trivial with value")
+      {
+         std::string other{};
+         const maybe result = get_str("hello").or_else([&other] {
+            other = "goodbye";
+         });
+
+         REQUIRE(result);
+         CHECK(result == "hello");
+         CHECK(other == std::string{});
+      }
+      SUBCASE("non-trivial without value")
+      {
+         std::string other{};
+         const maybe result = get_str("world").or_else([&other] {
+            other = "goodbye";
+         });
+
+         CHECK(!result.has_value());
+         CHECK(other == "goodbye");
+      }
+   }
+   TEST_CASE("or_else r-value")
+   {
+      SUBCASE("trivial with value")
+      {
+         int test = 0;
+         const maybe result = maybe<int>{10}.or_else([&test] {
+            test = 10;
+         });
+
+         REQUIRE(result);
+         CHECK(result == 10);
+         CHECK(test == 0);
+      }
+      SUBCASE("trivial without value")
+      {
+         int test = 0;
+         const maybe result = maybe<int>{}.or_else([&test] {
+            test = 10;
+         });
+
+         CHECK(!result);
+         CHECK(test == 10);
+      }
+      SUBCASE("non-trivial with value")
+      {
+         std::string other{};
+         const maybe result = maybe<std::string>{"hello"}.or_else([&other] {
+            other = "goodbye";
+         });
+
+         REQUIRE(result);
+         CHECK(result == "hello");
+         CHECK(other == std::string{});
+      }
+      SUBCASE("non-trivial without value")
+      {
+         std::string other{};
+         const maybe result = maybe<std::string>{}.or_else([&other] {
+            other = "goodbye";
+         });
+
+         CHECK(!result.has_value());
+         CHECK(other == "goodbye");
+      }
+   }
+
+   TEST_CASE("map_or_else const l-value")
+   {
+      SUBCASE("trivial with value")
+      {
+         const maybe<int> my_maybe{10};
+
+         REQUIRE(my_maybe);
+         CHECK(my_maybe == 10);
+
+         const int result = my_maybe.map_or_else(
+            [](int i) {
+               return i * i;
+            },
+            [] {
+               return std::numeric_limits<int>::max();
+            });
+
+         CHECK(result == 100);
+      }
+      SUBCASE("trivial without value")
+      {
+         const maybe<int> my_maybe{};
+
+         CHECK(!my_maybe.has_value());
+
+         const int result = my_maybe.map_or_else(
+            [](int i) {
+               return i * i;
+            },
+            [] {
+               return std::numeric_limits<int>::max();
+            });
+
+         CHECK(result == std::numeric_limits<int>::max());
+      }
+      SUBCASE("non-trivial with value")
+      {
+         const maybe<std::string> my_maybe{"hello"};
+
+         REQUIRE(my_maybe);
+         CHECK(my_maybe == "hello");
+
+         const std::string result = my_maybe.map_or_else(
+            [](const std::string& str) {
                return str + ", world!";
             },
-            std::string{"goodbye"});
+            [] {
+               return std::string{"goodbye"};
+            });
+
+         CHECK(result == "hello, world!");
+      }
+      SUBCASE("non-trivial without value")
+      {
+         maybe<std::string> my_maybe{};
+
+         CHECK(!my_maybe.has_value());
+
+         const std::string result = my_maybe.map_or_else(
+            [](const std::string& str) {
+               return str + ", world!";
+            },
+            [] {
+               return std::string{"goodbye"};
+            });
 
          CHECK(result == "goodbye");
       }
    }
-   TEST_CASE("and_then r-value") { REQUIRE(false); }
+   TEST_CASE("map_or_else l-value")
+   {
+      SUBCASE("trivial with value")
+      {
+         maybe<int> my_maybe{10};
 
-   TEST_CASE("or_else const l-value") { REQUIRE(false); }
-   TEST_CASE("or_else l-value") { REQUIRE(false); }
-   TEST_CASE("or_else const r-value") { REQUIRE(false); }
-   TEST_CASE("or_else r-value") { REQUIRE(false); }
+         REQUIRE(my_maybe);
+         CHECK(my_maybe == 10);
 
-   TEST_CASE("map_or_else const l-value") { REQUIRE(false); }
-   TEST_CASE("map_or_else l-value") { REQUIRE(false); }
-   TEST_CASE("map_or_else const r-value") { REQUIRE(false); }
-   TEST_CASE("map_or_else r-value") { REQUIRE(false); }
+         const int result = my_maybe.map_or_else(
+            [](int i) {
+               return i * i;
+            },
+            [] {
+               return std::numeric_limits<int>::max();
+            });
+
+         CHECK(result == 100);
+      }
+      SUBCASE("trivial without value")
+      {
+         maybe<int> my_maybe{};
+
+         CHECK(!my_maybe.has_value());
+
+         const int result = my_maybe.map_or_else(
+            [](int i) {
+               return i * i;
+            },
+            [] {
+               return std::numeric_limits<int>::max();
+            });
+
+         CHECK(result == std::numeric_limits<int>::max());
+      }
+      SUBCASE("non-trivial with value")
+      {
+         maybe<std::string> my_maybe{"hello"};
+
+         REQUIRE(my_maybe);
+         CHECK(my_maybe == "hello");
+
+         const auto result = my_maybe.map_or_else(
+            [](const std::string& str) {
+               return str + ", world!";
+            },
+            [] {
+               return std::string{"goodbye"};
+            });
+
+         CHECK(result == "hello, world!");
+      }
+      SUBCASE("non-trivial without value")
+      {
+         maybe<std::string> my_maybe{};
+
+         CHECK(!my_maybe);
+
+         const std::string result = my_maybe.map_or_else(
+            [](const std::string& str) -> std::string {
+               return str + ", world!";
+            },
+            [] {
+               return std::string{"goodbye"};
+            });
+
+         CHECK(result == "goodbye");
+      }
+   }
+   TEST_CASE("map_or_else const r-value")
+   {
+      const auto get_int = [](int i) -> const maybe<int> {
+         if (i <= 10)
+         {
+            return i;
+         }
+         else
+         {
+            return none;
+         }
+      };
+      const auto get_str = [](const std::string& str) -> const maybe<std::string> {
+         if (str == std::string{"hello"})
+         {
+            return str;
+         }
+         else
+         {
+            return none;
+         }
+      };
+
+      SUBCASE("trivial with value")
+      {
+         const int result = get_int(10).map_or_else(
+            [](int i) {
+               return i * i;
+            },
+            [] {
+               return std::numeric_limits<int>::max();
+            });
+
+         CHECK(result == 100);
+      }
+      SUBCASE("trivial without value")
+      {
+         const int result = get_int(20).map_or_else(
+            [](int i) {
+               return i * i;
+            },
+            [] {
+               return std::numeric_limits<int>::max();
+            });
+
+         CHECK(result == std::numeric_limits<int>::max());
+      }
+      SUBCASE("non-trivial with value")
+      {
+         const std::string result = get_str("hello").map_or_else(
+            [](const std::string&& str) {
+               return str + ", world!";
+            },
+            [] {
+               return std::string{"goodbye"};
+            });
+
+         CHECK(result == "hello, world!");
+      }
+      SUBCASE("non-trivial without value")
+      {
+         const std::string result = get_str("world").map_or_else(
+            [](const std::string&& str) {
+               return str + ", world";
+            },
+            [] {
+               return std::string{"goodbye"};
+            });
+
+         CHECK(result == "goodbye");
+      }
+   }
+   TEST_CASE("map_or_else r-value")
+   {
+      SUBCASE("trivial with value")
+      {
+         const int result = maybe<int>{10}.map_or_else(
+            [](int i) {
+               return i * i;
+            },
+            [] {
+               return std::numeric_limits<int>::max();
+            });
+
+         CHECK(result == 100);
+      }
+      SUBCASE("trivial without value")
+      {
+         const int result = maybe<int>{}.map_or_else(
+            [](int i) {
+               return i * i;
+            },
+            [] {
+               return std::numeric_limits<int>::max();
+            });
+
+         CHECK(result == std::numeric_limits<int>::max());
+      }
+      SUBCASE("non-trivial with value")
+      {
+         const std::string result = maybe<std::string>{"hello"}.map_or_else(
+            [](std::string&& str) {
+               return str + ", world!";
+            },
+            [] {
+               return std::string{"goodbye"};
+            });
+
+         CHECK(result == "hello, world!");
+      }
+      SUBCASE("non-trivial without value")
+      {
+         const std::string result = maybe<std::string>{}.map_or_else(
+            [](std::string&& str) {
+               return str + ", world";
+            },
+            [] {
+               return std::string{"goodbye"};
+            });
+
+         CHECK(result == "goodbye");
+      }
+   }
 
    TEST_CASE("make_maybe")
    {
