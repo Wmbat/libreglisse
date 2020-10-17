@@ -108,7 +108,7 @@ namespace monad
          {
             if (engaged())
             {
-               std::construct_at(pointer(), std::move(rhs.value));
+               std::construct_at(pointer(), std::move(rhs.value()));
                rhs.m_is_engaged = false;
             }
          }
@@ -314,6 +314,8 @@ namespace monad
          std::is_nothrow_move_constructible_v<any_> && std::is_nothrow_swappable_v<any_>;
 
    public:
+      // clang-format off
+
       using value_type = typename storage_type::value_type;
 
       /**
@@ -324,6 +326,7 @@ namespace monad
        * Construct a empty monad
        */
       constexpr maybe(none_t) noexcept {}
+
       /**
        * Construct a maybe monad using a `value` by copy
        */
@@ -334,24 +337,24 @@ namespace monad
       /**
        * Construct a maybe monad using a `value` by move
        */
-      constexpr maybe(value_type &&
-                      value) noexcept(std::is_nothrow_constructible_v<storage_type, any_&&>) :
+      constexpr maybe(value_type &&value) 
+         noexcept(std::is_nothrow_constructible_v<storage_type, any_&&>) :
          m_storage{std::move(value)}
       {}
       /**
        * Construct a maybe monad by creating a value in place from a range of variadic arguments
        */
-      constexpr maybe(in_place_t, auto&&... args) noexcept(
-         std::is_nothrow_constructible_v<value_type, decltype(args)...>) requires std::
-         constructible_from<value_type, decltype(args)...> :
-         m_storage{in_place, std::forward<decltype(args)>(args)...}
+      constexpr maybe(in_place_t, auto&&... args) 
+         noexcept(std::is_nothrow_constructible_v<value_type, decltype(args)...>) 
+      //   requires std::constructible_from<value_type, decltype(args)...> 
+         : m_storage{in_place, std::forward<decltype(args)>(args)...}
       {}
 
       /**
        * A shorthand operator to acces the underlying value. This operator does not guarentee the
        * returned value will be valid
        */
-      constexpr auto operator->() noexcept->value_type*
+      constexpr auto operator->() noexcept -> value_type*
       {
          assert(has_value());
 
@@ -361,7 +364,7 @@ namespace monad
        * A shorthand operator to acces the underlying value. This operator does not guarentee the
        * returned value will be valid
        */
-      constexpr auto operator->() const noexcept->const value_type*
+      constexpr auto operator->() const noexcept -> const value_type*
       {
          assert(has_value());
 
@@ -371,25 +374,25 @@ namespace monad
       /**
        * Return the stored value
        */
-      constexpr auto operator*()& noexcept->value_type& { return m_storage.value(); }
+      constexpr auto operator*() & noexcept -> value_type& { return m_storage.value(); }
       /**
        * Return the stored value
        */
-      constexpr auto operator*() const& noexcept(is_nothrow_value_copyable)->const value_type&
+      constexpr auto operator*() const & noexcept(is_nothrow_value_copyable) -> const value_type&
       {
          return m_storage.value();
       }
       /**
        * Return the stored value
        */
-      constexpr auto operator*()&& noexcept(is_nothrow_value_movable)->value_type&&
+      constexpr auto operator*() && noexcept(is_nothrow_value_movable) -> value_type&&
       {
          return std::move(m_storage.value());
       }
       /**
        * Return the stored value
        */
-      constexpr auto operator*() const&& noexcept(is_nothrow_value_movable)->const value_type&&
+      constexpr auto operator*() const && noexcept(is_nothrow_value_movable) -> const value_type&&
       {
          return std::move(m_storage.value());
       }
@@ -397,13 +400,16 @@ namespace monad
       /**
        * Check if a value is present
        */
-      [[nodiscard]] constexpr auto has_value() const noexcept->bool { return m_storage.engaged(); }
+      [[nodiscard]] constexpr auto has_value() const noexcept -> bool 
+      { 
+         return m_storage.engaged(); 
+      }
       constexpr operator bool() const noexcept { return has_value(); }
 
       /**
        * Return the stored value
        */
-      constexpr auto value()& noexcept->value_type&
+      constexpr auto value() & noexcept -> value_type&
       {
          assert(has_value());
 
@@ -412,7 +418,7 @@ namespace monad
       /**
        * Return the stored value
        */
-      constexpr auto value() const& noexcept(is_nothrow_value_copyable)->const value_type&
+      constexpr auto value() const& noexcept(is_nothrow_value_copyable) -> const value_type&
       {
          assert(has_value());
 
@@ -421,7 +427,7 @@ namespace monad
       /**
        * Return the stored value
        */
-      constexpr auto value()&& noexcept(is_nothrow_value_movable)->value_type&&
+      constexpr auto value() && noexcept(is_nothrow_value_movable) -> value_type&&
       {
          assert(has_value());
 
@@ -430,7 +436,7 @@ namespace monad
       /**
        * Return the stored value
        */
-      constexpr auto value() const&& noexcept(is_nothrow_value_movable)->const value_type&&
+      constexpr auto value() const&& noexcept(is_nothrow_value_movable) -> const value_type&&
       {
          assert(has_value());
 
@@ -438,10 +444,9 @@ namespace monad
       }
 
       /**
-       * Take the value out of the optional into another optional,
-       * leaving it empty
+       * Take the value out of the maybe into a new maybe, leaving it empty
        */
-      constexpr auto take()->maybe
+      constexpr auto take() -> maybe
       {
          maybe ret = std::move(*this);
          reset();
@@ -451,8 +456,8 @@ namespace monad
       /**
        * Return the stored value or a specified value
        */
-      constexpr auto value_or(std::convertible_to<value_type> auto&& default_value)
-         const&->value_type
+      constexpr auto value_or(std::convertible_to<value_type> auto&& default_value) const& 
+         -> value_type
       {
          return has_value()
             ? value()
@@ -461,7 +466,7 @@ namespace monad
       /**
        * Return the stored value or a specified value
        */
-      constexpr auto value_or(std::convertible_to<value_type> auto&& default_value)&&->value_type
+      constexpr auto value_or(std::convertible_to<value_type> auto&& default_value) && -> value_type
       {
          return has_value()
             ? std::move(value())
@@ -495,7 +500,7 @@ namespace monad
       /**
        * Carries out some operation on the stored object if there is one
        */
-      constexpr auto map(std::invocable<value_type> auto&& fun)&
+      constexpr auto map(std::invocable<value_type> auto&& fun) &
       {
          using result_type = std::invoke_result_t<decltype(fun), value_type>;
 
@@ -517,7 +522,7 @@ namespace monad
       /**
        * Carries out some operation on the stored object if there is one
        */
-      constexpr auto map(std::invocable<value_type> auto&& fun)&&
+      constexpr auto map(std::invocable<value_type> auto&& fun) &&
       {
          using result_type = std::invoke_result_t<decltype(fun), value_type>;
 
@@ -530,12 +535,17 @@ namespace monad
        * Carries out an operation on the stored object if there is one, or returns
        * a default value
        */
-      constexpr auto map_or(std::invocable<value_type> auto&& fun, auto&& other)
-         const&->std::common_type_t<std::invoke_result_t<decltype(fun), value_type>,
-                                    decltype(other)>
+      constexpr auto map_or(std::invocable<value_type> auto&& fun, auto&& other) const& 
+         -> std::common_type_t<std::invoke_result_t<decltype(fun), value_type>, decltype(other)>
       {
-         return has_value() ? std::invoke(std::forward<decltype(fun)>(fun), value())
-                            : std::forward<decltype(other)>(other);
+         if(has_value())
+         {
+            return std::invoke(std::forward<decltype(fun)>(fun), value());
+         }
+         else
+         {
+            return std::forward<decltype(other)>(other);
+         }
       }
       /**
        * Carries out an operation on the stored object if there is one, or returns
@@ -546,8 +556,14 @@ namespace monad
          auto&& other)&->std::common_type_t<std::invoke_result_t<decltype(fun), value_type>,
                                             decltype(other)>
       {
-         return has_value() ? std::invoke(std::forward<decltype(fun)>(fun), value())
-                            : std::forward<decltype(other)>(other);
+         if(has_value())
+         {
+            return std::invoke(std::forward<decltype(fun)>(fun), value());
+         }
+         else
+         {
+            return std::forward<decltype(other)>(other);
+         }
       }
       /**
        * Carries out an operation on the stored object if there is one, or returns
@@ -557,8 +573,14 @@ namespace monad
          const&&->std::common_type_t<std::invoke_result_t<decltype(fun), value_type>,
                                      decltype(other)>
       {
-         return has_value() ? std::invoke(std::forward<decltype(fun)>(fun), std::move(value()))
-                            : std::forward<decltype(other)>(other);
+         if(has_value())
+         {
+            return std::invoke(std::forward<decltype(fun)>(fun), std::move(value()));
+         }
+         else
+         {
+            return std::forward<decltype(other)>(other);
+         }
       }
       /**
        * Carries out an operation on the stored object if there is one, or returns
@@ -569,8 +591,14 @@ namespace monad
          auto&& other)&&->std::common_type_t<std::invoke_result_t<decltype(fun), value_type>,
                                              decltype(other)>
       {
-         return has_value() ? std::invoke(std::forward<decltype(fun)>(fun), std::move(value()))
-                            : std::forward<decltype(other)>(other);
+         if(has_value())
+         {
+            return std::invoke(std::forward<decltype(fun)>(fun), std::move(value()));
+         }
+         else
+         {
+            return std::forward<decltype(other)>(other);
+         }
       }
 
       /**
@@ -579,10 +607,16 @@ namespace monad
        */
       constexpr auto and_then(std::invocable<value_type> auto&& fun) const&
       {
-         using result_type = typename std::invoke_result_t<decltype(fun), value_type>::value_type;
+         using result_type = typename std::invoke_result_t<decltype(fun), value_type>;
 
-         return !has_value() ? maybe<result_type>{}
-                             : std::invoke(std::forward<decltype(fun)>(fun), value());
+         if(has_value())
+         {
+            return maybe<result_type>{std::invoke(std::forward<decltype(fun)>(fun), value())};
+         }
+         else
+         {
+            return maybe<result_type>{};
+         }
       }
       /**
        * Carries out some operation that returns a monad::maybe on the stored object
@@ -590,10 +624,16 @@ namespace monad
        */
       constexpr auto and_then(std::invocable<value_type> auto&& fun)&
       {
-         using result_type = typename std::invoke_result_t<decltype(fun), value_type>::value_type;
+         using result_type = typename std::invoke_result_t<decltype(fun), value_type>;
 
-         return !has_value() ? maybe<result_type>{}
-                             : std::invoke(std::forward<decltype(fun)>(fun), value());
+         if(has_value())
+         {
+            return maybe<result_type>{std::invoke(std::forward<decltype(fun)>(fun), value())};
+         }
+         else
+         {
+            return maybe<result_type>{};
+         }
       }
       /**
        * Carries out some operation that returns a monad::maybe on the stored object
@@ -601,10 +641,16 @@ namespace monad
        */
       constexpr auto and_then(std::invocable<value_type> auto&& fun) const&&
       {
-         using result_type = typename std::invoke_result_t<decltype(fun), value_type>::value_type;
+         using result_type = typename std::invoke_result_t<decltype(fun), value_type>;
 
-         return !has_value() ? maybe<result_type>{}
-                             : std::invoke(std::forward<decltype(fun)>(fun), std::move(value()));
+         if(has_value())
+         {
+            return maybe<result_type>{std::invoke(std::forward<decltype(fun)>(fun), std::move(value()))};
+         }
+         else
+         {
+            return maybe<result_type>{};
+         }
       }
       /**
        * Carries out some operation that returns a monad::maybe on the stored object
@@ -612,10 +658,16 @@ namespace monad
        */
       constexpr auto and_then(std::invocable<value_type> auto&& fun)&&
       {
-         using result_type = typename std::invoke_result_t<decltype(fun), value_type>::value_type;
+         using result_type = typename std::invoke_result_t<decltype(fun), value_type>;
 
-         return !has_value() ? maybe<result_type>{}
-                             : std::invoke(std::forward<decltype(fun)>(fun), value());
+         if(has_value())
+         {
+            return maybe<result_type>{std::invoke(std::forward<decltype(fun)>(fun), std::move(value()))};
+         }
+         else
+         {
+            return maybe<result_type>{};
+         }
       }
 
       /**
@@ -669,7 +721,7 @@ namespace monad
       /**
        * Carries out an operation if there is no value stored
        */
-      constexpr auto or_else(std::invocable auto&& fun)&&->maybe<value_type>
+      constexpr auto or_else(std::invocable auto&& fun) && -> maybe<value_type>
       {
          if (has_value())
          {
@@ -687,9 +739,12 @@ namespace monad
        * Carries out an operation on the stored object if there is one, or return
        * a the result of a given function
        */
-      constexpr auto map_or_else(std::invocable<value_type> auto&& fun, std::invocable auto&& def)
-         const&->std::invoke_result_t<decltype(def)> requires std::convertible_to<
-            std::invoke_result_t<decltype(fun), value_type>, std::invoke_result_t<decltype(def)>>
+      constexpr auto map_or_else(
+         std::invocable<value_type> auto&& fun, 
+         std::invocable auto&& def) const& -> std::invoke_result_t<decltype(def)> 
+      requires std::convertible_to<
+         std::invoke_result_t<decltype(fun), value_type>, 
+         std::invoke_result_t<decltype(def)>>
       {
          return has_value() ? std::invoke(std::forward<decltype(fun)>, value())
                             : std::invoke(std::forward<decltype(def)>);
@@ -700,9 +755,10 @@ namespace monad
        */
       constexpr auto map_or_else(
          std::invocable<value_type> auto&& fun,
-         std::invocable auto&& def)&->std::invoke_result_t<decltype(def)> requires std::
-         convertible_to<std::invoke_result_t<decltype(fun), value_type>,
-                        std::invoke_result_t<decltype(def)>>
+         std::invocable auto&& def) & -> std::invoke_result_t<decltype(def)> 
+      requires std::convertible_to<
+         std::invoke_result_t<decltype(fun), value_type>,
+         std::invoke_result_t<decltype(def)>>
       {
          return has_value() ? std::invoke(std::forward<decltype(fun)>, value())
                             : std::invoke(std::forward<decltype(def)>);
@@ -711,9 +767,12 @@ namespace monad
        * Carries out an operation on the stored object if there is one, or return
        * a the result of a given function
        */
-      constexpr auto map_or_else(std::invocable<value_type> auto&& fun, std::invocable auto&& def)
-         const&&->std::invoke_result_t<decltype(def)> requires std::convertible_to<
-            std::invoke_result_t<decltype(fun), value_type>, std::invoke_result_t<decltype(def)>>
+      constexpr auto map_or_else(
+         std::invocable<value_type> auto&& fun, 
+         std::invocable auto&& def) const&& -> std::invoke_result_t<decltype(def)> 
+      requires std::convertible_to<
+         std::invoke_result_t<decltype(fun), value_type&&>, 
+         std::invoke_result_t<decltype(def)>>
       {
          return has_value() ? std::invoke(std::forward<decltype(fun)>, std::move(value()))
                             : std::invoke(std::forward<decltype(def)>);
@@ -724,13 +783,15 @@ namespace monad
        */
       constexpr auto map_or_else(
          std::invocable<value_type> auto&& fun,
-         std::invocable auto&& def)&&->std::invoke_result_t<decltype(def)> requires std::
-         convertible_to<std::invoke_result_t<decltype(fun), value_type>,
-                        std::invoke_result_t<decltype(def)>>
+         std::invocable auto&& def) && -> std::invoke_result_t<decltype(def)> 
+      requires std::convertible_to<
+         std::invoke_result_t<decltype(fun), value_type&&>,
+         std::invoke_result_t<decltype(def)>>
       {
          return has_value() ? std::invoke(std::forward<decltype(fun)>, std::move(value()))
                             : std::invoke(std::forward<decltype(def)>);
       }
+      // clang-format off
 
    private:
       storage<value_type> m_storage{};
