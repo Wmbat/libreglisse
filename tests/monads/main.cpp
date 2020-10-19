@@ -2178,6 +2178,17 @@ TEST_SUITE("maybe test suite")
    }
 }
 
+TEST_SUITE("result test suite")
+{
+   TEST_CASE("ctor value copy") {}
+   TEST_CASE("ctor value move") {}
+   TEST_CASE("ctor value in_place") {}
+
+   TEST_CASE("ctor error copy") {}
+   TEST_CASE("ctor error move") {}
+   TEST_CASE("ctor error in_place") {}
+}
+
 TEST_CASE("result test suite")
 {
    struct int_field
@@ -2583,7 +2594,7 @@ TEST_CASE("result test suite")
    SUBCASE("r-value map_error") {}
 }
 
-TEST_CASE("either test suite") {}
+TEST_SUITE("either test suite") {}
 
 TEST_SUITE("try_wrap test suite")
 {
