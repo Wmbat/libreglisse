@@ -5,35 +5,35 @@
 namespace monad
 {
    // clang-format off
-   template <class error_, class fun_, class... args_>
-   auto try_wrap(fun_&& fun, args_&&... args)
-      -> result<std::invoke_result_t<fun_, args_...>, error_>
+   template <class Err, class Fun, class... Args>
+   auto try_wrap(Fun&& fun, Args&&... args)
+      -> result<std::invoke_result_t<Fun, Args...>, Err>
    requires 
-      std::invocable<fun_, args_...>
+      std::invocable<Fun, Args...>
    {
       try
       {
-         return std::invoke(std::forward<fun_>(fun), std::forward<args_>(args)...);
+         return std::invoke(std::forward<Fun>(fun), std::forward<Args>(args)...);
       }
-      catch (const error_& e)
+      catch (const Err& e)
       {
-         return make_error(e);
+         return err(e);
       }
    }
 
-   template <class error_, class fun_, class... args_>
-   auto try_wrap(fun_&& fun, args_&&... args) -> maybe<error_> 
+   template <class Err, class Fun, class... Args>
+   auto try_wrap(Fun&& fun, Args&&... args) -> maybe<Err> 
    requires 
-      std::invocable<fun_, args_...> && 
-      std::same_as<void, std::invoke_result_t<fun_, args_...>>
+      std::invocable<Fun, Args...> && 
+      std::same_as<void, std::invoke_result_t<Fun, Args...>>
    {
       try
       {
-         std::invoke(std::forward<fun_>(fun), std::forward<args_>(args)...);
+         std::invoke(std::forward<Fun>(fun), std::forward<Args>(args)...);
 
          return none;
       }
-      catch (const error_& e)
+      catch (const Err& e)
       {
          return {e};
       }

@@ -2180,13 +2180,37 @@ TEST_SUITE("maybe test suite")
 
 TEST_SUITE("result test suite")
 {
-   TEST_CASE("ctor value copy") {}
-   TEST_CASE("ctor value move") {}
-   TEST_CASE("ctor value in_place") {}
+   TEST_CASE("ctor value copy")
+   {
+      SUBCASE("trivial")
+      {
+         int my_int = 10;
 
-   TEST_CASE("ctor error copy") {}
-   TEST_CASE("ctor error move") {}
-   TEST_CASE("ctor error in_place") {}
+         CHECK(noexcept(result<int, std::exception>{my_int}));
+
+         result<int, std::exception> res{my_int};
+
+         REQUIRE(res.is_value());
+         CHECK(res.value().value() == my_int);
+      }
+      SUBCASE("non-trivial")
+      {
+         std::string my_str = "hello, world!";
+
+         CHECK(!noexcept(result<std::string, int>{my_str}));
+
+         result<std::string, int> res{my_str};
+
+         REQUIRE(res.is_value());
+         CHECK(res.value().value() == my_str);
+      }
+   }
+   TEST_CASE("ctor value move") { REQUIRE(false); }
+   TEST_CASE("ctor value in_place") { REQUIRE(false); }
+
+   TEST_CASE("ctor error copy") { REQUIRE(false); }
+   TEST_CASE("ctor error move") { REQUIRE(false); }
+   TEST_CASE("ctor error in_place") { REQUIRE(false); }
 }
 
 TEST_CASE("result test suite")
@@ -2337,7 +2361,7 @@ TEST_CASE("result test suite")
    SUBCASE("error copy ctor")
    {
       {
-         monad::error_t<int> i = make_error(0);
+         monad::error_t<int> i = err(0);
 
          result<int, int> test{i};
 
@@ -2345,7 +2369,7 @@ TEST_CASE("result test suite")
          CHECK(test.error().value() == i.val);
       }
       {
-         const auto hello = make_error<std::string>("hello, world!");
+         const auto hello = err<std::string>("hello, world!");
 
          result<int, std::string> test{hello};
 
@@ -2353,7 +2377,7 @@ TEST_CASE("result test suite")
          CHECK(test.error().value() == hello.val);
       }
       {
-         const auto hello = make_error<std::string>("hello, world!");
+         const auto hello = err<std::string>("hello, world!");
          const auto lambda = [&](int i) noexcept -> result<int, std::string> {
             if (i > 10)
             {
@@ -2374,20 +2398,20 @@ TEST_CASE("result test suite")
    SUBCASE("error move ctor")
    {
       {
-         result<int, int> test{make_error<int>(0)};
+         result<int, int> test{err<int>(0)};
 
          REQUIRE(test.is_value() == false);
          CHECK(test.error().value() == 0);
       }
       {
-         result<std::string, std::string> test{make_error<std::string>("hello, world!")};
+         result<std::string, std::string> test{err<std::string>("hello, world!")};
 
          REQUIRE(test.is_value() == false);
          CHECK(test.error().value() == "hello, world!");
       }
       {
          const auto lambda = [&]() noexcept -> result<int, std::string> {
-            return make_error<std::string>("hello, world!");
+            return err<std::string>("hello, world!");
          };
 
          const auto test = lambda();
@@ -2551,7 +2575,7 @@ TEST_CASE("result test suite")
             }
             else
             {
-               return make_error(i);
+               return err(i);
             }
          };
 
@@ -2593,8 +2617,6 @@ TEST_CASE("result test suite")
    SUBCASE("const r-value map_error") {}
    SUBCASE("r-value map_error") {}
 }
-
-TEST_SUITE("either test suite") {}
 
 TEST_SUITE("try_wrap test suite")
 {
