@@ -646,11 +646,9 @@ namespace monad
        * does not hold a value, the function will not be applied
        */
       template<std::invocable<value_type> Fun>
+      requires (std::is_same_v<std::invoke_result_t<Fun, value_type>::error_type, error_type>)
       constexpr auto and_then(Fun&& fun) const& -> std::invoke_result_t<Fun, value_type>
       {
-         using result_t = std::invoke_result_t<Fun, value_type>;
-         static_assert(std::is_same_v<result_t::error_type, error_type>);
-
          if (is_value())
          {
             return std::invoke(std::forward<Fun>(fun), m_storage.value());
@@ -665,11 +663,9 @@ namespace monad
        * does not hold a value, the function will not be applied
        */
       template<std::invocable<value_type> Fun>
+      requires (std::is_same_v<std::invoke_result_t<Fun, value_type>::error_type, error_type>)
       constexpr auto and_then(Fun&& fun) & -> std::invoke_result_t<Fun, value_type>
       {
-         using result_t = std::invoke_result_t<Fun, value_type>;
-         static_assert(std::is_same_v<result_t::error_type, error_type>);
-
          if (is_value())
          {
             return std::invoke(std::forward<Fun>(fun), m_storage.value());
@@ -684,11 +680,9 @@ namespace monad
        * does not hold a value, the function will not be applied
        */
       template<std::invocable<value_type> Fun>
+      requires (std::is_same_v<std::invoke_result_t<Fun, value_type>::error_type, error_type>)
       constexpr auto and_then(Fun&& fun) const&& -> std::invoke_result_t<Fun, value_type>
       {
-         using result_t = std::invoke_result_t<Fun, value_type>;
-         static_assert(std::is_same_v<result_t::error_type, error_type>);
-
          if (is_value())
          {
             return std::invoke(std::forward<Fun>(fun), std::move(m_storage.value()));
@@ -703,6 +697,7 @@ namespace monad
        * does not hold a value, the function will not be applied
        */
       template<std::invocable<value_type> Fun>
+      requires (std::is_same_v<std::invoke_result_t<Fun, value_type>::error_type, error_type>)
       constexpr auto and_then(Fun&& fun) && -> std::invoke_result_t<Fun, value_type>
       {
          using result_t = std::invoke_result_t<Fun, value_type>;
