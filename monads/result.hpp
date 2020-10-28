@@ -12,6 +12,12 @@ namespace monad
 
    namespace detail
    {
+      template <template <typename...> typename T, typename... Args>
+      inline constexpr bool is_specialization_of_v = false;
+
+      template <template <typename...> typename T, typename... Args>
+      inline constexpr bool is_specialization_of_v<T, T<Args...>> = true;
+
       template <class InValue, class InError>
       constexpr auto ensure_result_error(const result<InValue, InError>& e, InError)
          -> result<InValue, InError>
@@ -635,6 +641,136 @@ namespace monad
          }
       }
 
+      /**
+       * Applies a function that return a monad::result to the value. If the monad::result
+       * does not hold a value, the function will not be applied
+       */
+      template<std::invocable<value_type> Fun>
+      constexpr auto and_then(Fun&& fun) const& -> std::invoke_result_t<Fun, value_type>
+      {
+         if (is_value())
+         {
+            return std::invoke(std::forward<Fun>(fun), m_storage.value());
+         }
+         else
+         {
+            return err(m_storage.error());
+         }
+      }
+      /**
+       * Applies a function that return a monad::result to the value. If the monad::result
+       * does not hold a value, the function will not be applied
+       */
+      template<std::invocable<value_type> Fun>
+      constexpr auto and_then(Fun&& fun) & -> std::invoke_result_t<Fun, value_type>
+      {
+         if (is_value())
+         {
+            return std::invoke(std::forward<Fun>(fun), m_storage.value());
+         }
+         else
+         {
+            return err(m_storage.error());
+         }
+      }
+      /**
+       * Applies a function that return a monad::result to the value. If the monad::result
+       * does not hold a value, the function will not be applied
+       */
+      template<std::invocable<value_type> Fun>
+      constexpr auto and_then(Fun&& fun) const&& -> std::invoke_result_t<Fun, value_type>
+      {
+         if (is_value())
+         {
+            return std::invoke(std::forward<Fun>(fun), std::move(m_storage.value()));
+         }
+         else
+         {
+            return err(std::move(m_storage.error()));
+         }
+      }
+      /**
+       * Applies a function that return a monad::result to the value. If the monad::result
+       * does not hold a value, the function will not be applied
+       */
+      template<std::invocable<value_type> Fun>
+      constexpr auto and_then(Fun&& fun) && -> std::invoke_result_t<Fun, value_type>
+      {
+         if (is_value())
+         {
+            return std::invoke(std::forward<Fun>(fun), std::move(m_storage.value()));
+         }
+         else
+         {
+            return err(std::move(m_storage.error()));
+         }
+      }
+
+      /**
+       * Applies a function that return a monad::result to the error. If the monad::result
+       * does not hold an error, the function will not be applied
+       */
+      template<std::invocable<error_type> Fun>
+      constexpr auto or_else(Fun&& fun) const& -> std::invoke_result_t<Fun, error_type>
+      {
+         if (is_value())
+         {
+            return m_storage.value();
+         }
+         else
+         {
+            return std::invoke(std::forward<Fun>(fun), m_storage.error());
+         }
+      }
+      /**
+       * Applies a function that return a monad::result to the error. If the monad::result
+       * does not hold an error, the function will not be applied
+       */
+      template<std::invocable<error_type> Fun>
+      constexpr auto or_else(Fun&& fun) & -> std::invoke_result_t<Fun, error_type>
+      {
+         if (is_value())
+         {
+            return m_storage.value();
+         }
+         else
+         {
+            return std::invoke(std::forward<Fun>(fun), m_storage.error());
+         }
+      }
+      /**
+       * Applies a function that return a monad::result to the error. If the monad::result
+       * does not hold an error, the function will not be applied
+       */
+      template<std::invocable<error_type> Fun>
+      constexpr auto or_else(Fun&& fun) const&& -> std::invoke_result_t<Fun, error_type>
+      {
+         if (is_value())
+         {
+            return std::move(m_storage.value());
+         }
+         else
+         {
+            return std::invoke(std::forward<Fun>(fun), std::move(m_storage.error()));
+         }
+      }
+      /**
+       * Applies a function that return a monad::result to the error. If the monad::result
+       * does not hold an error, the function will not be applied
+       */
+      template<std::invocable<error_type> Fun>
+      constexpr auto or_else(Fun&& fun) && -> std::invoke_result_t<Fun, error_type>
+      {
+         if (is_value())
+         {
+            return std::move(m_storage.value());
+         }
+         else
+         {
+            return std::invoke(std::forward<Fun>(fun), std::move(m_storage.error()));
+         }
+      }
+
       template <class inner_value_ = value_type, class inner_error_ = error_type>
       constexpr auto join() const& -> std::common_type_t<inner_value_, inner_error_>
       {
@@ -691,152 +827,5 @@ namespace monad
 
    private:
       storage<value_type, error_type> m_storage{};
-
-   public:
-      /**
-       * Applies a function that return a monad::result to the value. If the monad::result
-       * does not hold a value, the function will not be applied
-       */
-      template<std::invocable<value_type> Fun>
-      constexpr auto and_then(Fun&& fun) const& 
-         -> decltype(detail::ensure_result_value(
-                  std::invoke(fun, m_storage.value()), m_storage.error()))
-      {
-         if (is_value())
-         {
-            return std::invoke(std::forward<Fun>(fun), m_storage.value());
-         }
-         else
-         {
-            return err(m_storage.error());
-         }
-      }
-      /**
-       * Applies a function that return a monad::result to the value. If the monad::result
-       * does not hold a value, the function will not be applied
-       */
-      template<std::invocable<value_type> Fun>
-      constexpr auto and_then(Fun&& fun) & 
-         -> decltype(detail::ensure_result_value(
-                  std::invoke(fun, m_storage.value()), m_storage.error()))
-      {
-         if (is_value())
-         {
-            return std::invoke(std::forward<Fun>(fun), m_storage.value());
-         }
-         else
-         {
-            return err(m_storage.error());
-         }
-      }
-      /**
-       * Applies a function that return a monad::result to the value. If the monad::result
-       * does not hold a value, the function will not be applied
-       */
-      template<std::invocable<value_type> Fun>
-      constexpr auto and_then(Fun&& fun) const&& 
-         -> decltype(detail::ensure_result_value(
-                  std::invoke(fun, std::move(m_storage.value())), std::move(m_storage.error())))
-      {
-         if (is_value())
-         {
-            return std::invoke(std::forward<Fun>(fun), std::move(m_storage.value()));
-         }
-         else
-         {
-            return err(std::move(m_storage.error()));
-         }
-      }
-      /**
-       * Applies a function that return a monad::result to the value. If the monad::result
-       * does not hold a value, the function will not be applied
-       */
-      template<std::invocable<value_type> Fun>
-      constexpr auto and_then(Fun&& fun) && 
-         -> decltype(detail::ensure_result_value(
-                  std::invoke(fun, std::move(m_storage.value())), std::move(m_storage.error())))
-      {
-         if (is_value())
-         {
-            return std::invoke(std::forward<Fun>(fun), std::move(m_storage.value()));
-         }
-         else
-         {
-            return err(std::move(m_storage.error()));
-         }
-      }
-
-      /**
-       * Applies a function that return a monad::result to the error. If the monad::result
-       * does not hold an error, the function will not be applied
-       */
-      template<std::invocable<error_type> Fun>
-      constexpr auto or_else(Fun&& fun) const& 
-         -> decltype(detail::ensure_result_value(
-                  std::invoke(fun, m_storage.error()), m_storage.value()))
-      {
-         if (is_value())
-         {
-            return m_storage.value();
-         }
-         else
-         {
-            return std::invoke(std::forward<Fun>(fun), m_storage.error());
-         }
-      }
-      /**
-       * Applies a function that return a monad::result to the error. If the monad::result
-       * does not hold an error, the function will not be applied
-       */
-      template<std::invocable<error_type> Fun>
-      constexpr auto or_else(Fun&& fun) & 
-         -> decltype(detail::ensure_result_value(
-                  std::invoke(fun, m_storage.error()), m_storage.value()))
-      {
-         if (is_value())
-         {
-            return m_storage.value();
-         }
-         else
-         {
-            return std::invoke(std::forward<Fun>(fun), m_storage.error());
-         }
-      }
-      /**
-       * Applies a function that return a monad::result to the error. If the monad::result
-       * does not hold an error, the function will not be applied
-       */
-      template<std::invocable<error_type> Fun>
-      constexpr auto or_else(Fun&& fun) const&& 
-         -> decltype(detail::ensure_result_value(
-                  std::invoke(fun, std::move(m_storage.error())), std::move(m_storage.value())))
-      {
-         if (is_value())
-         {
-            return std::move(m_storage.value());
-         }
-         else
-         {
-            return std::invoke(std::forward<Fun>(fun), std::move(m_storage.error()));
-         }
-      }
-      /**
-       * Applies a function that return a monad::result to the error. If the monad::result
-       * does not hold an error, the function will not be applied
-       */
-      template<std::invocable<error_type> Fun>
-      constexpr auto or_else(Fun&& fun) && 
-         -> decltype(detail::ensure_result_value(
-                  std::invoke(fun, std::move(m_storage.error())), std::move(m_storage.value())))
-      {
-         if (is_value())
-         {
-            return std::move(m_storage.value());
-         }
-         else
-         {
-            return std::invoke(std::forward<Fun>(fun), std::move(m_storage.error()));
-         }
-      }
    };
 } // namespace monad
