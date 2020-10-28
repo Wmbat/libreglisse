@@ -1026,7 +1026,7 @@ TEST_SUITE("maybe test suite")
          CHECK(my_maybe.value() == 10);
 
          const maybe result = my_maybe.and_then([](const int i) {
-            return i * i;
+            return make_maybe(i * i);
          });
 
          REQUIRE(result.has_value());
@@ -1039,7 +1039,7 @@ TEST_SUITE("maybe test suite")
          CHECK(!my_maybe.has_value());
 
          const maybe result = my_maybe.and_then([](const int i) {
-            return i * i;
+            return make_maybe(i * i);
          });
 
          CHECK(!result.has_value());
@@ -1052,7 +1052,7 @@ TEST_SUITE("maybe test suite")
          CHECK(my_maybe.value() == "hello");
 
          const maybe result = my_maybe.and_then([](const std::string& str) {
-            return str + ", world!";
+            return make_maybe(str + ", world!");
          });
 
          CHECK(result == "hello, world!");
@@ -1064,7 +1064,7 @@ TEST_SUITE("maybe test suite")
          CHECK(!my_maybe.has_value());
 
          const maybe result = my_maybe.and_then([](const std::string& str) {
-            return str + ", world!";
+            return make_maybe(str + ", world!");
          });
 
          CHECK(!result.has_value());
@@ -1080,7 +1080,7 @@ TEST_SUITE("maybe test suite")
          CHECK(my_maybe.value() == 10);
 
          const maybe result = my_maybe.and_then([](const int i) {
-            return i * i;
+            return make_maybe(i * i);
          });
 
          REQUIRE(result.has_value());
@@ -1093,7 +1093,7 @@ TEST_SUITE("maybe test suite")
          CHECK(!my_maybe.has_value());
 
          const maybe result = my_maybe.and_then([](const int i) {
-            return i * i;
+            return make_maybe(i * i);
          });
 
          CHECK(!result.has_value());
@@ -1106,7 +1106,7 @@ TEST_SUITE("maybe test suite")
          CHECK(my_maybe.value() == "hello");
 
          const maybe result = my_maybe.and_then([](const std::string& str) {
-            return str + ", world!";
+            return make_maybe(str + ", world!");
          });
 
          CHECK(result == "hello, world!");
@@ -1118,7 +1118,7 @@ TEST_SUITE("maybe test suite")
          CHECK(!my_maybe.has_value());
 
          const maybe result = my_maybe.and_then([](const std::string& str) {
-            return str + ", world!";
+            return make_maybe(str + ", world!");
          });
 
          CHECK(!result.has_value());
@@ -1150,7 +1150,7 @@ TEST_SUITE("maybe test suite")
       SUBCASE("trivial with value")
       {
          const maybe result = get_int(10).and_then([](int i) {
-            return i * i;
+            return make_maybe(i * i);
          });
 
          REQUIRE(result.has_value());
@@ -1159,7 +1159,7 @@ TEST_SUITE("maybe test suite")
       SUBCASE("trivial without value")
       {
          const maybe result = get_int(20).and_then([](int i) {
-            return i * i;
+            return make_maybe(i * i);
          });
 
          CHECK(!result);
@@ -1167,7 +1167,7 @@ TEST_SUITE("maybe test suite")
       SUBCASE("non-trivial with value")
       {
          const maybe result = get_str("hello").and_then([](const std::string&& str) {
-            return str + ", world!";
+            return make_maybe(str + ", world!");
          });
 
          REQUIRE(result);
@@ -1176,7 +1176,7 @@ TEST_SUITE("maybe test suite")
       SUBCASE("non-trivial without value")
       {
          const maybe result = get_str("world").and_then([](const std::string&& str) {
-            return str + ", world!";
+            return make_maybe(str + ", world!");
          });
 
          CHECK(!result);
@@ -1187,7 +1187,7 @@ TEST_SUITE("maybe test suite")
       SUBCASE("trivial with value")
       {
          const maybe result = maybe<int>{10}.and_then([](int i) {
-            return i * i;
+            return make_maybe(i * i);
          });
 
          REQUIRE(result);
@@ -1196,7 +1196,7 @@ TEST_SUITE("maybe test suite")
       SUBCASE("trivial without value")
       {
          const maybe result = maybe<int>{}.and_then([](int i) {
-            return i * i;
+            return make_maybe(i * i);
          });
 
          CHECK(!result);
@@ -1204,7 +1204,7 @@ TEST_SUITE("maybe test suite")
       SUBCASE("non-trivial with value")
       {
          const maybe result = maybe<std::string>{"hello"}.and_then([](std::string&& str) {
-            return str + ", world!";
+            return make_maybe(str + ", world!");
          });
 
          REQUIRE(result);
@@ -1213,7 +1213,7 @@ TEST_SUITE("maybe test suite")
       SUBCASE("non-trivial without value")
       {
          const maybe result = maybe<std::string>{}.and_then([](std::string&& str) {
-            return str + ", world!";
+            return make_maybe(str + ", world!");
          });
 
          CHECK(!result);
@@ -2197,7 +2197,7 @@ TEST_SUITE("result test suite")
       {
          std::string my_str = "hello, world!";
 
-         //CHECK(noexcept(result<std::string, int>{my_str}) == false);
+         // CHECK(noexcept(result<std::string, int>{my_str}) == false);
 
          result<std::string, int> res{my_str};
 

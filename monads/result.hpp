@@ -699,7 +699,7 @@ namespace monad
        */
       template<std::invocable<value_type> Fun>
       constexpr auto and_then(Fun&& fun) const& 
-         -> decltype(detail::ensure_result_error(
+         -> decltype(detail::ensure_result_value(
                   std::invoke(fun, m_storage.value()), m_storage.error()))
       {
          if (is_value())
@@ -717,7 +717,7 @@ namespace monad
        */
       template<std::invocable<value_type> Fun>
       constexpr auto and_then(Fun&& fun) & 
-         -> decltype(detail::ensure_result_error(
+         -> decltype(detail::ensure_result_value(
                   std::invoke(fun, m_storage.value()), m_storage.error()))
       {
          if (is_value())
@@ -735,7 +735,7 @@ namespace monad
        */
       template<std::invocable<value_type> Fun>
       constexpr auto and_then(Fun&& fun) const&& 
-         -> decltype(detail::ensure_result_error(
+         -> decltype(detail::ensure_result_value(
                   std::invoke(fun, std::move(m_storage.value())), std::move(m_storage.error())))
       {
          if (is_value())
@@ -753,7 +753,7 @@ namespace monad
        */
       template<std::invocable<value_type> Fun>
       constexpr auto and_then(Fun&& fun) && 
-         -> decltype(detail::ensure_result_error(
+         -> decltype(detail::ensure_result_value(
                   std::invoke(fun, std::move(m_storage.value())), std::move(m_storage.error())))
       {
          if (is_value())
