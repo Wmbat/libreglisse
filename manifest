@@ -1,6 +1,6 @@
 : 1
 name: monads
-version: 0.1.1-a.4.z
+version: 0.1.1-a.5
 summary: A header-only library that implements maybe and either monad
 license: MIT
 description-file: README.md
