@@ -626,11 +626,11 @@ namespace monad
        * if there is one
        */
       template<std::invocable<value_type> Fun> 
-      constexpr auto and_then(Fun&& fun) const& -> maybe<std::invoke_result_t<Fun, value_type>>
+      constexpr auto and_then(Fun&& fun) const& -> std::invoke_result_t<Fun, value_type>
       {
          if(has_value())
          {
-            return {std::invoke(std::forward<Fun>(fun), value())};
+            return std::invoke(std::forward<Fun>(fun), value());
          }
          else
          {
@@ -642,11 +642,11 @@ namespace monad
        * if there is one
        */
       template<std::invocable<value_type> Fun> 
-      constexpr auto and_then(Fun&& fun) & -> maybe<std::invoke_result_t<Fun, value_type>>
+      constexpr auto and_then(Fun&& fun) & -> std::invoke_result_t<Fun, value_type>
       {
          if(has_value())
          {
-            return {std::invoke(std::forward<Fun>(fun), value())};
+            return std::invoke(std::forward<Fun>(fun), value());
          }
          else
          {
@@ -658,11 +658,11 @@ namespace monad
        * if there is one
        */
       template<std::invocable<value_type> Fun> 
-      constexpr auto and_then(Fun&& fun) const&& -> maybe<std::invoke_result_t<Fun, value_type&&>> 
+      constexpr auto and_then(Fun&& fun) const&& -> std::invoke_result_t<Fun, value_type&&> 
       {
          if(has_value())
          {
-            return {std::invoke(std::forward<Fun>(fun), std::move(value()))};
+            return std::invoke(std::forward<Fun>(fun), std::move(value()));
          }
          else
          {
@@ -674,11 +674,11 @@ namespace monad
        * if there is one
        */
       template<std::invocable<value_type> Fun> 
-      constexpr auto and_then(Fun&& fun) && -> maybe<std::invoke_result_t<Fun, value_type&&>>  
+      constexpr auto and_then(Fun&& fun) && -> std::invoke_result_t<Fun, value_type&&>
       {
          if(has_value())
          {
-            return {std::invoke(std::forward<Fun>(fun), std::move(value()))};
+            return std::invoke(std::forward<Fun>(fun), std::move(value()));
          }
          else
          {
@@ -936,6 +936,7 @@ namespace monad
    {
       return m.has_value() ? m.value() <=> value : std::strong_ordering::less;
    }
+   // clang-format on
 } // namespace monad
 
 namespace std // NOLINT
