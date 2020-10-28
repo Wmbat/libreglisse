@@ -4,6 +4,37 @@
 
 namespace monad
 {
+   namespace detail
+   {
+      // clang-format off
+      template <typename Fun, typename Value>
+      concept result_function = requires
+      {
+          std::invocable<Fun, Value>;
+      
+          { std::invoke_result_t<Fun, Value>::value_type };
+          { std::invoke_result_t<Fun, Value>::error_type };
+      };
+      
+      template<typename Fun, typename Value, typename Error>
+      concept ensure_result_error = requires
+      {
+          result_function<Fun, Value>;
+      
+          { typename std::invoke_result_t<Fun, Value>::error_type{} } -> std::same_as<Error>;
+      };
+
+      template<typename Fun, typename Value, typename Error>
+      concept ensure_result_value = requires
+      {
+          result_function<Fun, Error>;
+      
+          { typename std::invoke_result_t<Fun, Error>::value_type{} } -> std::same_as<Value>;
+      };
+      // clang-format on
+
+   } // namespace detail
+
    template <class Any>
    struct error_t
    {
@@ -604,11 +635,7 @@ namespace monad
        * Applies a function that return a monad::result to the value. If the monad::result
        * does not hold a value, the function will not be applied
        */
-      template<std::invocable<value_type> Fun> 
-      requires 
-         std::same_as<
-            typename std::invoke_result_t<Fun, value_type>::error_type, 
-            error_type>
+      template<detail::ensure_result_error<value_type, error_type> Fun> 
       constexpr auto and_then(Fun&& fun) const& -> std::invoke_result_t<Fun, value_type>
       {
          if (is_value())
@@ -624,11 +651,7 @@ namespace monad
        * Applies a function that return a monad::result to the value. If the monad::result
        * does not hold a value, the function will not be applied
        */
-      template<std::invocable<value_type> Fun> 
-      requires 
-         std::same_as<
-            typename std::invoke_result_t<Fun, value_type>::error_type, 
-            error_type>
+      template<detail::ensure_result_error<value_type, error_type> Fun> 
       constexpr auto and_then(Fun&& fun) & -> std::invoke_result_t<Fun, value_type>
       {
          if (is_value())
@@ -644,11 +667,7 @@ namespace monad
        * Applies a function that return a monad::result to the value. If the monad::result
        * does not hold a value, the function will not be applied
        */
-      template<std::invocable<value_type> Fun>
-      requires 
-         std::same_as<
-            typename std::invoke_result_t<Fun, value_type>::error_type, 
-            error_type>
+      template<detail::ensure_result_error<value_type, error_type> Fun> 
       constexpr auto and_then(Fun&& fun) const&& -> std::invoke_result_t<Fun, value_type>
       {
          if (is_value())
@@ -664,11 +683,7 @@ namespace monad
        * Applies a function that return a monad::result to the value. If the monad::result
        * does not hold a value, the function will not be applied
        */
-      template<std::invocable<value_type> Fun> 
-      requires 
-         std::same_as<
-            typename std::invoke_result_t<Fun, value_type>::error_type, 
-            error_type>
+      template<detail::ensure_result_error<value_type, error_type> Fun> 
       constexpr auto and_then(Fun&& fun) && -> std::invoke_result_t<Fun, value_type>
       {
          if (is_value())
@@ -685,11 +700,7 @@ namespace monad
        * Applies a function that return a monad::result to the error. If the monad::result
        * does not hold an error, the function will not be applied
        */
-      template<std::invocable<error_type> Fun>
-      requires 
-         std::same_as<
-            typename std::invoke_result_t<Fun, value_type>::value_type, 
-            value_type>
+      template<detail::ensure_result_value<value_type, error_type> Fun> 
       constexpr auto or_else(Fun&& fun) const& -> std::invoke_result_t<Fun, error_type>
       {
          if (is_value())
@@ -705,11 +716,7 @@ namespace monad
        * Applies a function that return a monad::result to the error. If the monad::result
        * does not hold an error, the function will not be applied
        */
-      template<std::invocable<error_type> Fun> 
-      requires 
-         std::same_as<
-            typename std::invoke_result_t<Fun, value_type>::value_type, 
-            value_type>
+      template<detail::ensure_result_value<value_type, error_type> Fun> 
       constexpr auto or_else(Fun&& fun) & -> std::invoke_result_t<Fun, error_type>
       {
          if (is_value())
@@ -725,11 +732,7 @@ namespace monad
        * Applies a function that return a monad::result to the error. If the monad::result
        * does not hold an error, the function will not be applied
        */
-      template<std::invocable<error_type> Fun> 
-      requires 
-         std::same_as<
-            typename std::invoke_result_t<Fun, value_type>::value_type, 
-            value_type>
+      template<detail::ensure_result_value<value_type, error_type> Fun> 
       constexpr auto or_else(Fun&& fun) const&& -> std::invoke_result_t<Fun, error_type>
       {
          if (is_value())
@@ -745,11 +748,7 @@ namespace monad
        * Applies a function that return a monad::result to the error. If the monad::result
        * does not hold an error, the function will not be applied
        */
-      template<std::invocable<error_type> Fun> 
-      requires 
-         std::same_as<
-            typename std::invoke_result_t<Fun, value_type>::value_type, 
-            value_type>
+      template<detail::ensure_result_value<value_type, error_type> Fun> 
       constexpr auto or_else(Fun&& fun) && -> std::invoke_result_t<Fun, error_type>
       {
          if (is_value())
