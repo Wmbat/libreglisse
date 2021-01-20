@@ -698,9 +698,7 @@ namespace monad
          }
          else
          {
-            std::invoke(std::forward<Fun>(fun));
-
-            return none;
+            return std::invoke(std::forward<Fun>(fun));
          }
       }
       /**
@@ -715,9 +713,7 @@ namespace monad
          }
          else
          {
-            std::invoke(std::forward<Fun>(fun));
-
-            return none;
+            return std::invoke(std::forward<Fun>(fun));
          }
       }
       /**
@@ -732,9 +728,7 @@ namespace monad
          }
          else
          {
-            std::invoke(std::forward<Fun>(fun));
-
-            return none;
+            return std::invoke(std::forward<Fun>(fun));
          }
       }
       /**
@@ -749,9 +743,7 @@ namespace monad
          }
          else
          {
-            std::invoke(std::forward<Fun>(fun));
-
-            return none;
+            return std::invoke(std::forward<Fun>(fun));
          }
       }
 

@@ -29,6 +29,8 @@
 
 compile_commands.json
 
+.cache/
+
 out/
 
 cmake/
