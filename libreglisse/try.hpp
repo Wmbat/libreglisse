@@ -1,6 +1,6 @@
 #pragma once
 
-#include <monads/result.hpp>
+#include <libreglisse/result.hpp>
 
 namespace monad
 {

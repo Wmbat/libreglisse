@@ -1,6 +1,6 @@
 #pragma once
 
-#include <monads/type_traits.hpp>
+#include <libreglisse/type_traits.hpp>
 
 #include <cassert>
 #include <compare>
@@ -839,9 +839,9 @@ namespace monad
    }
 
    /**
-    * Compare two maybe monads. If either of the two monads are empty, it will return false. If both
-    * monads are empty, true will be returned, and if both monads have values, a comparison between
-    * the value held by the monads will be performed
+    * Compare two maybe libreglisse. If either of the two libreglisse are empty, it will return false. If both
+    * libreglisse are empty, true will be returned, and if both libreglisse have values, a comparison between
+    * the value held by the libreglisse will be performed
     */
    template <class First, std::equality_comparable_with<First> Second>
    constexpr auto
@@ -886,7 +886,7 @@ namespace monad
    }
 
    /**
-    * three-way compare two maybe monads. If both monads have values, a three-way comparison will be
+    * three-way compare two maybe libreglisse. If both libreglisse have values, a three-way comparison will be
     * performed on their inner values otherwise, a three-way comparison will be performed on whether
     * they hold values or not.
     */

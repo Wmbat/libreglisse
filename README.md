@@ -1,10 +1,10 @@
-# monads
+# libreglisse
 
-![Linux](https://github.com/Wmbat/monads/workflows/Linux/badge.svg)
-[![codecov](https://codecov.io/gh/Wmbat/monads/branch/master/graph/badge.svg)](https://codecov.io/gh/Wmbat/monads)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FWmbat%2Fmonads.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FWmbat%2Fmonads?ref=badge_shield)
+![Linux](https://github.com/Wmbat/libreglisse/workflows/Linux/badge.svg)
+[![codecov](https://codecov.io/gh/Wmbat/libreglisse/branch/master/graph/badge.svg)](https://codecov.io/gh/Wmbat/libreglisse)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FWmbat%2Flibreglisse.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FWmbat%2Flibreglisse?ref=badge_shield)
 
-Monads is a library to emulate the behaviour of `either`, `result` and `maybe` monads in C++20.
+Monads is a library to emulate the behaviour of `either`, `result` and `maybe` libreglisse in C++20.
 
 ## Table of Content
 * [Requirements](#requirements)
@@ -29,17 +29,17 @@ the `<concepts>` header.
 
 If your project uses [CMake](https://cmake.org/). You may also add the project as a subdirectory.
 ```sh
-git submodule add https://github.com/Wmbat/monads external_dependencies
+git submodule add https://github.com/Wmbat/libreglisse external_dependencies
 ```
 
 Then add the following lines in your `CMakelists.txt`
 ```cmake
-add_subdirectory(external_dependencies/monads)
+add_subdirectory(external_dependencies/libreglisse)
 ```
 
 and
 ```cmake
-target_link_libraries(your_project PUBLIC monads::monads)
+target_link_libraries(your_project PUBLIC libreglisse::libreglisse)
 ```
 
 #### Using CPM.cmake
@@ -63,8 +63,8 @@ include(${CPM_DOWNLOAD_LOCATION})
 along with this command
 ```cmake
 CPMAddPackage(
-    NAME monads
-    GITHUB_REPOSITORY Wmbat/monads
+    NAME libreglisse
+    GITHUB_REPOSITORY Wmbat/libreglisse
     GIT_TAG master
     OPTIONS
         "BUILD_TESTS OFF"
@@ -73,13 +73,13 @@ CPMAddPackage(
 
 and finally, you will have to link the library against your project
 ```cmake 
-target_link_libraries(your_project PUBLIC monads::monads
+target_link_libraries(your_project PUBLIC libreglisse::libreglisse
 ```
 
 ## Examples
 
-For examples on how to use the monadic types, refer to the [wiki](https://github.com/Wmbat/monads/wiki)
+For examples on how to use the monadic types, refer to the [wiki](https://github.com/Wmbat/libreglisse/wiki)
 
 ## License
 
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FWmbat%2Fmonads.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FWmbat%2Fmonads?ref=badge_large)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FWmbat%2Flibreglisse.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FWmbat%2Flibreglisse?ref=badge_large)

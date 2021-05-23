@@ -1,4 +1,4 @@
-project = monads
+project = libreglisse
 
 using version
 using config

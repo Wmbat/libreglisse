@@ -8,21 +8,21 @@
 // used before their inline definition. The workaround is to reorder code. In
 // the end it's all trial and error.
 
-#if defined(MONADS_STATIC)         // Using static.
-#  define MONADS_API
-#elif defined(MONADS_STATIC_BUILD) // Building static.
-#  define MONADS_API
-#elif defined(MONADS_SHARED)       // Using shared.
+#if defined(LIBREGLISSE_STATIC)         // Using static.
+#  define LIBREGLISSE_API
+#elif defined(LIBREGLISSE_STATIC_BUILD) // Building static.
+#  define LIBREGLISSE_API
+#elif defined(LIBREGLISSE_SHARED)       // Using shared.
 #  ifdef _WIN32
-#    define MONADS_API __declspec(dllimport)
+#    define LIBREGLISSE_API __declspec(dllimport)
 #  else
-#    define MONADS_API
+#    define LIBREGLISSE_API
 #  endif
-#elif defined(MONADS_SHARED_BUILD) // Building shared.
+#elif defined(LIBREGLISSE_SHARED_BUILD) // Building shared.
 #  ifdef _WIN32
-#    define MONADS_API __declspec(dllexport)
+#    define LIBREGLISSE_API __declspec(dllexport)
 #  else
-#    define MONADS_API
+#    define LIBREGLISSE_API
 #  endif
 #else
 // If none of the above macros are defined, then we assume we are being used
@@ -34,7 +34,7 @@
 // then you will probably want to replace the fallback with the (commented
 // out) error since it won't work for the shared case.
 //
-#  define MONADS_API         // Using static or shared.
-//#  error define MONADS_STATIC or MONADS_SHARED preprocessor macro to signal hello library type being linked
+#  define LIBREGLISSE_API         // Using static or shared.
+//#  error define LIBREGLISSE_STATIC or LIBREGLISSE_SHARED preprocessor macro to signal hello library type being linked
 #endif
 

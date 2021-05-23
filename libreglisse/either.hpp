@@ -1,6 +1,6 @@
 #pragma once
 
-#include "monads/maybe.hpp"
+#include "libreglisse/maybe.hpp"
 
 namespace monad
 {

@@ -1,6 +1,6 @@
 $out_root/
 {
-  include monads/
+  include libreglisse/
 }
 
-export $out_root/monads/$import.target
+export $out_root/libreglisse/$import.target

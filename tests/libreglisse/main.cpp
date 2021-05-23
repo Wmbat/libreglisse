@@ -1,6 +1,6 @@
-#include <monads/maybe.hpp>
-#include <monads/result.hpp>
-#include <monads/try.hpp>
+#include <libreglisse/maybe.hpp>
+#include <libreglisse/result.hpp>
+#include <libreglisse/try.hpp>
 
 #include <exception>
 #include <string>

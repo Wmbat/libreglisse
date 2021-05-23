@@ -7,13 +7,13 @@ CPMAddPackage(
     GIT_TAG 2.4.0
 )
 
-add_executable(monads_test)
+add_executable(libreglisse_test)
 
-set_target_properties(monads_test PROPERTIES CXX_EXTENSIONS OFF)
+set_target_properties(libreglisse_test PROPERTIES CXX_EXTENSIONS OFF)
 
-target_compile_features(monads_test PRIVATE cxx_std_20)
+target_compile_features(libreglisse_test PRIVATE cxx_std_20)
 
-target_compile_options(monads_test
+target_compile_options(libreglisse_test
     PRIVATE
         $<$<AND:$<CXX_COMPILER_ID:Clang>,$<CONFIG:DEBUG>>:-o0 -g -Wall -Wextra -Werror -fsanitize=address -fprofile-instr-generate -fcoverage-mapping>
         $<$<AND:$<CXX_COMPILER_ID:Clang>,$<CONFIG:RELEASE>>:-o3>
@@ -21,9 +21,9 @@ target_compile_options(monads_test
         $<$<AND:$<CXX_COMPILER_ID:GNU>,$<CONFIG:DEBUG>>:--coverage -o0 -g -Wall -Wextra -Werror -fprofile-arcs -ftest-coverage>
         $<$<AND:$<CXX_COMPILER_ID:GNU>,$<CONFIG:RELEASE>>:-o3>)
 
-target_link_libraries(monads_test
+target_link_libraries(libreglisse_test
     PUBLIC
-        monads::monads 
+        libreglisse::libreglisse 
         doctest::doctest
 
     PRIVATE
@@ -33,9 +33,9 @@ target_link_libraries(monads_test
         $<$<AND:$<CXX_COMPILER_ID:GNU>,$<CONFIG:DEBUG>>:-fprofile-arcs>
         $<$<AND:$<CXX_COMPILER_ID:GNU>,$<CONFIG:DEBUG>>:-ftest-coverage>)
 
-target_sources(monads_test
+target_sources(libreglisse_test
     PRIVATE
-        monads/main.cpp
+        libreglisse/main.cpp
 )
 
-add_test( NAME monads_test COMMAND monads_test )
+add_test( NAME libreglisse_test COMMAND libreglisse_test )
