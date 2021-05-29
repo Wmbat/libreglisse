@@ -8,4 +8,6 @@ email: wmbat@protonmail.com
 requires: C++20
 depends: * build2 >= 0.13.0
 depends: * bpkg >= 0.13.0
+
+depends: gsl ^3.1.0 
 depends: doctest ^2.3.6

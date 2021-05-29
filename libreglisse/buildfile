@@ -1,6 +1,8 @@
 intf_libs = # Interface dependencies.
 impl_libs = # Implementation dependencies.
 #import impl_libs += liblibreglisse%lib{libreglisse}
+#
+import intf_libs += gsl%lib{gsl}
 
 lib{libreglisse}: {hxx cxx}{** -version} hxx{version} $impl_libs $intf_libs
 

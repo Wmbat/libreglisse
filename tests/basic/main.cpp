@@ -1,6 +1,4 @@
 #include <libreglisse/maybe.hpp>
-#include <libreglisse/result.hpp>
-#include <libreglisse/try.hpp>
 
 #include <exception>
 #include <string>
@@ -25,6 +23,7 @@ private:
    int m_y{0};
 };
 
+/*
 TEST_SUITE("maybe test suite")
 {
    TEST_CASE("Default constructor")
@@ -2153,7 +2152,6 @@ TEST_SUITE("maybe test suite")
       }
    }
 }
-
 TEST_SUITE("result test suite")
 {
    TEST_CASE("ctor value copy")
@@ -2639,3 +2637,4 @@ TEST_SUITE("try_wrap test suite")
       }
    }
 }
+*/
