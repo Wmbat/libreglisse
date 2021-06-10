@@ -1,10 +1,7 @@
 intf_libs = # Interface dependencies.
 impl_libs = # Implementation dependencies.
-#import impl_libs += liblibreglisse%lib{libreglisse}
-#
-import intf_libs += gsl%lib{gsl}
 
-lib{libreglisse}: {hxx cxx}{** -version} hxx{version} $impl_libs $intf_libs
+lib{reglisse}: {hxx cxx}{** -version} hxx{version} $impl_libs $intf_libs
 
 # Include the generated version header into the distribution (so that we don't
 # pick up an installed one) and don't remove it when cleaning in src (so that
@@ -25,23 +22,23 @@ objs{*}: cxx.poptions += -DLIBREGLISSE_SHARED_BUILD
 
 # Export options.
 #
-lib{libreglisse}:
+lib{reglisse}:
 {
   cxx.export.poptions = "-I$out_root" "-I$src_root"
   cxx.export.libs = $intf_libs
 }
 
-liba{libreglisse}: cxx.export.poptions += -DLIBREGLISSE_STATIC
-libs{libreglisse}: cxx.export.poptions += -DLIBREGLISSE_SHARED
+liba{reglisse}: cxx.export.poptions += -DLIBREGLISSE_STATIC
+libs{reglisse}: cxx.export.poptions += -DLIBREGLISSE_SHARED
 
 # For pre-releases use the complete version to make sure they cannot be used
 # in place of another pre-release or the final version. See the version module
 # for details on the version.* variable values.
 #
 if $version.pre_release
-  lib{libreglisse}: bin.lib.version = @"-$version.project_id"
+  lib{reglisse}: bin.lib.version = @"-$version.project_id"
 else
-  lib{libreglisse}: bin.lib.version = @"-$version.major.$version.minor"
+  lib{reglisse}: bin.lib.version = @"-$version.major.$version.minor"
 
 # Install into the libreglisse/ subdirectory of, say, /usr/include/
 # recreating subdirectories.

@@ -1,736 +1,363 @@
-#pragma once
+/**
+ * @file either.hpp
+ * @author wmbat wmbat@protonmail.com
+ * @date Monday, 7th of june 2021
+ * @brief
+ * @copyright Copyright (C) 2021 wmbat.
+ */
 
-#include "libreglisse/maybe.hpp"
+#ifndef LIBREGLISSE_EITHER_HPP
+#define LIBREGLISSE_EITHER_HPP
 
-namespace monad
+#if defined(LIBREGLISSE_USE_EXCEPTIONS)
+#   include <libreglisse/utils/invalid_access_exception.hpp>
+#else
+#   include <cassert>
+#endif // defined (LIBREGLISSE_USE_EXCEPTIONS)
+
+#include <algorithm>
+#include <concepts>
+
+namespace reglisse::detail
 {
-   // clang-format off
-   template <class left_, class right_>
-      requires (!(std::is_reference_v<left_> || std::is_reference_v<right_>))
-   class either;
-   // clang-format on
-
-   namespace detail
+   inline void handle_invalid_left_either_access(bool check)
    {
-      consteval auto max(size_t size) noexcept -> size_t { return size; }
-      consteval auto max(size_t first, size_t second, std::unsigned_integral auto... rest) noexcept
-         -> size_t
+#if defined(LIBREGLISSE_USE_EXCEPTIONS)
+      if (!check)
       {
-         return first >= second ? max(first, rest...) : max(second, rest...);
+         throw invalid_access_exception("value stored on right side of either");
       }
-
-      template <class in_left_, class in_right_>
-      constexpr auto ensure_either_right(const either<in_left_, in_right_>& e, in_right_)
-         -> either<in_left_, in_right_>
-      {
-         return e;
-      }
-      template <class in_left_, class in_right_>
-      constexpr auto ensure_either_right(either<in_left_, in_right_>&& e, in_right_ &&)
-         -> either<in_left_, in_right_>
-      {
-         return e;
-      }
-
-      template <class in_left_, class in_right_>
-      constexpr auto ensure_either_left(const either<in_left_, in_right_>& e, in_left_)
-         -> either<in_left_, in_right_>
-      {
-         return e;
-      }
-      template <class in_left_, class in_right_>
-      constexpr auto ensure_either_left(either<in_left_, in_right_>&& e, in_left_ &&)
-         -> either<in_left_, in_right_>
-      {
-         return e;
-      }
-   } // namespace detail
-
-   template <class any_>
-   struct left_t
-   {
-      any_ value;
-   };
-
-   template <class any_>
-   struct right_t
-   {
-      any_ value;
-   };
-
-   template <class any_>
-   constexpr auto make_left(any_&& value) -> left_t<std::decay_t<any_>>
-   {
-      return left_t<std::decay_t<any_>>{std::forward<any_>(value)};
+#else
+      assert(check && "value stored on right side of either"); // NOLINT
+#endif // defined(LIBREGLISSE_USE_EXCEPTIONS)
    }
 
-   template <class any_>
-   constexpr auto make_right(any_&& value) -> right_t<std::decay_t<any_>>
+   inline void handle_invalid_right_either_access(bool check)
    {
-      return right_t<std::decay_t<any_>>{std::forward<any_>(value)};
+#if defined(LIBREGLISSE_USE_EXCEPTIONS)
+      if (!check)
+      {
+         throw invalid_access_exception("value stored on left side of either");
+      }
+#else
+      assert(check && "value stored on left side of either");  // NOLINT
+#endif // defined(LIBREGLISSE_USE_EXCEPTIONS)
    }
 
    // clang-format off
-   template <class left_, class right_> 
-      requires (!(std::is_reference_v<left_> || std::is_reference_v<right_>))
-   class either
-   // clang-format on
+
+   template <typename Fun, typename T>
+   concept ensure_either = std::invocable<Fun, T> && requires
    {
-      template <class first_, class second_, class dummy_ = void>
-      class storage
-      {
-      public:
-         using left_type = first_;
-         using right_type = second_;
-
-      private:
-         using storage_type =
-            std::array<std::byte, detail::max(sizeof(left_type), sizeof(right_type))>;
-
-         // clang-format off
-         static inline constexpr bool is_nothrow_default_constructible =
-            std::is_nothrow_default_constructible_v<left_type> && 
-            std::is_nothrow_default_constructible_v<storage_type>;
-
-         static inline constexpr bool is_nothrow_copy_left_constructible =
-            std::is_nothrow_copy_assignable_v<left_type> &&
-            std::is_nothrow_copy_constructible_v<left_type> && 
-            std::is_nothrow_default_constructible_v<storage_type>;
-
-         static inline constexpr bool is_nothrow_move_left_constructible =
-            std::is_nothrow_move_assignable_v<left_type> &&
-            std::is_nothrow_move_constructible_v<left_type> &&
-            std::is_nothrow_default_constructible_v<storage_type>;
-
-         static inline constexpr bool is_nothrow_copy_right_constructible =
-            std::is_nothrow_copy_assignable_v<right_type> &&
-            std::is_nothrow_copy_constructible_v<right_type> && 
-            std::is_nothrow_default_constructible_v<storage_type>;
-
-         static inline constexpr bool is_nothrow_move_right_constructible = 
-            std::is_nothrow_move_assignable_v<right_type> &&
-            std::is_nothrow_move_constructible_v<right_type> &&
-            std::is_nothrow_default_constructible_v<storage_type>;
-
-         static inline constexpr bool is_nothrow_copy_constructible =
-            is_nothrow_copy_left_constructible && 
-            is_nothrow_copy_right_constructible;
-
-         static inline constexpr bool is_nothrow_move_constructible =
-            is_nothrow_move_left_constructible && 
-            is_nothrow_move_right_constructible;
-
-         static inline constexpr bool is_nothrow_destructible = 
-            std::is_nothrow_destructible_v<left_type> &&
-            std::is_nothrow_destructible_v<right_type> &&
-            std::is_nothrow_destructible_v<storage_type>;
-
-         static inline constexpr bool is_nothrow_copy_assignable =
-            is_nothrow_copy_constructible &&
-            is_nothrow_destructible;
-
-         static inline constexpr bool is_nothrow_move_assignable =
-            is_nothrow_move_constructible &&
-            is_nothrow_destructible;
-
-         static inline constexpr bool is_nothrow_left_value_copyable =
-            std::is_nothrow_copy_assignable_v<left_type> &&
-            std::is_nothrow_copy_constructible_v<left_type>;
-
-         static inline constexpr bool is_nothrow_left_value_movable =
-            std::is_nothrow_move_assignable_v<left_type> &&
-            std::is_nothrow_move_constructible_v<left_type>;
-
-         static inline constexpr bool is_nothrow_right_value_copyable =
-            std::is_nothrow_copy_assignable_v<right_type> &&
-            std::is_nothrow_copy_constructible_v<right_type>;
-
-         static inline constexpr bool is_nothrow_right_value_movable =
-            std::is_nothrow_move_assignable_v<right_type> &&
-            std::is_nothrow_move_constructible_v<right_type>;
-         // clang-format on
-
-      public:
-         constexpr storage() noexcept(is_nothrow_default_constructible)
-         {
-            std::construct_at(std::addressof(left()), left_type{});
-         };
-         constexpr storage(const left_t<left_type>& l) noexcept(is_nothrow_copy_left_constructible)
-         {
-            std::construct_at(std::addressof(left()), l.value);
-         }
-         constexpr storage(left_t<left_type>&& l) noexcept(is_nothrow_move_left_constructible)
-         {
-            std::construct_at(std::addressof(left()), std::move(l.value));
-         }
-         constexpr storage(const right_t<right_type>& r) noexcept(
-            is_nothrow_copy_right_constructible) :
-            m_is_right{true}
-         {
-            std::construct_at(std::addressof(right()), r.value);
-         }
-         constexpr storage(right_t<right_type>&& r) noexcept(is_nothrow_move_right_constructible) :
-            m_is_right{true}
-         {
-            std::construct_at(std::addressof(right()), std::move(r.value));
-         }
-         constexpr storage(const storage& rhs) noexcept(is_nothrow_copy_constructible) :
-            m_is_right{rhs.is_right()}
-         {
-            if (!is_right())
-            {
-               std::construct_at(std::addressof(left()), rhs.left());
-            }
-            else
-            {
-               std::construct_at(std::addressof(right()()), rhs.right());
-            }
-         }
-         constexpr storage(storage&& rhs) noexcept(is_nothrow_move_constructible) :
-            m_is_right{rhs.is_right()}
-         {
-            if (!is_right())
-            {
-               std::construct_at(std::addressof(left()), std::move(rhs.left()));
-            }
-            else
-            {
-               std::construct_at(std::addressof(right()), std::move(rhs.right()));
-            }
-
-            rhs.m_is_right = false;
-         }
-         ~storage() noexcept(is_nothrow_destructible)
-         {
-            if (!is_right())
-            {
-               std::destroy_at(std::addressof(left()));
-            }
-            else
-            {
-               std::destroy_at(std::addressof(right()));
-            }
-         }
-
-         constexpr auto operator=(const storage& rhs) -> storage&
-         {
-            if (this != &rhs)
-            {
-               if (!is_right())
-               {
-                  std::destroy_at(std::addressof(left()));
-               }
-               else
-               {
-                  std::destroy_at(std::addressof(right()));
-               }
-
-               m_is_right = rhs.is_right();
-
-               if (!is_right())
-               {
-                  std::construct_at(std::addressof(left()), rhs.left());
-               }
-               else
-               {
-                  std::construct_at(std::addressof(right()), rhs.right());
-               }
-            }
-
-            return *this;
-         }
-         constexpr auto operator=(storage&& rhs) noexcept(is_nothrow_move_assignable) -> storage&
-         {
-            if (this != &rhs)
-            {
-               if (!is_right())
-               {
-                  std::destroy_at(std::addressof(left()));
-               }
-               else
-               {
-                  std::destroy_at(std::addressof(right()));
-               }
-
-               m_is_right = rhs.is_right();
-               rhs.m_is_right = false;
-
-               if (!is_right())
-               {
-                  std::construct_at(std::addressof(left()), rhs.left());
-               }
-               else
-               {
-                  std::construct_at(std::addressof(right()), rhs.right());
-               }
-            }
-
-            return *this;
-         }
-
-         [[nodiscard]] constexpr auto is_right() const noexcept -> bool { return m_is_right; };
-
-         constexpr auto left() & noexcept -> left_type& { return *l_pointer(); }
-         constexpr auto left() const& noexcept(is_nothrow_left_value_copyable) -> const left_type&
-         {
-            return *l_pointer();
-         }
-         constexpr auto left() && noexcept(is_nothrow_left_value_movable) -> left_type&&
-         {
-            return std::move(*l_pointer());
-         }
-         constexpr auto left() const&& noexcept(is_nothrow_left_value_movable) -> const left_type&&
-         {
-            return std::move(*l_pointer());
-         }
-
-         constexpr auto right() & noexcept -> right_type& { return *r_pointer(); }
-         constexpr auto right() const& noexcept(is_nothrow_right_value_copyable)
-            -> const right_type&
-         {
-            return *r_pointer();
-         }
-         constexpr auto right() && noexcept(is_nothrow_right_value_movable) -> right_type&&
-         {
-            return std::move(*r_pointer());
-         }
-         constexpr auto right() const&& noexcept(is_nothrow_right_value_movable)
-            -> const right_type&&
-         {
-            return std::move(*r_pointer());
-         }
-
-      private:
-         constexpr auto l_pointer() noexcept -> left_type*
-         {
-            return reinterpret_cast<left_type*>(m_bytes.data()); // NOLINT
-         }
-         constexpr auto l_pointer() const noexcept -> const left_type*
-         {
-            return reinterpret_cast<const left_type*>(m_bytes.data()); // NOLINT
-         }
-
-         constexpr auto r_pointer() noexcept -> right_type*
-         {
-            return reinterpret_cast<right_type*>(m_bytes.data()); // NOLINT
-         }
-         constexpr auto r_pointer() const noexcept -> const right_type*
-         {
-            return reinterpret_cast<const right_type*>(m_bytes.data()); // NOLINT
-         }
-
-      private:
-         alignas(detail::max(alignof(left_type), alignof(right_type))) storage_type m_bytes{};
-         bool m_is_right{false};
-      };
-
-      template <class first_, class second_>
-      class storage<first_, second_, std::enable_if_t<trivial<first_> && trivial<second_>>>
-      {
-      public:
-         using left_type = first_;
-         using right_type = second_;
-
-      private:
-         using storage_type =
-            std::array<std::byte, detail::max(sizeof(left_type), sizeof(right_type))>;
-
-      public:
-         constexpr storage() noexcept { std::construct_at(std::addressof(left()), left_type{}); };
-         constexpr storage(const left_t<left_type>& l) noexcept
-         {
-            std::construct_at(std::addressof(left()), l.value);
-         }
-         constexpr storage(left_t<left_type>&& l) noexcept
-         {
-            std::construct_at(std::addressof(left()), std::move(l.value));
-         }
-         constexpr storage(const right_t<right_type>& r) noexcept : m_is_right{true}
-         {
-            std::construct_at(std::addressof(right()), r.value);
-         }
-         constexpr storage(right_t<right_type>&& r) noexcept : m_is_right{true}
-         {
-            std::construct_at(std::addressof(right()), std::move(r.value));
-         }
-
-         constexpr auto left() & noexcept -> left_type& { return *l_pointer(); }
-         constexpr auto left() const& noexcept -> const left_type& { return *l_pointer(); }
-         constexpr auto left() && noexcept -> left_type&& { return std::move(*l_pointer()); }
-         constexpr auto left() const&& noexcept -> const left_type&&
-         {
-            return std::move(*l_pointer());
-         }
-
-         constexpr auto right() & noexcept -> right_type& { return *r_pointer(); }
-         constexpr auto right() const& noexcept -> const right_type& { return *r_pointer(); }
-         constexpr auto right() && noexcept -> right_type&& { return std::move(*r_pointer()); }
-         constexpr auto right() const&& noexcept -> const right_type&&
-         {
-            return std::move(*r_pointer());
-         }
-
-         [[nodiscard]] constexpr auto is_right() const noexcept -> bool { return m_is_right; };
-
-      private:
-         constexpr auto l_pointer() noexcept -> left_type*
-         {
-            return reinterpret_cast<left_type*>(m_bytes.data()); // NOLINT
-         }
-         constexpr auto l_pointer() const noexcept -> const left_type*
-         {
-            return reinterpret_cast<const left_type*>(m_bytes.data()); // NOLINT
-         }
-
-         constexpr auto r_pointer() noexcept -> right_type*
-         {
-            return reinterpret_cast<right_type*>(m_bytes.data()); // NOLINT
-         }
-         constexpr auto r_pointer() const noexcept -> const right_type*
-         {
-            return reinterpret_cast<const right_type*>(m_bytes.data()); // NOLINT
-         }
-
-      private:
-         alignas(detail::max(alignof(left_type), alignof(right_type))) storage_type m_bytes{};
-         bool m_is_right{false};
-      };
-
-   public:
-      using left_type = left_;
-      using right_type = right_;
-
-   private:
-      using storage_type = storage<left_type, right_type>;
-
-      static inline constexpr bool is_nothrow_left_copy_constructible =
-         std::is_nothrow_constructible_v<storage_type, left_t<left_type>>;
-
-      static inline constexpr bool is_nothrow_left_move_constructible =
-         std::is_nothrow_constructible_v<storage_type, left_t<left_type>&&>;
-
-      static inline constexpr bool copyable = std::copyable<left_type> && std::copyable<right_type>;
-      static inline constexpr bool movable = std::movable<left_type> && std::movable<right_type>;
-
-      template <class any_>
-      using left_map_result = std::invoke_result_t<any_, left_type>;
-
-      template <class fun_>
-      using left_map_either = either<left_map_result<fun_>, right_type>;
-
-      template <class any_>
-      using right_map_result = std::invoke_result_t<any_, right_type>;
-
-      template <class fun_>
-      using right_map_either = either<left_type, right_map_result<fun_>>;
-
-      template <class left_fun, class right_fun>
-      using join_result =
-         std::common_type_t<left_map_result<left_fun>, right_map_result<right_fun>>;
-
-   public:
-      constexpr either(const left_t<left_type>& left) noexcept(is_nothrow_left_copy_constructible) :
-         m_storage{left}
-      {}
-      constexpr either(left_t<left_type>&& left) noexcept(is_nothrow_left_move_constructible) :
-         m_storage{std::move(left)}
-      {}
-      constexpr either(const right_t<right_type>& right) : m_storage{right} {}
-      constexpr either(right_t<right_type>&& right) : m_storage{std::move(right)} {}
-
-      [[nodiscard]] constexpr auto is_right() const -> bool { return m_storage.is_right(); }
-      constexpr operator bool() const { return is_right(); }
-
-      constexpr auto left() const& -> maybe<left_type> requires copyable
-      {
-         return !is_right() ? make_maybe(m_storage.left()) : none;
-      }
-      constexpr auto left() & -> maybe<left_type> requires copyable
-      {
-         return !is_right() ? make_maybe(m_storage.left()) : none;
-      }
-      constexpr auto left() const&& -> maybe<left_type> requires movable
-      {
-         return !is_right() ? make_maybe(std::move(m_storage.left())) : none;
-      }
-      constexpr auto left() && -> maybe<left_type> requires movable
-      {
-         return !is_right() ? make_maybe(std::move(m_storage.left())) : none;
-      }
-
-      constexpr auto right() const& -> maybe<right_type> requires copyable
-      {
-         return !is_right() ? none : make_maybe(m_storage.right());
-      }
-      constexpr auto right() & -> maybe<right_type> requires copyable
-      {
-         return !is_right() ? none : make_maybe(m_storage.right());
-      }
-      constexpr auto right() const&& -> maybe<right_type> requires movable
-      {
-         return !is_right() ? none : make_maybe(std::move(m_storage.right()));
-      }
-      constexpr auto right() && -> maybe<right_type> requires movable
-      {
-         return !is_right() ? none : make_maybe(std::move(m_storage.right()));
-      }
-
-      constexpr auto
-      left_map(const std::invocable<left_type> auto& fun) const& -> left_map_either<decltype(fun)>
-      {
-         if (!is_right())
-         {
-            return make_left(std::invoke(fun, m_storage.left()));
-         }
-         else
-         {
-            return make_right(m_storage.right());
-         }
-      }
-      constexpr auto
-      left_map(const std::invocable<left_type> auto& fun) & -> left_map_either<decltype(fun)>
-      {
-         if (!is_right())
-         {
-            return make_left(std::invoke(fun, m_storage.left()));
-         }
-         else
-         {
-            return make_right(m_storage.right());
-         }
-      }
-      constexpr auto
-      left_map(const std::invocable<left_type> auto& fun) const&& -> left_map_either<decltype(fun)>
-      {
-         if (!is_right())
-         {
-            return make_left(std::invoke(fun, std::move(m_storage.left())));
-         }
-         else
-         {
-            return make_right(std::move(m_storage.right()));
-         }
-      }
-      constexpr auto
-      left_map(const std::invocable<left_type> auto& fun) && -> left_map_either<decltype(fun)>
-      {
-         if (!is_right())
-         {
-            return make_left(std::invoke(fun, std::move(m_storage.left())));
-         }
-         else
-         {
-            return make_right(std::move(m_storage.right()));
-         }
-      }
-
-      constexpr auto right_map(
-         const std::invocable<right_type> auto& fun) const& -> right_map_either<decltype(fun)>
-      {
-         if (!is_right())
-         {
-            return make_left(m_storage.left());
-         }
-         else
-         {
-            return make_right(std::invoke(fun, m_storage.right()));
-         }
-      }
-      constexpr auto
-      right_map(const std::invocable<right_type> auto& fun) & -> right_map_either<decltype(fun)>
-      {
-         if (!is_right())
-         {
-            return make_left(m_storage.left());
-         }
-         else
-         {
-            return make_right(std::invoke(fun, m_storage.right()));
-         }
-      }
-      constexpr auto right_map(
-         const std::invocable<right_type> auto& fun) const&& -> right_map_either<decltype(fun)>
-      {
-         if (!is_right())
-         {
-            return make_left(std::move(m_storage.left()));
-         }
-         else
-         {
-            return make_right(std::invoke(fun, std::move(m_storage.right())));
-         }
-      }
-      constexpr auto
-      right_map(const std::invocable<right_type> auto& fun) && -> right_map_either<decltype(fun)>
-      {
-         if (!is_right())
-         {
-            return make_left(std::move(m_storage.left()));
-         }
-         else
-         {
-            return make_right(std::invoke(fun, std::move(m_storage.right())));
-         }
-      }
-
-      template <class inner_left_ = left_type, class inner_right_ = right_type>
-      constexpr auto
-      join() const& -> std::common_type_t<inner_left_, inner_right_> requires copyable
-      {
-         return !is_right() ? m_storage.left() : m_storage.right();
-      }
-      template <class inner_left_ = left_type, class inner_right_ = right_type>
-      constexpr auto join() & -> std::common_type_t<inner_left_, inner_right_> requires copyable
-      {
-         return !is_right() ? m_storage.left() : m_storage.right();
-      }
-
-      template <class inner_left_ = left_type, class inner_right_ = right_type>
-      constexpr auto
-      join() const&& -> std::common_type_t<inner_left_, inner_right_> requires movable
-      {
-         return !is_right() ? std::move(m_storage.left()) : std::move(m_storage.right());
-      }
-      template <class inner_left_ = left_type, class inner_right_ = right_type>
-      constexpr auto join() && -> std::common_type_t<inner_left_, inner_right_> requires movable
-      {
-         return !is_right() ? std::move(m_storage.left()) : std::move(m_storage.right());
-      }
-
-      constexpr auto join(const std::invocable<left_type> auto& l_fun,
-                          const std::invocable<right_type> auto& r_fun)
-         const& -> join_result<decltype(l_fun), decltype(r_fun)>
-      {
-         return !is_right() ? std::invoke(l_fun, m_storage.left())
-                            : std::invoke(r_fun, m_storage.right());
-      }
-      constexpr auto join(const std::invocable<left_type> auto& l_fun,
-                          const std::invocable<right_type> auto&
-                             r_fun) & -> join_result<decltype(l_fun), decltype(r_fun)>
-      {
-         return !is_right() ? std::invoke(l_fun, m_storage.left())
-                            : std::invoke(r_fun, m_storage.right());
-      }
-      constexpr auto join(const std::invocable<left_type> auto& l_fun,
-                          const std::invocable<right_type> auto& r_fun)
-         const&& -> join_result<decltype(l_fun), decltype(r_fun)>
-      {
-         return !is_right() ? std::invoke(l_fun, std::move(m_storage.left()))
-                            : std::invoke(r_fun, std::move(m_storage.right()));
-      }
-
-      constexpr auto join(const std::invocable<left_type> auto& l_fun,
-                          const std::invocable<right_type> auto&
-                             r_fun) && -> join_result<decltype(l_fun), decltype(r_fun)>
-      {
-         return !is_right() ? std::invoke(l_fun, std::move(m_storage.left()))
-                            : std::invoke(r_fun, std::move(m_storage.right()));
-      }
-
-   private:
-      storage<left_type, right_type> m_storage{};
-
-   public:
-      constexpr auto left_flat_map(const std::invocable<left_type> auto& fun) const& -> decltype(
-         detail::ensure_either_right(std::invoke(fun, m_storage.left()), m_storage.right()))
-      {
-         if (!is_right())
-         {
-            return std::invoke(fun, m_storage.left());
-         }
-         else
-         {
-            return make_right(m_storage.right());
-         }
-      }
-      constexpr auto left_flat_map(const std::invocable<left_type> auto& fun) & -> decltype(
-         detail::ensure_either_right(std::invoke(fun, m_storage.left()), m_storage.right()))
-      {
-         if (!is_right())
-         {
-            return std::invoke(fun, m_storage.left());
-         }
-         else
-         {
-            return make_right(m_storage.right());
-         }
-      }
-      constexpr auto left_flat_map(const std::invocable<left_type> auto& fun) const&& -> decltype(
-         detail::ensure_either_right(std::invoke(fun, std::move(m_storage.left())),
-                                     std::move(m_storage.right())))
-      {
-         if (!is_right())
-         {
-            return std::invoke(fun, std::move(m_storage.left()));
-         }
-         else
-         {
-            return make_right(std::move(m_storage.right()));
-         }
-      }
-      constexpr auto left_flat_map(const std::invocable<left_type> auto& fun) && -> decltype(
-         detail::ensure_either_right(std::invoke(fun, std::move(m_storage.left())),
-                                     std::move(m_storage.right())))
-      {
-         if (!is_right())
-         {
-            return std::invoke(fun, std::move(m_storage.left()));
-         }
-         else
-         {
-            return make_right(std::move(m_storage.right()));
-         }
-      }
-
-      constexpr auto right_flat_map(const std::invocable<right_type> auto& fun) const& -> decltype(
-         detail::ensure_either_left(std::invoke(fun, m_storage.right()), m_storage.left()))
-      {
-         if (!is_right())
-         {
-            return make_left(m_storage.left());
-         }
-         else
-         {
-            return std::invoke(fun, m_storage.right());
-         }
-      }
-      constexpr auto right_flat_map(const std::invocable<right_type> auto& fun) & -> decltype(
-         detail::ensure_either_left(std::invoke(fun, m_storage.right()), m_storage.left()))
-      {
-         if (!is_right())
-         {
-            return make_left(m_storage.left());
-         }
-         else
-         {
-            return std::invoke(fun, m_storage.right());
-         }
-      }
-      constexpr auto right_flat_map(const std::invocable<right_type> auto& fun) const&& -> decltype(
-         detail::ensure_either_left(std::invoke(fun, std::move(m_storage.right())),
-                                    std::move(m_storage.left())))
-      {
-         if (!is_right())
-         {
-            return make_left(std::move(m_storage.left()));
-         }
-         else
-         {
-            return std::invoke(fun, std::move(m_storage.right()));
-         }
-      }
-      constexpr auto right_flat_map(const std::invocable<right_type> auto& fun) && -> decltype(
-         detail::ensure_either_left(std::invoke(fun, std::move(m_storage.right())),
-                                    std::move(m_storage.left())))
-      {
-         if (!is_right())
-         {
-            return make_left(std::move(m_storage.left()));
-         }
-         else
-         {
-            return std::invoke(fun, std::move(m_storage.right()));
-         }
-      }
+      { std::invoke_result_t<Fun, T>::left_type };
+      { std::invoke_result_t<Fun, T>::right_type };
    };
-} // namespace monad
+
+   template <typename Fun, typename LeftType, typename RightType>
+   concept ensure_left_either = 
+      ensure_either<Fun, LeftType> &&
+      std::same_as<typename std::invoke_result_t<Fun, LeftType>::right_type, RightType>;
+
+   template <typename Fun, typename LeftType, typename RightType>
+   concept ensure_right_either = 
+      ensure_either<Fun, RightType> &&
+      std::same_as<typename std::invoke_result_t<Fun, RightType>::left_type, LeftType>;
+
+   // clang-format on
+} // namespace reglisse::detail
+
+namespace reglisse
+{
+   template <std::movable LeftType, std::movable RightType>
+   requires(not(std::is_reference_v<LeftType> or std::is_reference_v<RightType>)) class either;
+
+   template <std::movable T>
+   requires(not std::is_reference_v<T>) class left;
+
+   template <std::movable T>
+   requires(not std::is_reference_v<T>) class right;
+
+   template <std::movable T>
+   requires(not std::is_reference_v<T>) class left
+   {
+   public:
+      using value_type = T;
+
+   public:
+      explicit constexpr left(value_type&& value) : m_value(std::move(value)) {}
+
+      constexpr auto value() const& noexcept -> const value_type& { return m_value; }
+      constexpr auto value() & noexcept -> value_type& { return m_value; }
+      constexpr auto value() const&& noexcept -> const value_type { return std::move(m_value); }
+      constexpr auto value() && noexcept -> value_type { return std::move(m_value); }
+
+      template <std::equality_comparable_with<value_type> U>
+      constexpr auto operator==(const left<U>& rhs) const -> bool
+      {
+         return value() == rhs.value();
+      }
+
+      template <std::equality_comparable_with<value_type> U>
+      constexpr auto operator==(const right<U>& rhs) const -> bool
+      {
+         return value() == rhs.value();
+      }
+
+   private:
+      value_type m_value;
+   };
+
+   template <std::movable T>
+   requires(not std::is_reference_v<T>) class right
+   {
+   public:
+      using value_type = T;
+
+   public:
+      explicit constexpr right(value_type&& value) : m_value(std::move(value)) {}
+
+      constexpr auto value() const& noexcept -> const value_type& { return m_value; }
+      constexpr auto value() & noexcept -> value_type& { return m_value; }
+      constexpr auto value() const&& noexcept -> const value_type { return std::move(m_value); }
+      constexpr auto value() && noexcept -> value_type { return std::move(m_value); }
+
+      template <std::equality_comparable_with<value_type> U>
+      constexpr auto operator==(const right<U>& rhs) const -> bool
+      {
+         return value() == rhs.value();
+      }
+
+      template <std::equality_comparable_with<value_type> U>
+      constexpr auto operator==(const left<U>& rhs) const -> bool
+      {
+         return value() == rhs.value();
+      }
+
+   private:
+      value_type m_value;
+   };
+
+   template <std::movable L, std::movable R>
+   requires(not(std::is_reference_v<L> or std::is_reference_v<R>)) class either
+   {
+   public:
+      using left_type = L;
+      using right_type = R;
+
+   public:
+      constexpr either() = delete;
+      constexpr either(left<left_type>&& left_val)
+      {
+         std::construct_at(&m_left, std::move(left_val).value()); // NOLINT
+      }
+      constexpr either(right<right_type>&& right_val) : m_is_left(false)
+      {
+         std::construct_at(&m_right, std::move(right_val.value())); // NOLINT
+      }
+      constexpr either(const either& other) : m_is_left(other.is_left())
+      {
+         if (other.is_left())
+         {
+            std::construct_at(&m_left, other.borrow_left()); // NOLINT
+         }
+         else
+         {
+            std::construct_at(&m_right, other.borrow_right()); // NOLINT
+         }
+      }
+      constexpr either(either&& other) noexcept : m_is_left(other.is_left())
+      {
+         if (other.is_left())
+         {
+            std::construct_at(&m_left, other.take_left()); // NOLINT
+         }
+         else
+         {
+            std::construct_at(&m_right, other.take_right()); // NOLINT
+         }
+      }
+      constexpr ~either()
+      {
+         if (is_left())
+         {
+            std::destroy_at(&m_left); // NOLINT
+         }
+         else
+         {
+            std::destroy_at(&m_right); // NOLINT
+         }
+      }
+
+      constexpr auto operator=(const either& rhs) -> either&
+      {
+         if (this != &rhs)
+         {
+         }
+
+         return *this;
+      }
+      constexpr auto operator=(either&& rhs) noexcept -> either&
+      {
+         if (this != &rhs)
+         {
+         }
+
+         return *this;
+      }
+
+      constexpr auto borrow_left() const& noexcept -> const left_type&
+      {
+         detail::handle_invalid_left_either_access(is_left());
+
+         return m_left; // NOLINT
+      }
+      constexpr auto borrow_left() & noexcept -> left_type&
+      {
+         detail::handle_invalid_left_either_access(is_left());
+
+         return m_left; // NOLINT
+      }
+      constexpr auto take_left() const&& noexcept -> const left_type
+      {
+         detail::handle_invalid_left_either_access(is_left());
+
+         return std::move(m_left); // NOLINT
+      }
+      constexpr auto take_left() && noexcept -> left_type
+      {
+         detail::handle_invalid_left_either_access(is_left());
+
+         return std::move(m_left); // NOLINT
+      }
+
+      constexpr auto borrow_right() const& noexcept -> const right_type&
+      {
+         detail::handle_invalid_right_either_access(is_right());
+
+         return m_right; // NOLINT
+      }
+      constexpr auto borrow_right() & noexcept -> right_type&
+      {
+         detail::handle_invalid_right_either_access(is_right());
+
+         return m_right; // NOLINT
+      }
+      constexpr auto take_right() const&& noexcept -> const right_type
+      {
+         detail::handle_invalid_right_either_access(is_right());
+
+         return std::move(m_right); // NOLINT
+      }
+      constexpr auto take_right() && noexcept -> right_type
+      {
+         detail::handle_invalid_right_either_access(is_right());
+
+         return std::move(m_right); // NOLINT
+      }
+
+      [[nodiscard]] constexpr auto is_left() const noexcept -> bool { return m_is_left; }
+      [[nodiscard]] constexpr auto is_right() const noexcept -> bool { return !is_left(); }
+
+      template <std::invocable<left_type> Fun>
+      constexpr auto transform_left(
+         Fun&& left_fun) const&& -> either<std::invoke_result_t<Fun, const left_type>, right_type>
+      {
+         if (is_left())
+         {
+            return left(std::invoke(std::forward<Fun>(left_fun), take_left()));
+         }
+
+         return right(take_right());
+      }
+      template <std::invocable<left_type> Fun>
+      constexpr auto
+      transform_left(Fun&& left_fun) && -> either<std::invoke_result_t<Fun, left_type>, right_type>
+      {
+         if (is_left())
+         {
+            return left(std::invoke(std::forward<Fun>(left_fun), take_left()));
+         }
+
+         return right(take_right());
+      }
+
+      template <std::invocable<right_type> Fun>
+      constexpr auto transform_right(
+         Fun&& right_fun) const&& -> either<left_type, std::invoke_result_t<Fun, const right_type>>
+      {
+         if (is_right())
+         {
+            return right(std::invoke(std::forward<Fun>(right_fun), take_right()));
+         }
+
+         return left(take_left());
+      }
+      template <std::invocable<right_type> Fun>
+      constexpr auto transform_right(
+         Fun&& right_fun) && -> either<left_type, std::invoke_result_t<Fun, right_type>>
+      {
+         if (is_right())
+         {
+            return right(std::invoke(std::forward<Fun>(right_fun), take_right()));
+         }
+
+         return left(take_left());
+      }
+
+      template <detail::ensure_left_either<left_type, right_type> Fun>
+      constexpr auto
+      flat_transform_left(Fun&& left_fun) const&& -> std::invoke_result_t<Fun, left_type>
+      {
+         if (is_left())
+         {
+            return std::invoke(std::forward<Fun>(left_fun), take_left());
+         }
+
+         return right(take_right());
+      }
+      template <std::invocable<left_type> Fun>
+      constexpr auto flat_transform_left(Fun&& left_fun) && -> std::invoke_result_t<Fun, left_type>
+      {
+         if (is_left())
+         {
+            return std::invoke(std::forward<Fun>(left_fun), take_left());
+         }
+
+         return right(take_right());
+      }
+
+      template <detail::ensure_right_either<left_type, right_type> Fun>
+      constexpr auto
+      flat_transform_right(Fun&& right_fun) const&& -> std::invoke_result_t<Fun, right_type>
+      {
+         if (is_right())
+         {
+            return std::invoke(std::forward<Fun>(right_fun), take_right());
+         }
+
+         return left(take_left());
+      }
+      template <detail::ensure_right_either<left_type, right_type> Fun>
+      constexpr auto
+      flat_transform_right(Fun&& right_fun) && -> std::invoke_result_t<Fun, right_type>
+      {
+         if (is_right())
+         {
+            return std::invoke(std::forward<Fun>(right_fun), take_right());
+         }
+
+         return left(take_left());
+      }
+
+   private:
+      bool m_is_left = true;
+
+      union
+      {
+         left_type m_left;
+         right_type m_right;
+      };
+   };
+} // namespace reglisse
+
+#endif // LIBREGLISSE_EITHER_HPP

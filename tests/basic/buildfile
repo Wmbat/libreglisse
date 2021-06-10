@@ -1,4 +1,4 @@
-import libs = libreglisse%lib{libreglisse}
-import libs += doctest%lib{doctest}
+import libs = libreglisse%lib{reglisse}
+import libs += catch2%lib{catch2}
 
 exe{driver}: {hxx cxx}{**} $libs testscript{**}
