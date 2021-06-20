@@ -1,0 +1,7 @@
+compile_commands.json
+
+.bdep
+.cache
+
+build
+tests
