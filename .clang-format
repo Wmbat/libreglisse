@@ -42,6 +42,7 @@ BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: AfterColon
 BreakStringLiterals: true
+BreakBeforeConceptDeclarations: true
 ColumnLimit: 100
 CompactNamespaces: true
 ConstructorInitializerIndentWidth: 3
@@ -52,6 +53,7 @@ IndentCaseLabels: true
 IndentPPDirectives: AfterHash
 IndentWidth: 3
 IndentWrappedFunctionNames: false
+IndentRequires: true
 NamespaceIndentation: All
 PointerAlignment: Left
 SpaceBeforeAssignmentOperators: true

@@ -9,11 +9,8 @@
 #ifndef LIBREGLISSE_MAYBE_HPP
 #define LIBREGLISSE_MAYBE_HPP
 
-#include <libreglisse/type_traits.hpp>
-#include <libreglisse/utils/concepts.hpp>
-
 #if defined(LIBREGLISSE_USE_EXCEPTIONS)
-#   include <libreglisse/utils/invalid_access_exception.hpp>
+#   include <libreglisse/detail/invalid_access_exception.hpp>
 #else
 #   include <cassert>
 #endif // defined (LIBREGLISSE_USE_EXCEPTIONS)
@@ -42,7 +39,8 @@ namespace reglisse::detail
 namespace reglisse
 {
    template <std::movable T>
-   requires(not std::is_reference_v<T>) class some;
+      requires(not std::is_reference_v<T>)
+   class some;
 
    /**
     * @brief Represents an empty maybe
@@ -69,7 +67,8 @@ namespace reglisse
     * @tparam T
     */
    template <std::movable T>
-   requires(not std::is_reference_v<T>) class [[nodiscard]] some
+      requires(not std::is_reference_v<T>)
+   class [[nodiscard]] some
    {
    public:
       using value_type = T;
@@ -100,7 +99,8 @@ namespace reglisse
     * @tparam T The type being held by the maybe monad.
     */
    template <typename T>
-   requires(not std::is_reference_v<T>) class [[nodiscard]] maybe
+      requires(not std::is_reference_v<T>)
+   class [[nodiscard]] maybe
    {
    public:
       using value_type = T;
@@ -156,7 +156,7 @@ namespace reglisse
 
             if (is_some())
             {
-               std::construct_at(&m_value, rhs.value()); // NOLINT
+               std::construct_at(&m_value, rhs.borrow()); // NOLINT
             }
          }
       }
@@ -174,18 +174,18 @@ namespace reglisse
 
             if (is_some())
             {
-               std::construct_at(&m_value, std::move(rhs.value())); // NOLINT
+               std::construct_at(&m_value, std::move(rhs.borrow())); // NOLINT
             }
          }
       }
 
-      constexpr auto value() & -> value_type&
+      constexpr auto borrow() & -> value_type&
       {
          detail::handle_invalid_maybe_access(is_some());
 
          return m_value; // NOLINT
       }
-      constexpr auto value() const& -> const value_type&
+      constexpr auto borrow() const& -> const value_type&
       {
          detail::handle_invalid_maybe_access(is_some());
 
@@ -238,12 +238,12 @@ namespace reglisse
       {
          if (is_some() && other.is_some())
          {
-            std::swap(value(), other.value());
+            std::swap(borrow(), other.borrow());
          }
          else if (is_some() && other.is_none())
          {
             other.m_is_none = false;
-            other.value() = value();
+            other.borrow() = borrow();
 
             m_is_none = true;
             std::destroy_at(&m_value); // NOLINT
@@ -251,7 +251,7 @@ namespace reglisse
          else if (is_none() && other.is_some())
          {
             m_is_none = false;
-            value() = other.value();
+            borrow() = other.borrow();
 
             other.m_is_none = true;
             std::destroy_at(&other.m_value); // NOLINT
@@ -351,25 +351,27 @@ namespace reglisse
       }
 
       template <std::invocable<value_type> Fun, std::invocable Def>
-      requires std::convertible_to<std::invoke_result_t<Fun, value_type&&>,
-                                   std::invoke_result_t<Def>> constexpr auto
-      transform_or_else(Fun&& some_fun, Def&& none_fun) const&& -> std::invoke_result_t<Def>
+         requires std::convertible_to<std::invoke_result_t<Fun, value_type&&>,
+                                      std::invoke_result_t<Def>>
+      constexpr auto transform_or_else(Fun&& some_fun,
+                                       Def&& none_fun) const&& -> std::invoke_result_t<Def>
       {
          if (is_some())
          {
-            return std::invoke(std::forward<Fun>(some_fun), std::move(value()));
+            return std::invoke(std::forward<Fun>(some_fun), std::move(borrow()));
          }
 
          return std::invoke(std::forward<Def>(none_fun));
       }
       template <std::invocable<value_type> Fun, std::invocable Def>
-      requires std::convertible_to<std::invoke_result_t<Fun, value_type&&>,
-                                   std::invoke_result_t<Def>> constexpr auto
-      transform_or_else(Fun&& some_fun, Def&& none_fun) && -> std::invoke_result_t<Def>
+         requires std::convertible_to<std::invoke_result_t<Fun, value_type&&>,
+                                      std::invoke_result_t<Def>>
+      constexpr auto transform_or_else(Fun&& some_fun,
+                                       Def&& none_fun) && -> std::invoke_result_t<Def>
       {
          if (is_some())
          {
-            return std::invoke(std::forward<Fun>(some_fun), std::move(value()));
+            return std::invoke(std::forward<Fun>(some_fun), std::move(borrow()));
          }
 
          return std::invoke(std::forward<Def>(none_fun));
@@ -393,7 +395,7 @@ namespace reglisse
    template <class First, std::equality_comparable_with<First> Second>
    constexpr auto
    operator==(const maybe<First>& lhs,
-              const maybe<Second>& rhs) noexcept(noexcept(lhs.value() == rhs.value())) -> bool
+              const maybe<Second>& rhs) noexcept(noexcept(lhs.borrow() == rhs.borrow())) -> bool
    {
       if (lhs.is_some() != rhs.is_some())
       {
@@ -405,7 +407,7 @@ namespace reglisse
          return true;
       }
 
-      return lhs.value() == rhs.value();
+      return lhs.borrow() == rhs.borrow();
    }
 
    /**
@@ -422,18 +424,18 @@ namespace reglisse
     */
    template <class Any, class Other>
    constexpr auto operator==(const maybe<Any>& m,
-                             const Other& value) noexcept(noexcept(m.value() == value)) -> bool
+                             const Other& value) noexcept(noexcept(m.borrow() == value)) -> bool
    {
-      return m.is_some() ? m.value() == value : false;
+      return m.is_some() ? m.borrow() == value : false;
    }
 
    template <class First, class Second>
    constexpr auto operator<=>(const maybe<First>& lhs, const maybe<Second>& rhs) noexcept(
-      noexcept(lhs.value() <=> rhs.value())) -> std::compare_three_way_result_t<First, Second>
+      noexcept(lhs.borrow() <=> rhs.borrow())) -> std::compare_three_way_result_t<First, Second>
    {
       if (lhs.is_some() && rhs.is_some())
       {
-         return lhs.value() <=> rhs.value();
+         return lhs.borrow() <=> rhs.borrow();
       }
 
       return lhs.is_some() <=> rhs.is_some();
@@ -447,10 +449,10 @@ namespace reglisse
 
    template <class Any, class Other>
    constexpr auto operator<=>(const maybe<Any>& m,
-                              const Other& value) noexcept(noexcept(m.value() <=> value))
+                              const Other& value) noexcept(noexcept(m.borrow() <=> value))
       -> std::compare_three_way_result_t<Any, Other>
    {
-      return m.is_some() ? m.value() <=> value : std::strong_ordering::less;
+      return m.is_some() ? m.borrow() <=> value : std::strong_ordering::less;
    }
 } // namespace reglisse
 

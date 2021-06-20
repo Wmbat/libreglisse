@@ -10,7 +10,7 @@
 #define LIBREGLISSE_EITHER_HPP
 
 #if defined(LIBREGLISSE_USE_EXCEPTIONS)
-#   include <libreglisse/utils/invalid_access_exception.hpp>
+#   include <libreglisse/detail/invalid_access_exception.hpp>
 #else
 #   include <cassert>
 #endif // defined (LIBREGLISSE_USE_EXCEPTIONS)
@@ -69,16 +69,20 @@ namespace reglisse::detail
 namespace reglisse
 {
    template <std::movable LeftType, std::movable RightType>
-   requires(not(std::is_reference_v<LeftType> or std::is_reference_v<RightType>)) class either;
+      requires(not(std::is_reference_v<LeftType> or std::is_reference_v<RightType>))
+   class either;
 
    template <std::movable T>
-   requires(not std::is_reference_v<T>) class left;
+      requires(not std::is_reference_v<T>)
+   class left;
 
    template <std::movable T>
-   requires(not std::is_reference_v<T>) class right;
+      requires(not std::is_reference_v<T>)
+   class right;
 
    template <std::movable T>
-   requires(not std::is_reference_v<T>) class left
+      requires(not std::is_reference_v<T>)
+   class left
    {
    public:
       using value_type = T;
@@ -108,7 +112,8 @@ namespace reglisse
    };
 
    template <std::movable T>
-   requires(not std::is_reference_v<T>) class right
+      requires(not std::is_reference_v<T>)
+   class right
    {
    public:
       using value_type = T;
@@ -138,7 +143,8 @@ namespace reglisse
    };
 
    template <std::movable L, std::movable R>
-   requires(not(std::is_reference_v<L> or std::is_reference_v<R>)) class either
+      requires(not(std::is_reference_v<L> or std::is_reference_v<R>))
+   class either
    {
    public:
       using left_type = L;
@@ -156,7 +162,7 @@ namespace reglisse
       }
       constexpr either(const either& other) : m_is_left(other.is_left())
       {
-         if (other.is_left())
+         if (is_left())
          {
             std::construct_at(&m_left, other.borrow_left()); // NOLINT
          }
@@ -167,7 +173,7 @@ namespace reglisse
       }
       constexpr either(either&& other) noexcept : m_is_left(other.is_left())
       {
-         if (other.is_left())
+         if (is_left())
          {
             std::construct_at(&m_left, other.take_left()); // NOLINT
          }
@@ -192,6 +198,25 @@ namespace reglisse
       {
          if (this != &rhs)
          {
+            if (is_left())
+            {
+               std::destroy_at(&m_left); // NOLINT
+            }
+            else
+            {
+               std::destroy_at(&m_right); // NOLINT
+            }
+
+            m_is_left = rhs.m_is_left;
+
+            if (is_left())
+            {
+               std::construct_at(&m_left, rhs.borrow_left()); // NOLINT
+            }
+            else
+            {
+               std::construct_at(&m_right, rhs.borrow_right()); // NOLINT
+            }
          }
 
          return *this;
@@ -200,6 +225,25 @@ namespace reglisse
       {
          if (this != &rhs)
          {
+            if (is_left())
+            {
+               std::destroy_at(&m_left); // NOLINT
+            }
+            else
+            {
+               std::destroy_at(&m_right); // NOLINT
+            }
+
+            m_is_left = rhs.m_is_left;
+
+            if (is_left())
+            {
+               std::construct_at(&m_left, std::move(rhs).take_left()); // NOLINT
+            }
+            else
+            {
+               std::construct_at(&m_right, std::move(rhs).take_right()); // NOLINT
+            }
          }
 
          return *this;

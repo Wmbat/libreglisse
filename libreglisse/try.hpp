@@ -2,23 +2,19 @@
 
 #include <libreglisse/result.hpp>
 
-namespace monad
+namespace reglisse
 {
-   // clang-format off
-   template <class Err, class Fun, class... Args>
-   requires 
-      std::invocable<Fun, Args...>
-   constexpr auto try_wrap(Fun&& fun, Args&&... args) 
-      -> result<std::invoke_result_t<Fun, Args...>, Err>
+   template <class ErrType, class Fun, class... Args>
+      requires std::invocable<Fun, Args...>
+   constexpr auto try_wrap(Fun&& fun, Args&&... args)
    {
       try
       {
          return std::invoke(std::forward<Fun>(fun), std::forward<Args>(args)...);
       }
-      catch (const Err& e)
+      catch (const ErrType& e)
       {
          return err(e);
       }
    }
-   // clang-format on
-} // namespace monad
+} // namespace reglisse

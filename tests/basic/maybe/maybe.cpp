@@ -38,9 +38,9 @@ SCENARIO("maybe - construction", "[maybe]")
       THEN("Monad should hold a value equal to 1")
       {
          CHECK(maybe_int.is_some());
-         CHECK(maybe_int.value() == 1);
+         CHECK(maybe_int.borrow() == 1);
          CHECK(maybe_float.is_some());
-         CHECK(maybe_float.value() == 1.0f);
+         CHECK(maybe_float.borrow() == 1.0f);
       }
    }
    GIVEN("construction from some non-trivial data")
@@ -50,7 +50,7 @@ SCENARIO("maybe - construction", "[maybe]")
       THEN("Monad should hold a vector of all 1")
       {
          CHECK(maybe_vector.is_some());
-         CHECK(maybe_vector.value() == std::vector<int>({1, 1, 1}));
+         CHECK(maybe_vector.borrow() == std::vector<int>({1, 1, 1}));
       }
    }
 }
@@ -73,9 +73,9 @@ TEST_CASE("maybe - copy ctor", "[maybe]")
    REQUIRE(maybe_float_2.is_some());
    REQUIRE(maybe_vector_2.is_some());
 
-   CHECK(maybe_int.value() == maybe_int_2.value());
-   CHECK(maybe_float.value() == maybe_float_2.value());
-   CHECK(maybe_vector.value() == maybe_vector_2.value());
+   CHECK(maybe_int.borrow() == maybe_int_2.borrow());
+   CHECK(maybe_float.borrow() == maybe_float_2.borrow());
+   CHECK(maybe_vector.borrow() == maybe_vector_2.borrow());
 }
 
 TEST_CASE("maybe - move ctor", "[maybe]")
@@ -96,9 +96,9 @@ TEST_CASE("maybe - move ctor", "[maybe]")
    REQUIRE(maybe_float_2.is_some());
    REQUIRE(maybe_vector_2.is_some());
 
-   CHECK(maybe_int_2.value() == 1);
-   CHECK(maybe_float_2.value() == 1.0f);
-   CHECK(maybe_vector_2.value() == std::vector<int>({1, 1, 1}));
+   CHECK(maybe_int_2.borrow() == 1);
+   CHECK(maybe_float_2.borrow() == 1.0f);
+   CHECK(maybe_vector_2.borrow() == std::vector<int>({1, 1, 1}));
 }
 
 TEST_CASE("maybe - copy assignment operator", "[maybe]")
@@ -119,9 +119,9 @@ TEST_CASE("maybe - copy assignment operator", "[maybe]")
    REQUIRE(maybe_float_2.is_some());
    REQUIRE(maybe_vector_2.is_some());
 
-   CHECK(maybe_int.value() == maybe_int_2.value());
-   CHECK(maybe_float.value() == maybe_float_2.value());
-   CHECK(maybe_vector.value() == maybe_vector_2.value());
+   CHECK(maybe_int.borrow() == maybe_int_2.borrow());
+   CHECK(maybe_float.borrow() == maybe_float_2.borrow());
+   CHECK(maybe_vector.borrow() == maybe_vector_2.borrow());
 }
 
 TEST_CASE("maybe - move assignment operator", "[maybe]")
@@ -142,14 +142,14 @@ TEST_CASE("maybe - move assignment operator", "[maybe]")
    REQUIRE(maybe_float_2.is_some());
    REQUIRE(maybe_vector_2.is_some());
 
-   CHECK(maybe_int_2.value() == 1);
-   CHECK(maybe_float_2.value() == 1.0f);
-   CHECK(maybe_vector_2.value() == std::vector<int>({1, 1, 1}));
+   CHECK(maybe_int_2.borrow() == 1);
+   CHECK(maybe_float_2.borrow() == 1.0f);
+   CHECK(maybe_vector_2.borrow() == std::vector<int>({1, 1, 1}));
 
    maybe maybe_float_vec = some(std::vector<float>{1.0f, 1.0f});
 
    REQUIRE(maybe_float_vec.is_some());
-   CHECK(maybe_float_vec.value() == std::vector<float>({1.0f, 1.0f}));
+   CHECK(maybe_float_vec.borrow() == std::vector<float>({1.0f, 1.0f}));
 
    maybe<int> maybe_none = none;
 
@@ -166,9 +166,9 @@ SCENARIO("maybe - borrowing data", "[maybe]")
       THEN("Maybe should hold a value")
       {
          CHECK(maybe_int.is_some());
-         CHECK(maybe_int.value() == 1);
+         CHECK(maybe_int.borrow() == 1);
          CHECK(maybe_vec.is_some());
-         CHECK(maybe_vec.value() == std::vector({1, 1}));
+         CHECK(maybe_vec.borrow() == std::vector({1, 1}));
       }
    }
    GIVEN("an empty maybe")
@@ -179,10 +179,10 @@ SCENARIO("maybe - borrowing data", "[maybe]")
       THEN("Maybe should be empty and throw exception on access")
       {
          CHECK(data.is_none());
-         CHECK_THROWS_AS(data.value() == 1, invalid_access_exception);
+         CHECK_THROWS_AS(data.borrow() == 1, invalid_access_exception);
 
          CHECK(maybe_vec.is_none());
-         CHECK_THROWS_AS(maybe_vec.value() == std::vector({1, 1}), invalid_access_exception);
+         CHECK_THROWS_AS(maybe_vec.borrow() == std::vector({1, 1}), invalid_access_exception);
       }
    }
 }
@@ -339,7 +339,7 @@ TEST_CASE("maybe - transform", "[maybe]")
       });
 
       REQUIRE(maybe_int.is_some());
-      CHECK(maybe_int.value() == 1.0f);
+      CHECK(maybe_int.borrow() == 1.0f);
    }
    SECTION("transform(fun&&) &&")
    {
@@ -348,14 +348,14 @@ TEST_CASE("maybe - transform", "[maybe]")
       });
 
       REQUIRE(maybe_float.is_some());
-      CHECK(maybe_float.value() == 1.0f);
+      CHECK(maybe_float.borrow() == 1.0f);
 
       const maybe maybe_str = maybe(some(1)).transform([](int val) {
          return std::to_string(val);
       });
 
       REQUIRE(maybe_str.is_some());
-      CHECK(maybe_str.value() == "1");
+      CHECK(maybe_str.borrow() == "1");
 
       const maybe<std::vector<int>> maybe_none = maybe<int>(none).transform([](int val) {
          return std::vector<int>({val, val});
