@@ -1,3 +1,11 @@
+/**
+ * @file try.hpp
+ * @author wmbat wmbat@protonmail.com
+ * @date Monday, 7th of june 2021
+ * @brief
+ * @copyright Copyright (C) 2021 wmbat.
+ */
+
 #pragma once
 
 #include <libreglisse/result.hpp>

@@ -1,3 +1,11 @@
+/**
+ * @file result.hpp
+ * @author wmbat wmbat@protonmail.com
+ * @date Monday, 7th of june 2021
+ * @brief
+ * @copyright Copyright (C) 2021 wmbat.
+ */
+
 #pragma once
 
 #if defined(LIBREGLISSE_USE_EXCEPTIONS)

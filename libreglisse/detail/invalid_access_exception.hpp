@@ -1,5 +1,9 @@
 /**
- *
+ * @file detail/invalid_access_exception.hpp
+ * @author wmbat wmbat@protonmail.com
+ * @date Monday, 7th of june 2021
+ * @brief
+ * @copyright Copyright (C) 2021 wmbat.
  */
 
 #ifndef LIBREGLISSE_UTILS_INVALID_ACCESS_EXCEPTION
