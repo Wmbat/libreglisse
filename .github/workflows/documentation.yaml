@@ -1,0 +1,31 @@
+name: Documentation
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build:
+    name: Build and publish documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: sudo apt-get install doxygen
+
+      - name: Doxygen Action
+        uses: mattnotmitt/doxygen-action@v1.1.0
+        with:
+          # Path to Doxyfile
+          doxyfile-path: "./Doxyfile" # default is ./Doxyfile
+          # Working directory
+          working-directory: "." # default is .
+
+      - name: Publish
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/html
+
