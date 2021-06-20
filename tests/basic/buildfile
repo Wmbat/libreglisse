@@ -1,4 +1,0 @@
-import libs = libreglisse%lib{reglisse}
-import libs += catch2%lib{catch2}
-
-exe{driver}: {hxx cxx}{**} $libs testscript{**}

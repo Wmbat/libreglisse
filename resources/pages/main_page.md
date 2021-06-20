@@ -1,3 +1,0 @@
-@mainpage
-
-# What is libreglisse?
