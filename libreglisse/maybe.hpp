@@ -61,11 +61,6 @@ namespace reglisse
     */
    static inline constexpr auto none = none_t();
 
-   /**
-    * @brief
-    *
-    * @tparam T
-    */
    template <std::movable T>
       requires(not std::is_reference_v<T>)
    class [[nodiscard]] some
