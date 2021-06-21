@@ -15,6 +15,12 @@
 
 namespace reglisse
 {
+   /**
+    * @brief A helper exception class used for error handling in monadic types
+    *
+    * The class is used when the macro `LIBREGLISSE_USE_EXCEPTIONS` is defined. It replaces the
+    * call to `assert()` with an exception throw.
+    */
    class invalid_access_exception : public std::exception
    {
    public:
