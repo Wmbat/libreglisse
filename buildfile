@@ -1,4 +1,4 @@
-./: {*/ -build/ -docs/ -resources/ -out/}           \
-    doc{README.md}                                  \
-    legal{LICENSE}                                  \
+./: {*/ -build/ -docs/ -out/}           \
+    doc{README.md}                      \
+    legal{LICENSE}                      \
     manifest

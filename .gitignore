@@ -32,5 +32,4 @@ compile_commands.json
 .cache/
 
 out/
-docs/
 cmake/
