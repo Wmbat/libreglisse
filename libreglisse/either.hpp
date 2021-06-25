@@ -59,6 +59,9 @@ namespace reglisse
       requires(not std::is_reference_v<T>)
    class right;
 
+   /**
+    * @brief Class used for creating a left either monad
+    */
    template <std::movable T>
       requires(not std::is_reference_v<T>)
    class left
@@ -91,6 +94,9 @@ namespace reglisse
       value_type m_value;
    };
 
+   /**
+    * @brief Class used for creating a right either monad
+    */
    template <std::movable T>
       requires(not std::is_reference_v<T>)
    class right
@@ -100,19 +106,50 @@ namespace reglisse
 
    public:
       explicit constexpr right(const value_type& value) : m_value(value) {}
+      /**
+       * @brief Construct a right by moving a value_type
+       *
+       * @param [in] value The value to be stored.
+       */
       explicit constexpr right(value_type&& value) : m_value(std::move(value)) {}
 
+      /**
+       * @brief Access the inner value
+       *
+       * @return A reference to the stored value
+       */
       constexpr auto value() const& noexcept -> const value_type& { return m_value; }
+      /**
+       * @brief Access the inner value
+       *
+       * @return A reference to the stored value
+       */
       constexpr auto value() & noexcept -> value_type& { return m_value; }
+      /**
+       * @brief Take the inner value stored in the right<value_type>
+       *
+       * @return The value stored in the object
+       */
       constexpr auto value() const&& noexcept -> const value_type { return std::move(m_value); }
+      /**
+       * @brief Take the inner value stored in the right<value_type>
+       *
+       * @return The value stored in the object
+       */
       constexpr auto value() && noexcept -> value_type { return std::move(m_value); }
 
+      /**
+       * @brief Compare the value stored between a left<value_type> and a right<U>
+       */
       template <std::equality_comparable_with<value_type> U>
       constexpr auto operator==(const right<U>& rhs) const -> bool
       {
          return value() == rhs.value();
       }
 
+      /**
+       * @brief Compare the value stored between a left<value_type> and a left<U>
+       */
       template <std::equality_comparable_with<value_type> U>
       constexpr auto operator==(const left<U>& rhs) const -> bool
       {
@@ -126,6 +163,9 @@ namespace reglisse
    left(const char*)->left<std::string>;
    right(const char*)->right<std::string>;
 
+   /**
+    * @brief
+    */
    template <std::movable L, std::movable R>
       requires(not(std::is_reference_v<L> or std::is_reference_v<R>))
    class either
