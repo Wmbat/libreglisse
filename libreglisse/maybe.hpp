@@ -2,7 +2,7 @@
  * @file maybe.hpp
  * @author wmbat wmbat@protonmail.com
  * @date Saturday, 22nd of may 2021
- * @brief
+ * @brief Contains everything related to the maybe monad
  * @copyright Copyright (C) 2021 wmbat.
  */
 
@@ -58,11 +58,11 @@ namespace reglisse
       }
    };
 
-   /**
-    * @brief
-    */
-   static inline constexpr auto none = none_t();
+   static inline constexpr auto none = none_t(); ///< Shorthand for empty maybe creation
 
+   /**
+    * @brief Helper class to construct a maybe monad with value.
+    */
    template <std::movable T>
       requires(not std::is_reference_v<T>)
    class [[nodiscard]] some
@@ -96,9 +96,7 @@ namespace reglisse
    // clang-format on
 
    /**
-    * @brief
-    *
-    * @tparam T The type being held by the maybe monad.
+    * @brief A monadic type that may or may not contain a value.
     */
    template <typename T>
       requires(not std::is_reference_v<T>)
@@ -108,19 +106,8 @@ namespace reglisse
       using value_type = T;
 
    public:
-      /**
-       * @brief Create an empty monad.
-       */
       constexpr maybe() noexcept {}; // NOLINT
-      /**
-       * @brief Create an empty maybe monad explicitly from a none_t.
-       */
       constexpr maybe(none_t) noexcept {};
-      /**
-       * @brief Create an monad from a value by move.
-       *
-       * @param val
-       */
       constexpr maybe(some<T>&& val) : m_is_none(false), m_value(std::move(val.value())) {}
       constexpr maybe(const maybe& other) : m_is_none(other.is_none())
       {

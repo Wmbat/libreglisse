@@ -2,7 +2,7 @@
  * @file either.hpp
  * @author wmbat wmbat@protonmail.com
  * @date Monday, 7th of june 2021
- * @brief
+ * @brief Contains everything related to the either monad
  * @copyright Copyright (C) 2021 wmbat.
  */
 
@@ -317,10 +317,9 @@ namespace reglisse
       /**
        * @brief Borrow the value stored on the left side of the monad.
        *
-       * Borrow the value stored on the left side of the monad. If the monad does not hold a value
-       * on the left, an assert will be thrown at debug time will be thrown. If you wish to have
-       * runtime checking, defining the **LIBREGLISSE_USE_EXCEPTIONS** macro before including this
-       * file will turn all assertions into exceptions.
+       * If the monad does not hold a value on the left, an assert will be thrown at debug time will
+       * be thrown. If you wish to have runtime checking, defining the LIBREGLISSE_USE_EXCEPTIONS
+       * macro before including this file will turn all assertions into exceptions.
        */
       constexpr auto borrow_left() const& noexcept -> const left_type&
       {
@@ -331,11 +330,9 @@ namespace reglisse
       /**
        * @brief Borrow the value stored on the left side of the monad.
        *
-       * Borrow the value stored on the left side of the monad.
-       *
        * If the monad does not hold a value on the left, an assert will be thrown at debug time will
        * be thrown. If you wish to have runtime checking, defining the
-       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
        * @returns The value store on the left side of the monad.
@@ -349,12 +346,12 @@ namespace reglisse
       /**
        * @brief Take the value stored on the left side of the monad.
        *
-       * take the value stored on the left side of the monad. This operation leaves the monad in an
-       * undefined state, it is not recommended to use it after this function being called.
+       * This operation leaves the monad in an undefined state, it is not recommended to use it
+       * after this function being called.
        *
        * If the monad does not hold a value on the left, an assert will be thrown at debug time will
        * be thrown. If you wish to have runtime checking, defining the
-       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
        * @returns The value store on the left side of the monad.
@@ -368,12 +365,12 @@ namespace reglisse
       /**
        * @brief Take the value stored on the left side of the monad.
        *
-       * take the value stored on the left side of the monad. This operation leaves the monad in an
-       * undefined state, it is not recommended to use it after this function being called.
+       * This operation leaves the monad in an undefined state, it is not recommended to use it
+       * after this function being called.
        *
        * If the monad does not hold a value on the left, an assert will be thrown at debug time will
        * be thrown. If you wish to have runtime checking, defining the
-       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
        * @returns The value store on the left side of the monad.
@@ -388,11 +385,9 @@ namespace reglisse
       /**
        * @brief Borrow the value stored on the right side of the monad.
        *
-       * Borrow the value stored on the right side of the monad.
-       *
        * If the monad does not hold a value on the right, an assert will be thrown at debug time
        * will be thrown. If you wish to have runtime checking, defining the
-       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
        * @returns The value store on the right side of the monad.
@@ -406,11 +401,9 @@ namespace reglisse
       /**
        * @brief Borrow the value stored on the right side of the monad.
        *
-       * Borrow the value stored on the right side of the monad.
-       *
        * If the monad does not hold a value on the right, an assert will be thrown at debug time
        * will be thrown. If you wish to have runtime checking, defining the
-       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
        * @returns The value store on the right side of the monad.
@@ -424,12 +417,12 @@ namespace reglisse
       /**
        * @brief Take the value stored on the right side of the monad.
        *
-       * take the value stored on the right side of the monad. This operation leaves the monad in an
-       * undefined state, it is not recommended to use it after this function being called.
+       * This operation leaves the monad in an undefined state, it is not recommended to use it
+       * after this function being called.
        *
        * If the monad does not hold a value on the right, an assert will be thrown at debug time
        * will be thrown. If you wish to have runtime checking, defining the
-       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
        * @returns The value store on the right side of the monad.
@@ -443,12 +436,12 @@ namespace reglisse
       /**
        * @brief Take the value stored on the right side of the monad.
        *
-       * take the value stored on the right side of the monad. This operation leaves the monad in an
-       * undefined state, it is not recommended to use it after this function being called.
+       * This operation leaves the monad in an undefined state, it is not recommended to use it
+       * after this function being called.
        *
        * If the monad does not hold a value on the right, an assert will be thrown at debug time
        * will be thrown. If you wish to have runtime checking, defining the
-       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
        * @returns The value store on the right side of the monad.
@@ -463,13 +456,13 @@ namespace reglisse
       /**
        * @brief Check if the monad is storing a value on the left.
        *
-       * @returns **true** if it holds a value on the left
+       * @returns true if it holds a value on the left
        */
       [[nodiscard]] constexpr auto is_left() const noexcept -> bool { return m_is_left; }
       /**
        * @brief Check if the monad is storing a value on the right
        *
-       * @returns **true** if it holds a value on the right
+       * @returns true if it holds a value on the right
        */
       [[nodiscard]] constexpr auto is_right() const noexcept -> bool { return !is_left(); }
 
