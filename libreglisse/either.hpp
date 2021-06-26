@@ -320,6 +320,8 @@ namespace reglisse
        * If the monad does not hold a value on the left, an assert will be thrown at debug time will
        * be thrown. If you wish to have runtime checking, defining the LIBREGLISSE_USE_EXCEPTIONS
        * macro before including this file will turn all assertions into exceptions.
+       *
+       * @returns The value stored on the left side of the monad.
        */
       constexpr auto borrow_left() const& noexcept -> const left_type&
       {
@@ -335,7 +337,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the left side of the monad.
+       * @returns The value stored on the left side of the monad.
        */
       constexpr auto borrow_left() & noexcept -> left_type&
       {
@@ -354,7 +356,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the left side of the monad.
+       * @returns The value stored on the left side of the monad.
        */
       constexpr auto take_left() const&& noexcept -> const left_type
       {
@@ -373,7 +375,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the left side of the monad.
+       * @returns The value stored on the left side of the monad.
        */
       constexpr auto take_left() && noexcept -> left_type
       {
@@ -390,7 +392,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the right side of the monad.
+       * @returns The value stored on the right side of the monad.
        */
       constexpr auto borrow_right() const& noexcept -> const right_type&
       {
@@ -406,7 +408,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the right side of the monad.
+       * @returns The value stored on the right side of the monad.
        */
       constexpr auto borrow_right() & noexcept -> right_type&
       {
@@ -425,7 +427,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the right side of the monad.
+       * @returns The value stored on the right side of the monad.
        */
       constexpr auto take_right() const&& noexcept -> const right_type
       {
@@ -444,7 +446,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the right side of the monad.
+       * @returns The value stored on the right side of the monad.
        */
       constexpr auto take_right() && noexcept -> right_type
       {

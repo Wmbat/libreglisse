@@ -52,6 +52,9 @@ namespace reglisse
       requires(not std::is_reference_v<T>)
    class ok;
 
+   /**
+    * @brief Helper class to construct a result containing an error.
+    */
    template <std::movable T>
       requires(not std::is_reference_v<T>)
    class err
@@ -84,6 +87,9 @@ namespace reglisse
       value_type m_value;
    };
 
+   /**
+    * @brief Helper class to construct a result containing a value.
+    */
    template <std::movable T>
       requires(not std::is_reference_v<T>)
    class ok
@@ -119,6 +125,9 @@ namespace reglisse
    err(const char*)->err<std::string>;
    ok(const char*)->ok<std::string>;
 
+   /**
+    * @brief A monadic type that container either a normal value or an error.
+    */
    template <std::movable ValueType, std::movable ErrorType>
       requires(not(std::is_reference_v<ValueType> or std::is_reference_v<ErrorType>))
    class result

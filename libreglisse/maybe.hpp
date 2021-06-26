@@ -107,8 +107,19 @@ namespace reglisse
 
    public:
       constexpr maybe() noexcept {}; // NOLINT
+      /**
+       * @brief construct an empty monad.
+       */
       constexpr maybe(none_t) noexcept {};
+      /**
+       * @brief construct monad from some value.
+       *
+       * @param val The value to take.
+       */
       constexpr maybe(some<T>&& val) : m_is_none(false), m_value(std::move(val.value())) {}
+      /**
+       * @brief Copy construct a maybe.
+       */
       constexpr maybe(const maybe& other) : m_is_none(other.is_none())
       {
          if (other.is_some())
@@ -116,6 +127,9 @@ namespace reglisse
             std::construct_at(&m_value, other.m_value); // NOLINT
          }
       }
+      /**
+       * @brief Move construct a maybe.
+       */
       constexpr maybe(maybe&& other) noexcept : m_is_none(other.is_none())
       {
          if (other.is_some())
@@ -123,6 +137,9 @@ namespace reglisse
             std::construct_at(&m_value, std::move(other.m_value)); // NOLINT
          }
       }
+      /**
+       * @brief Destroy maybe.
+       */
       constexpr ~maybe()
       {
          if (is_some())
@@ -168,31 +185,85 @@ namespace reglisse
          }
       }
 
+      /**
+       * @brief Borrow the value stored in the monad.
+       *
+       * If the monad does not hold a value, an assert will be thrown at debug time will
+       * be thrown. If you wish to have runtime checking, defining the LIBREGLISSE_USE_EXCEPTIONS
+       * macro before including this file will turn all assertions into exceptions.
+       *
+       * @returns The value stored in the monad.
+       */
       constexpr auto borrow() & -> value_type&
       {
          detail::handle_invalid_maybe_access(is_some());
 
          return m_value; // NOLINT
       }
+      /**
+       * @brief Borrow the value stored in the monad.
+       *
+       * If the monad does not hold a value, an assert will be thrown at debug time will
+       * be thrown. If you wish to have runtime checking, defining the LIBREGLISSE_USE_EXCEPTIONS
+       * macro before including this file will turn all assertions into exceptions.
+       *
+       * @returns The value stored in the monad.
+       */
       constexpr auto borrow() const& -> const value_type&
       {
          detail::handle_invalid_maybe_access(is_some());
 
          return m_value; // NOLINT
       }
+      /**
+       * @brief Take the value stored in the monad.
+       *
+       * This operation leaves the monad in an undefined state, it is not recommended to use it
+       * after this function being called.
+       *
+       * If the monad does not hold a value, an assert will be thrown at debug time
+       * will be thrown. If you wish to have runtime checking, defining the
+       * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
+       * into exceptions.
+       *
+       * @returns The value stored in the monad.
+       */
       constexpr auto take() && -> value_type
       {
          detail::handle_invalid_maybe_access(is_some());
 
          return std::move(m_value); // NOLINT
       }
-      constexpr auto take() const&& -> const value_type
+      /**
+       * @brief Take the value stored in the monad.
+       *
+       * This operation leaves the monad in an undefined state, it is not recommended to use it
+       * after this function being called.
+       *
+       * If the monad does not hold a value, an assert will be thrown at debug time
+       * will be thrown. If you wish to have runtime checking, defining the
+       * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
+       * into exceptions.
+       *
+       * @returns The value stored in the monad.
+       */
+      constexpr auto take() const&& -> value_type
       {
          detail::handle_invalid_maybe_access(is_some());
 
          return std::move(m_value); // NOLINT
       }
 
+      /**
+       * @brief Take the value stored in the monad or get a default.
+       *
+       * This operation may leave the monad in an undefined state, it is not recommended to use it
+       * after this function being called.
+       *
+       * @param [in] or_val The default value to use in case monad is empty
+       *
+       * @returns The value stored in the monad or the provided or_val.
+       */
       template <std::convertible_to<value_type> U>
       constexpr auto take_or(U&& or_val) && -> value_type
       {
@@ -203,6 +274,16 @@ namespace reglisse
 
          return static_cast<value_type>(std::forward<U>(or_val));
       }
+      /**
+       * @brief Take the value stored in the monad or get a default.
+       *
+       * This operation may leave the monad in an undefined state, it is not recommended to use it
+       * after this function being called.
+       *
+       * @param [in] or_val The default value to use in case monad is empty
+       *
+       * @returns The value stored in the monad or the provided or_val.
+       */
       template <std::convertible_to<value_type> U>
       constexpr auto take_or(U&& or_val) const&& -> value_type
       {
@@ -214,6 +295,9 @@ namespace reglisse
          return static_cast<value_type>(std::forward<U>(or_val));
       }
 
+      /**
+       * @brief Reset the monad to it's default state
+       */
       constexpr void reset()
       {
          if (is_some())
@@ -247,8 +331,23 @@ namespace reglisse
          }
       }
 
+      /**
+       * @brief Check if the monad holds some value.
+       *
+       * @returns true if monad is not empty
+       */
       [[nodiscard]] constexpr auto is_some() const noexcept -> bool { return not is_none(); }
+      /**
+       * @brief Check if the monad is empty.
+       *
+       * @returns true if monad is empty
+       */
       [[nodiscard]] constexpr auto is_none() const noexcept -> bool { return m_is_none; }
+      /**
+       * @brief Check if the monad holds some value.
+       *
+       * @returns true if monad is not empty
+       */
       [[nodiscard]] constexpr operator bool() const noexcept { return is_some(); }
 
    private:
