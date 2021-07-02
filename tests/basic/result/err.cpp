@@ -1,3 +1,5 @@
+#define LIBREGLISSE_USE_EXCEPTIONS
+
 #include <libreglisse/result.hpp>
 
 #include <catch2/catch.hpp>

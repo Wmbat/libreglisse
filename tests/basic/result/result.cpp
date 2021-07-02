@@ -1,3 +1,5 @@
+#define LIBREGLISSE_USE_EXCEPTIONS
+
 #include <libreglisse/result.hpp>
 
 #include <catch2/catch.hpp>
@@ -139,8 +141,80 @@ SCENARIO("result - operator=", "[result]")
    }
 }
 
-SCENARIO("result - borrowing", "[result]") {}
+SCENARIO("result - borrowing", "[result]")
+{
+   GIVEN("Results containing a value")
+   {
+      const result<int, int> r_0 = ok(1);
+      result<int, std::string> r_1 = ok(0);
 
-SCENARIO("result - taking", "[result]") {}
+      THEN("Borrowing will give access to the value stored")
+      {
+         CHECK(r_0.borrow() == 1);
+         CHECK(r_1.borrow() == 0);
+      }
+      THEN("borrowing the error stored will throw an exception")
+      {
+         CHECK_THROWS(r_0.borrow_err() == 0);
+         CHECK_THROWS(r_1.borrow_err() == "hello");
+      }
+   }
+   GIVEN("Results containing an error")
+   {
+      const result<int, int> r_0 = err(1);
+      result<int, std::string> r_1 = err("hello");
 
-SCENARIO("result - transforming the data", "[result]") {}
+      THEN("Borrowing the value stored will throw an exception")
+      {
+         CHECK_THROWS(r_0.borrow() == 1);
+         CHECK_THROWS(r_1.borrow() == 0);
+      }
+      THEN("borrowing the error stored will work fine")
+      {
+         CHECK(r_0.borrow_err() == 1);
+         CHECK(r_1.borrow_err() == "hello");
+      }
+   }
+}
+
+SCENARIO("result - taking", "[result]")
+{
+   GIVEN("Results containing a value")
+   {
+      result<int, int> r_0 = ok(1);
+      result<int, std::string> r_1 = ok(0);
+
+      result<int, int> r_2 = ok(1);
+      result<int, std::string> r_3 = ok(0);
+
+      THEN("Borrowing will give access to the value stored")
+      {
+         CHECK(std::move(r_0).take() == 1);
+         CHECK(std::move(r_1).take() == 0);
+      }
+      THEN("borrowing the error stored will throw an exception")
+      {
+         CHECK_THROWS(std::move(r_2).take_err() == 0);
+         CHECK_THROWS(std::move(r_3).take_err() == "hello");
+      }
+   }
+   GIVEN("Results containing an error")
+   {
+      result<int, int> r_0 = err(1);
+      result<int, std::string> r_1 = err("hello");
+
+      result<int, int> r_2 = err(1);
+      result<int, std::string> r_3 = err("hello");
+
+      THEN("taking the value stored will throw an exception")
+      {
+         CHECK_THROWS(std::move(r_0).borrow() == 1);
+         CHECK_THROWS(std::move(r_1).borrow() == 0);
+      }
+      THEN("taking the error stored will work fine")
+      {
+         CHECK(std::move(r_2).take_err() == 1);
+         CHECK(std::move(r_3).take_err() == "hello");
+      }
+   }
+}

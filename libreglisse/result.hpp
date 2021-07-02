@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <libreglisse/concepts.hpp>
+
 #if defined(LIBREGLISSE_USE_EXCEPTIONS)
 #   include <libreglisse/detail/invalid_access_exception.hpp>
 #else
@@ -42,22 +44,6 @@ namespace reglisse::detail
       assert(check && "result currently holds a value");  // NOLINT
 #endif // defined(LIBREGLISSE_USE_EXCEPTIONS)
    }
-
-   template <typename Fun, typename T>
-   concept ensure_result = std::invocable<Fun, T> and requires
-   {
-      {std::invoke_result_t<Fun, T>::value_type};
-      {std::invoke_result_t<Fun, T>::error_type};
-   };
-
-   template <typename Fun, typename ValueType, typename ErrorType>
-   concept ensure_value_result = ensure_result<Fun, ValueType> and
-      std::same_as<typename std::invoke_result_t<Fun, ValueType>::error_type, ErrorType>;
-
-   template <typename Fun, typename ValueType, typename ErrorType>
-   concept ensure_error_result = ensure_result<Fun, ErrorType> and
-      std::same_as<typename std::invoke_result_t<Fun, ErrorType>::value_type, ValueType>;
-
 } // namespace reglisse::detail
 
 namespace reglisse
@@ -74,6 +60,7 @@ namespace reglisse
       using value_type = T;
 
    public:
+      explicit constexpr err(const value_type& value) : m_value(value) {}
       explicit constexpr err(value_type&& value) : m_value(std::move(value)) {}
 
       constexpr auto value() const& noexcept -> const value_type& { return m_value; }
@@ -105,6 +92,7 @@ namespace reglisse
       using value_type = T;
 
    public:
+      explicit constexpr ok(const value_type& value) : m_value(value) {}
       explicit constexpr ok(value_type&& value) : m_value(std::move(value)) {}
 
       constexpr auto value() const& noexcept -> const value_type& { return m_value; }
@@ -127,6 +115,9 @@ namespace reglisse
    private:
       value_type m_value;
    };
+
+   err(const char*)->err<std::string>;
+   ok(const char*)->ok<std::string>;
 
    template <std::movable ValueType, std::movable ErrorType>
       requires(not(std::is_reference_v<ValueType> or std::is_reference_v<ErrorType>))
@@ -243,22 +234,26 @@ namespace reglisse
       constexpr auto borrow() const& -> const value_type&
       {
          detail::handle_invalid_value_result_access(is_ok());
-         return m_value;
+
+         return m_value; // NOLINT
       }
       constexpr auto borrow() & -> value_type&
       {
          detail::handle_invalid_value_result_access(is_ok());
-         return m_value;
+
+         return m_value; // NOLINT
       }
       constexpr auto take() const&& -> value_type
       {
          detail::handle_invalid_value_result_access(is_ok());
-         return std::move(m_value);
+
+         return std::move(m_value); // NOLINT
       }
       constexpr auto take() && -> value_type
       {
          detail::handle_invalid_value_result_access(is_ok());
-         return std::move(m_value);
+
+         return std::move(m_value); // NOLINT
       }
 
       template <std::convertible_to<value_type> U>
@@ -266,7 +261,7 @@ namespace reglisse
       {
          if (is_ok())
          {
-            return std::move(m_value);
+            return std::move(m_value); // NOLINT
          }
 
          return std::forward<U>(other);
@@ -276,7 +271,7 @@ namespace reglisse
       {
          if (is_ok())
          {
-            return std::move(m_value);
+            return std::move(m_value); // NOLINT
          }
 
          return std::forward<U>(other);
@@ -285,22 +280,26 @@ namespace reglisse
       constexpr auto borrow_err() const& -> const error_type&
       {
          detail::handle_invalid_value_result_access(is_err());
-         return m_error;
+
+         return m_error; // NOLINT
       }
       constexpr auto borrow_err() & -> error_type&
       {
          detail::handle_invalid_value_result_access(is_err());
-         return m_error;
+
+         return m_error; // NOLINT
       }
       constexpr auto take_err() const&& -> error_type
       {
          detail::handle_invalid_value_result_access(is_err());
-         return std::move(m_error);
+
+         return std::move(m_error); // NOLINT
       }
       constexpr auto take_err() && -> error_type
       {
          detail::handle_invalid_value_result_access(is_err());
-         return std::move(m_error);
+
+         return std::move(m_error); // NOLINT
       }
 
       template <std::convertible_to<value_type> U>
@@ -308,7 +307,7 @@ namespace reglisse
       {
          if (is_ok())
          {
-            return std::move(m_value);
+            return std::move(m_value); // NOLINT
          }
 
          return std::forward<U>(other);
@@ -318,129 +317,15 @@ namespace reglisse
       {
          if (is_err())
          {
-            return std::move(m_error);
+            return std::move(m_error); // NOLINT
          }
 
          return std::forward<U>(other);
       }
 
-      constexpr auto is_ok() const noexcept -> bool { return m_is_ok; }
-      constexpr auto is_err() const noexcept -> bool { return not is_ok(); }
+      [[nodiscard]] constexpr auto is_ok() const noexcept -> bool { return m_is_ok; }
+      [[nodiscard]] constexpr auto is_err() const noexcept -> bool { return not is_ok(); }
       constexpr explicit operator bool() const noexcept { return is_ok(); }
-
-      template <std::invocable<value_type> Fun>
-      constexpr auto
-      transform(Fun&& fun) const&& -> result<std::invoke_result_t<Fun, value_type&&>, error_type>
-      {
-         if (is_ok())
-         {
-            return ok(std::invoke(std::forward<Fun>(fun), take()));
-         }
-
-         return err(take_err());
-      }
-      template <std::invocable<value_type> Fun>
-      constexpr auto
-      transform(Fun&& fun) && -> result<std::invoke_result_t<Fun, value_type&&>, error_type>
-      {
-         if (is_ok())
-         {
-            return ok(std::invoke(std::forward<Fun>(fun), take()));
-         }
-
-         return err(take_err());
-      }
-
-      template <std::invocable<value_type> Fun>
-      constexpr auto transform_err(
-         Fun&& err_fun) const&& -> result<value_type, std::invoke_result_t<Fun, error_type>>
-      {
-         if (is_err())
-         {
-            return err(std::invoke(std::forward<Fun>(err_fun), take_err()));
-         }
-
-         return ok(take());
-      }
-
-      template <std::invocable<error_type> Fun>
-      constexpr auto
-      transform_err(Fun&& err_fun) && -> result<value_type, std::invoke_result_t<Fun, error_type>>
-      {
-         if (is_err())
-         {
-            return err(std::invoke(std::forward<Fun>(err_fun), take_err()));
-         }
-
-         return ok(take());
-      }
-
-      template <detail::ensure_value_result<value_type, error_type> Fun>
-      constexpr auto and_then(Fun&& some_fun) const&& -> std::invoke_result_t<Fun, value_type>
-      {
-         if (is_ok())
-         {
-            return std::invoke(std::forward<Fun>(some_fun), std::move(m_value)); // NOLINT
-         }
-
-         return err(take_err());
-      }
-      template <detail::ensure_value_result<value_type, error_type> Fun>
-      constexpr auto and_then(Fun&& some_fun) && -> std::invoke_result_t<Fun, value_type>
-      {
-         if (is_ok())
-         {
-            return std::invoke(std::forward<Fun>(some_fun), std::move(m_value)); // NOLINT
-         }
-
-         return err(take_err());
-      }
-
-      template <detail::ensure_error_result<value_type, error_type> Fun>
-      constexpr auto or_else(Fun&& none_fun) const&& -> std::invoke_result_t<Fun, error_type>
-      {
-         if (is_ok())
-         {
-            return ok(take());
-         }
-
-         return std::invoke(std::forward<Fun>(none_fun), take_err());
-      }
-      template <detail::ensure_error_result<value_type, error_type> Fun>
-      constexpr auto or_else(Fun&& none_fun) && -> std::invoke_result_t<Fun, error_type>
-      {
-         if (is_ok())
-         {
-            return ok(take());
-         }
-
-         return std::invoke(std::forward<Fun>(none_fun), take_err());
-      }
-
-      template <class inner_value_ = value_type, class inner_error_ = error_type>
-      constexpr auto join() const&& -> std::common_type_t<inner_value_, inner_error_>
-      {
-         return is_ok() ? take() : take_err();
-      }
-      template <class inner_value_ = value_type, class inner_error_ = error_type>
-      constexpr auto join() && -> std::common_type_t<inner_value_, inner_error_>
-      {
-         return is_ok() ? take() : take_err();
-      }
-
-      template <std::invocable<value_type> OkFun, std::invocable<error_type> ErrFun>
-      constexpr auto join(OkFun&& ok_fun, ErrFun&& err_fun) const&& -> join_result<OkFun, ErrFun>
-      {
-         return is_ok() ? std::invoke(std::forward<OkFun>(ok_fun), take())
-                        : std::invoke(std::forward<ErrFun>(err_fun), take_err());
-      }
-
-      template <std::invocable<value_type> OkFun, std::invocable<error_type> ErrFun>
-      constexpr auto join(OkFun&& ok_fun, ErrFun&& err_fun) && -> join_result<OkFun, ErrFun>
-      {
-         return is_ok() ? std::invoke(std::forward<OkFun>(ok_fun), take())
-                        : std::invoke(std::forward<ErrFun>(err_fun), take_err());
-      }
 
    private:
       bool m_is_ok;
@@ -451,4 +336,43 @@ namespace reglisse
          error_type m_error;
       };
    };
+
+   template <typename ValueType, typename ErrorType>
+   constexpr auto operator==(const result<ValueType, ErrorType>& lhs,
+                             const result<ValueType, ErrorType>& rhs) -> bool
+   {
+      if (lhs.is_ok() and rhs.is_ok())
+      {
+         return lhs.borrow() == rhs.borrow();
+      }
+
+      if (lhs.is_err() and rhs.is_err())
+      {
+         return lhs.borrow_err() == rhs.borrow_err();
+      }
+
+      return false;
+   }
+
+   template <typename ValueType, typename ErrorType, std::convertible_to<ValueType> T>
+   constexpr auto operator==(const result<ValueType, ErrorType>& lhs, const T& rhs) -> bool
+   {
+      if (lhs.is_ok())
+      {
+         return lhs.borrow() == rhs;
+      }
+
+      return false;
+   }
+
+   template <typename ValueType, typename ErrorType, std::convertible_to<ErrorType> T>
+   constexpr auto operator==(const result<ValueType, ErrorType>& lhs, const T& rhs) -> bool
+   {
+      if (lhs.is_err())
+      {
+         return lhs.borrow_err() == rhs;
+      }
+
+      return false;
+   }
 } // namespace reglisse

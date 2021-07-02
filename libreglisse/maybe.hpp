@@ -15,6 +15,8 @@
 #   include <cassert>
 #endif // defined (LIBREGLISSE_USE_EXCEPTIONS)
 
+#include <libreglisse/operations/pipe_closure.hpp>
+
 #include <compare>
 #include <cstddef>
 #include <functional>
@@ -69,6 +71,7 @@ namespace reglisse
       using value_type = T;
 
    public:
+      explicit constexpr some(const value_type& value) : m_value(value) {}
       explicit constexpr some(value_type&& value) : m_value(std::move(value)) {}
 
       constexpr auto value() const& noexcept -> const value_type& { return m_value; }
@@ -87,6 +90,10 @@ namespace reglisse
    private:
       value_type m_value;
    };
+
+   // clang-format off
+   some(const char*) -> some<std::string>;
+   // clang-format on
 
    /**
     * @brief
@@ -257,121 +264,6 @@ namespace reglisse
       [[nodiscard]] constexpr auto is_none() const noexcept -> bool { return m_is_none; }
       [[nodiscard]] constexpr operator bool() const noexcept { return is_some(); }
 
-      template <std::invocable<value_type> Fun>
-      constexpr auto
-      transform(Fun&& some_fun) const&& -> maybe<std::invoke_result_t<Fun, value_type&&>>
-      {
-         if (is_some())
-         {
-            return some(std::invoke(std::forward<Fun>(some_fun), std::move(m_value))); // NOLINT
-         }
-
-         return none;
-      }
-      template <std::invocable<value_type> Fun>
-      constexpr auto transform(Fun&& some_fun) && -> maybe<std::invoke_result_t<Fun, value_type&&>>
-      {
-         if (is_some())
-         {
-            return some(std::invoke(std::forward<Fun>(some_fun), std::move(m_value))); // NOLINT
-         }
-
-         return none;
-      }
-
-      template <std::invocable<value_type> Fun, class Other>
-      constexpr auto transform_or(Fun&& some_fun, Other&& other)
-         const&& -> std::common_type_t<std::invoke_result_t<Fun, value_type&&>, Other>
-      {
-         if (is_some())
-         {
-            return std::invoke(std::forward<Fun>(some_fun), std::move(m_value)); // NOLINT
-         }
-
-         return std::forward<Other>(other);
-      }
-      template <std::invocable<value_type> Fun, class Other>
-      constexpr auto transform_or(
-         Fun&& some_fun,
-         Other&& other) && -> std::common_type_t<std::invoke_result_t<Fun, value_type&&>, Other>
-      {
-         if (is_some())
-         {
-            return std::invoke(std::forward<Fun>(some_fun), std::move(m_value)); // NOLINT
-         }
-
-         return std::forward<Other>(other);
-      }
-
-      template <std::invocable<value_type> Fun>
-      constexpr auto and_then(Fun&& some_fun) const&& -> std::invoke_result_t<Fun, value_type>
-      {
-         if (is_some())
-         {
-            return std::invoke(std::forward<Fun>(some_fun), std::move(m_value)); // NOLINT
-         }
-
-         return none;
-      }
-      template <std::invocable<value_type> Fun>
-      constexpr auto and_then(Fun&& some_fun) && -> std::invoke_result_t<Fun, value_type>
-      {
-         if (is_some())
-         {
-            return std::invoke(std::forward<Fun>(some_fun), std::move(m_value)); // NOLINT
-         }
-
-         return none;
-      }
-
-      template <std::invocable Fun>
-      constexpr auto or_else(Fun&& none_fun) const&& -> maybe<value_type>
-      {
-         if (is_some())
-         {
-            return std::move(*this);
-         }
-
-         return std::invoke(std::forward<Fun>(none_fun));
-      }
-      template <std::invocable Fun>
-      constexpr auto or_else(Fun&& none_fun) && -> maybe<value_type>
-      {
-         if (is_some())
-         {
-            return std::move(*this);
-         }
-
-         return std::invoke(std::forward<Fun>(none_fun));
-      }
-
-      template <std::invocable<value_type> Fun, std::invocable Def>
-         requires std::convertible_to<std::invoke_result_t<Fun, value_type&&>,
-                                      std::invoke_result_t<Def>>
-      constexpr auto transform_or_else(Fun&& some_fun,
-                                       Def&& none_fun) const&& -> std::invoke_result_t<Def>
-      {
-         if (is_some())
-         {
-            return std::invoke(std::forward<Fun>(some_fun), std::move(borrow()));
-         }
-
-         return std::invoke(std::forward<Def>(none_fun));
-      }
-      template <std::invocable<value_type> Fun, std::invocable Def>
-         requires std::convertible_to<std::invoke_result_t<Fun, value_type&&>,
-                                      std::invoke_result_t<Def>>
-      constexpr auto transform_or_else(Fun&& some_fun,
-                                       Def&& none_fun) && -> std::invoke_result_t<Def>
-      {
-         if (is_some())
-         {
-            return std::invoke(std::forward<Fun>(some_fun), std::move(borrow()));
-         }
-
-         return std::invoke(std::forward<Def>(none_fun));
-      }
-
    private:
       bool m_is_none = true;
 
@@ -417,16 +309,15 @@ namespace reglisse
    /**
     * @brief
     */
-   template <class Any, class Other>
-   constexpr auto operator==(const maybe<Any>& m,
-                             const Other& value) noexcept(noexcept(m.borrow() == value)) -> bool
+   template <class Any, std::convertible_to<Any> Other>
+   constexpr auto operator==(const maybe<Any>& m, const Other& value) -> bool
    {
       return m.is_some() ? m.borrow() == value : false;
    }
 
    template <class First, class Second>
-   constexpr auto operator<=>(const maybe<First>& lhs, const maybe<Second>& rhs) noexcept(
-      noexcept(lhs.borrow() <=> rhs.borrow())) -> std::compare_three_way_result_t<First, Second>
+   constexpr auto operator<=>(const maybe<First>& lhs, const maybe<Second>& rhs)
+      -> std::compare_three_way_result_t<First, Second>
    {
       if (lhs.is_some() && rhs.is_some())
       {

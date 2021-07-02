@@ -1,3 +1,5 @@
+#define LIBREGLISSE_USE_EXCEPTIONS
+
 #include <libreglisse/either.hpp>
 
 #include <catch2/catch.hpp>
@@ -139,8 +141,80 @@ SCENARIO("either - operator=", "[either]")
    }
 }
 
-SCENARIO("either - borrowing", "[either]") {}
+SCENARIO("either - borrowing", "[either]")
+{
+   GIVEN("either containing a left value")
+   {
+      const either<int, int> e_0 = left(1);
+      either<int, std::string> e_1 = left(0);
 
-SCENARIO("either - taking", "[either]") {}
+      THEN("Borrowing will give access to the left value stored")
+      {
+         CHECK(e_0.borrow_left() == 1);
+         CHECK(e_1.borrow_left() == 0);
+      }
+      THEN("borrowing the right value will throw an exception")
+      {
+         // CHECK_THROWS(e_0.borrow_right() == 0);
+         // CHECK_THROWS(e_1.borrow_right() == "hello");
+      }
+   }
+   GIVEN("either containing a right value")
+   {
+      const either<int, int> e_0 = right(1);
+      either<int, std::string> e_1 = right("hello");
 
-SCENARIO("either - transforming the data", "[either]") {}
+      THEN("Borrowing the left value will throw an exception")
+      {
+         // CHECK_THROWS(e_0.borrow_left() == 1);
+         // CHECK_THROWS(e_1.borrow_left() == 0);
+      }
+      THEN("borrowing the right value will work fine")
+      {
+         CHECK(e_0.borrow_right() == 1);
+         CHECK(e_1.borrow_right() == "hello");
+      }
+   }
+}
+
+SCENARIO("either - taking", "[either]")
+{
+   GIVEN("either containing a left value")
+   {
+      either<int, int> e_0 = left(1);
+      either<int, std::string> e_1 = left(0);
+
+      either<int, int> e_2 = left(1);
+      either<int, std::string> e_3 = left(0);
+
+      THEN("Borrowing will give access to the left value stored")
+      {
+         CHECK(std::move(e_0).take_left() == 1);
+         CHECK(std::move(e_1).take_left() == 0);
+      }
+      THEN("borrowing the right value will throw an exception")
+      {
+         // CHECK_THROWS(e_0.borrow_right() == 0);
+         // CHECK_THROWS(e_1.borrow_right() == "hello");
+      }
+   }
+   GIVEN("either containing a right value")
+   {
+      either<int, int> e_0 = right(1);
+      either<int, std::string> e_1 = right("hello");
+
+      either<int, int> e_2 = right(1);
+      either<int, std::string> e_3 = right("hello");
+
+      THEN("Borrowing the left value will throw an exception")
+      {
+         // CHECK_THROWS(e_0.borrow_left() == 1);
+         // CHECK_THROWS(e_1.borrow_left() == 0);
+      }
+      THEN("borrowing the right value will work fine")
+      {
+         CHECK(std::move(e_2).take_right() == 1);
+         CHECK(std::move(e_3).take_right() == "hello");
+      }
+   }
+}
