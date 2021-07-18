@@ -1,6 +1,8 @@
 # What is libreglisse?
 
-`libreglisse` is a library of monadic types for C++. It currently contains the `maybe`, `either` and `result` monads.
+`libreglisse` is a library of monadic types implemented using C++20. It currently contains the `maybe`, `either` and `result` monads.
+The library also provides a set of extensible operations that can be applied on the monadic types through the pipe
+operator (`operator|`).
 
 # Monads
 
@@ -9,9 +11,7 @@
 A `maybe` monad is a type that may or may not hold a value. By default, it is assumed that the `maybe` is empty unless
 specified otherwise.
 
-### Examples
-
-#### Construction
+### Construction
 
 To construct a `maybe` monad, the utility classes `some` and `none` is provided. Allowing for the simple, expressive construction of
 a `maybe`
@@ -28,7 +28,7 @@ if (my_ptr.is_none()) {}                        // Checks if the maybe does not 
 if (my_ptr) {}                                  // Same behaviour as `is_some()`. true here
 ```
 
-#### Access
+### Access
 
 The `maybe` monad also provides a set of function to access the value stored within,
 they are the following: `borrow()`, `take()` and `take_or()`.
@@ -55,7 +55,7 @@ maybe<std::vector<float>> my_vec = none;
 std::vector<int> vec = std::move(my_vec).take_or(std::vector({0.0f, 0.0f 0.0f}));
 ```
 
-#### Operations
+### Operations
 
 External operations may be applied to the `maybe` monad using pipes (`operator|`). The built-in operations for maybe
 are:
@@ -65,8 +65,30 @@ are:
 
 ## result
 
-### Examples
+### Construction
+
+### Access
+
+### Operations
+
+External operations may be applied to the `result` monad using pipes (`operator|`). The built-in operations for maybe
+are:
+* `transform`
+* `transform_err`
+* `and_then`
+* `or_else`
 
 ## either
 
-### Examples
+### Construction
+
+### Access
+
+### Operations
+
+External operations may be applied to the `either` monad using pipes (`operator|`). The built-in operations for maybe
+are:
+* `transform_left`
+* `transform_right`
+* `flat_transform_left`
+* `flat_transform_right`

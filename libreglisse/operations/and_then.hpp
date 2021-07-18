@@ -2,7 +2,7 @@
  * @file operations/and_then.hpp
  * @author wmbat wmbat@protonmail.com
  * @date Wednesday, 30th of June 2021
- * @brief
+ * @brief Contains the 'and_then' operation
  * @copyright Copyright (C) 2021 wmbat.
  */
 
@@ -128,7 +128,7 @@ namespace reglisse
    };
 
    /**
-    * @brief The operation used on maybe & result.
+    * @brief The 'and_then' operation used on maybe & result.
     */
    const constexpr operation<and_then_fn> and_then = {};
 } // namespace reglisse

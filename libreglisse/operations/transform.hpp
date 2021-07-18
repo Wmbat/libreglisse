@@ -2,7 +2,7 @@
  * @file operations/transform.hpp
  * @author wmbat wmbat@protonmail.com
  * @date Wednesday, 30th of June 2021
- * @brief
+ * @brief Contains the 'transform' operation
  * @copyright Copyright (C) 2021 wmbat.
  */
 
@@ -18,7 +18,7 @@
 namespace reglisse
 {
    /**
-    * @brief Functor class
+    * @brief Functor used to implement the 'transform' operation on maybe & result monads
     */
    struct transform_fn
    {

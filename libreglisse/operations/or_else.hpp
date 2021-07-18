@@ -2,7 +2,7 @@
  * @file operations/or_else.hpp
  * @author wmbat wmbat@protonmail.com
  * @date Wednesday, 30th of June 2021
- * @brief
+ * @brief Contains the 'or_else' operation
  * @copyright Copyright (C) 2021 wmbat.
  */
 
@@ -31,6 +31,9 @@ namespace reglisse
          std::same_as<typename std::invoke_result_t<Func, ErrorType>::value_type, ValueType>;
    } // namespace detail
 
+   /**
+    * @brief Functor used to implement the 'or_else' operation on maybe & result monads
+    */
    struct or_else_fn
    {
       template <typename ValueType, std::invocable Func>
@@ -133,6 +136,9 @@ namespace reglisse
       }
    };
 
+   /**
+    * @brief The 'or_else' operation used on maybe & result.
+    */
    const constexpr operation<or_else_fn> or_else = {};
 } // namespace reglisse
 

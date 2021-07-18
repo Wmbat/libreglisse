@@ -11,5 +11,3 @@ found [here](https://wmbat.github.io/libreglisse/)
 
 * A C++20 capable compiler
 * [build2](https://build2.org/) for build systems
-
-## How to Setup
