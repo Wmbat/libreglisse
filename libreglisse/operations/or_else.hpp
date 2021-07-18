@@ -84,7 +84,7 @@ namespace reglisse
 
       template <typename ValueType, typename ErrorType, std::invocable<ErrorType> Func>
          requires detail::ensure_or_else_returns_valid_result<Func, ValueType, ErrorType>
-      auto operator()(result<ValueType, ErrorType>&& r, Func&& err_func)
+      constexpr auto operator()(result<ValueType, ErrorType>&& r, Func&& err_func)
       {
          using res_t = std::invoke_result_t<Func, ErrorType>;
 
@@ -97,7 +97,7 @@ namespace reglisse
       }
       template <typename ValueType, typename ErrorType, std::invocable<ErrorType> Func>
          requires detail::ensure_or_else_returns_valid_result<Func, ValueType, ErrorType>
-      auto operator()(const result<ValueType, ErrorType>&& r, Func&& err_func)
+      constexpr auto operator()(const result<ValueType, ErrorType>&& r, Func&& err_func)
       {
          using res_t = std::invoke_result_t<Func, ErrorType>;
 
@@ -110,7 +110,7 @@ namespace reglisse
       }
       template <typename ValueType, typename ErrorType, std::invocable<ErrorType> Func>
          requires detail::ensure_or_else_returns_valid_result<Func, ValueType, ErrorType>
-      auto operator()(const result<ValueType, ErrorType>& r, Func&& err_func)
+      constexpr auto operator()(const result<ValueType, ErrorType>& r, Func&& err_func)
       {
          using res_t = std::invoke_result_t<Func, ErrorType>;
 
@@ -123,7 +123,7 @@ namespace reglisse
       }
       template <typename ValueType, typename ErrorType, std::invocable<ErrorType> Func>
          requires detail::ensure_or_else_returns_valid_result<Func, ValueType, ErrorType>
-      auto operator()(result<ValueType, ErrorType>& r, Func&& err_func)
+      constexpr auto operator()(result<ValueType, ErrorType>& r, Func&& err_func)
       {
          using res_t = std::invoke_result_t<Func, ErrorType>;
 

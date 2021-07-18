@@ -44,6 +44,9 @@ namespace reglisse
       return pipe_closure<Func>(std::move(func));
    }
 
+   /**
+    * @brief Functor used to define operations for monadic types.
+    */
    template <typename OpFunctor>
    struct operation
    {
@@ -61,13 +64,13 @@ namespace reglisse
    };
 
    template <monad T, typename Func>
-   constexpr decltype(auto) operator|(T&& val, const pipe_closure<Func>& closure)
+   constexpr auto operator|(T&& val, const pipe_closure<Func>& closure) -> decltype(auto)
    {
       return closure(std::forward<T>(val));
    }
 
    template <monad T, typename Func>
-   constexpr decltype(auto) operator|(T&& val, const operation<Func>& operation)
+   constexpr auto operator|(T&& val, const operation<Func>& operation) -> decltype(auto)
    {
       return operation()(std::forward<T>(val));
    }

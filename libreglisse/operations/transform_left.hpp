@@ -2,7 +2,7 @@
  * @file operations/transform_left.hpp
  * @author wmbat wmbat@protonmail.com
  * @date Wednesday, 30th of June 2021
- * @brief
+ * @brief Contains the 'transform_left' operation
  * @copyright Copyright (C) 2021 wmbat.
  */
 
@@ -16,6 +16,9 @@
 
 namespace reglisse
 {
+   /**
+    * @brief Functor used to implement the 'transform_left' operation on either monads
+    */
    struct flat_transform_left_fn
    {
       template <typename LeftType, typename RightType, std::invocable<LeftType> Func>

@@ -5,7 +5,6 @@ found [here](https://wmbat.github.io/libreglisse/)
 
 ## Table of Content
 * [Requirements](#requirements)
-* [How to Setup](#how-to-setup)
 
 ## Requirements
 

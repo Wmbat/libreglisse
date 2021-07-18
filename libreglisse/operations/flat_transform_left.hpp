@@ -2,7 +2,7 @@
  * @file operations/flat_transform_left.hpp
  * @author wmbat wmbat@protonmail.com
  * @date Wednesday, 30th of June 2021
- * @brief
+ * @brief Contains the 'flat_transform_left' operation
  * @copyright Copyright (C) 2021 wmbat.
  */
 
@@ -24,6 +24,9 @@ namespace reglisse
          std::same_as<typename std::invoke_result_t<Func, LeftType>::right_type, RightType>;
    } // namespace detail
 
+   /**
+    * @brief Functor used to implement the 'flat_transform_left' operation on either monads
+    */
    struct flat_transform_left_fn
    {
       template <typename LeftType, typename RightType, std::invocable<LeftType> Func>
