@@ -63,6 +63,8 @@ are:
 * `and_then`
 * `or_else`
 
+#### Examples
+
 ## result
 
 ### Construction
@@ -78,6 +80,8 @@ are:
 * `and_then`
 * `or_else`
 
+#### Examples
+
 ## either
 
 ### Construction
@@ -92,3 +96,5 @@ are:
 * `transform_right`
 * `flat_transform_left`
 * `flat_transform_right`
+
+#### Examples

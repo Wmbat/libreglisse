@@ -1,6 +1,6 @@
 : 1
 name: libreglisse 
-version: 0.1.0-a.5.z
+version: 0.0.1-a.5.z
 summary: A header-only library that implements maybe and either monad
 license: MIT
 description-file: README.md
