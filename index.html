@@ -1,4 +1,4 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"></meta><meta content="width=device-width, initial-scale=1" name="viewport"></meta><title>libreglisse 0.1.0-a.5.z documentation</title><link href="styles.css" rel="stylesheet"></link><link href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/styles/foundation.min.css" rel="stylesheet"></link><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><link href="//cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" rel="stylesheet"></link><script src="//cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script><script src="//cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script><script>
+<!DOCTYPE html><html><head><meta charset="utf-8"></meta><meta content="width=device-width, initial-scale=1" name="viewport"></meta><title>libreglisse 0.1.0 documentation</title><link href="styles.css" rel="stylesheet"></link><link href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/styles/foundation.min.css" rel="stylesheet"></link><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><link href="//cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" rel="stylesheet"></link><script src="//cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script><script src="//cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script><script>
     document.addEventListener("DOMContentLoaded", function() {
       renderMathInElement(document.body, {
         delimiters: [
@@ -7,77 +7,59 @@
         ],
       });
     });
-  </script><link href="apple-touch-icon.png" sizes="180x180" rel="apple-touch-icon"></link><link href="favicon-32x32.png" sizes="32x32" type="image/png" rel="icon"></link><link href="favicon-16x16.png" sizes="16x16" type="image/png" rel="icon"></link></head><body><div id="wrapper"><section class="section"><div class="container"><div class="columns"><aside class="column is-one-fifth"><a class="is-button is-size-1" href="https://hdoc.io">hdoc</a><ul class="menu-list"><p class="is-size-4">libreglisse 0.1.0-a.5.z</p><p class="menu-label">Navigation</p><li><a href="index.html">Home</a></li><li><a href="search.html">Search</a></li><p class="menu-label">API Documentation</p><li><a href="functions.html">Functions</a></li><li><a href="records.html">Records</a></li><li><a href="enums.html">Enums</a></li><li><a href="namespaces.html">Namespaces</a></li><p class="menu-label">Pages</p><li><a href="docGettingStarted.html">GettingStarted</a></li><li><a href="docReleaseNotes.html">ReleaseNotes</a></li></ul></aside><div class="column" style="overflow-x: auto"><main class="content"><h1>What is libreglisse?</h1>
+  </script><link href="apple-touch-icon.png" sizes="180x180" rel="apple-touch-icon"></link><link href="favicon-32x32.png" sizes="32x32" type="image/png" rel="icon"></link><link href="favicon-16x16.png" sizes="16x16" type="image/png" rel="icon"></link></head><body><div id="wrapper"><section class="section"><div class="container"><div class="columns"><aside class="column is-one-fifth"><a class="is-button is-size-1" href="https://hdoc.io">hdoc</a><ul class="menu-list"><p class="is-size-4">libreglisse 0.1.0</p><p class="menu-label">Navigation</p><li><a href="index.html">Home</a></li><li><a href="search.html">Search</a></li><p class="menu-label">API Documentation</p><li><a href="functions.html">Functions</a></li><li><a href="records.html">Records</a></li><li><a href="enums.html">Enums</a></li><li><a href="namespaces.html">Namespaces</a></li><p class="menu-label">Pages</p><li><a href="docExamples.html">Examples</a></li><li><a href="docGettingStarted.html">GettingStarted</a></li><li><a href="docReleaseNotes.html">ReleaseNotes</a></li></ul></aside><div class="column" style="overflow-x: auto"><main class="content"><h1>What is libreglisse?</h1>
 <p><code>libreglisse</code> is a library of monadic types implemented using C++20. It currently contains the <code>maybe</code>, <code>either</code> and <code>result</code> monads.
 The library also provides a set of extensible operations that can be applied on the monadic types through the pipe
 operator (<code>operator|</code>).</p>
-<h1>Monads</h1>
-<h2>maybe</h2>
-<p>A <code>maybe</code> monad is a type that may or may not hold a value. By default, it is assumed that the <code>maybe</code> is empty unless
-specified otherwise.</p>
-<h3>Construction</h3>
-<p>To construct a <code>maybe</code> monad, the utility classes <code>some</code> and <code>none</code> is provided. Allowing for the simple, expressive construction of
-a <code>maybe</code></p>
-<pre><code class="language-cpp">maybe&lt;int&gt; my_int = some(1);                    // constructs a maybe holding an int with value 1
-maybe&lt;int&gt; my_empty_int = none;                 // constructs an empty maybe with no value
-</code></pre>
-<p>You can also check whether a <code>maybe</code> contains a value or not using <code>operator bool()</code>, <code>is_some()</code> and <code>is_none()</code></p>
-<pre><code class="language-cpp">maybe my_ptr = some(std::make_unique&lt;int&gt;(10)); // constructs a maybe holding an int with value 1
-if (my_ptr.is_some()) {}                        // Checks if the maybe holds a value. true here
-if (my_ptr.is_none()) {}                        // Checks if the maybe does not hold a value. false here
-if (my_ptr) {}                                  // Same behaviour as `is_some()`. true here
-</code></pre>
-<h3>Access</h3>
-<p>The <code>maybe</code> monad also provides a set of function to access the value stored within,
-they are the following: <code>borrow()</code>, <code>take()</code> and <code>take_or()</code>.</p>
-<p>To access the value store in an <strong>lvalue</strong> <code>maybe</code>, the function <code>borrow()</code> is provided. As the name implies, it's main
-goal is to borrow the value stored by the monad.</p>
-<pre><code class="language-cpp">maybe my_int = some(1);
-
-int&amp; i = my_int.borrow();  
-</code></pre>
-<p>To actually take the value from the monad, it must be an <strong>rvalue</strong> and the function <code>take()</code> must be
-called instead.</p>
-<pre><code class="language-cpp">maybe my_int = some(1);
-
-int i = std::move(my_int).take();
-</code></pre>
-<p>Similarly to <code>take()</code>, <code>take_or()</code> must only be used on <strong>rvalues</strong>, but offers a fallback parameter in case the monad
-holds no value. <code>borrow()</code> and <code>take()</code> simply use an <code>assert()</code> to check for the presence of a value in debug mode.</p>
-<pre><code class="language-cpp">maybe&lt;std::vector&lt;float&gt;&gt; my_vec = none;
-
-std::vector&lt;int&gt; vec = std::move(my_vec).take_or(std::vector({0.0f, 0.0f 0.0f}));
-</code></pre>
-<h3>Operations</h3>
-<p>External operations may be applied to the <code>maybe</code> monad using pipes (<code>operator|</code>). The built-in operations for maybe
-are:</p>
+<h1>Table Of Content</h1>
 <ul>
-<li><code>transform</code></li>
-<li><code>and_then</code></li>
-<li><code>or_else</code></li>
+<li><a href="#requirements">Requirements</a></li>
+<li><a href="#basic-classes">Basic Classes</a></li>
+<li><a href="#operations">Operations</a></li>
+<li><a href="#extend-api">Extend API</a></li>
 </ul>
-<h2>result</h2>
-<h3>Construction</h3>
-<h3>Access</h3>
-<h3>Operations</h3>
-<p>External operations may be applied to the <code>result</code> monad using pipes (<code>operator|</code>). The built-in operations for maybe
-are:</p>
+<h1>Requirements</h1>
 <ul>
-<li><code>transform</code></li>
-<li><code>transform_err</code></li>
-<li><code>and_then</code></li>
-<li><code>or_else</code></li>
+<li>A C++20 capable compiler</li>
+<li><a href="https://build2.org/">build2</a> for build &amp; packaging system</li>
 </ul>
-<h2>either</h2>
-<h3>Construction</h3>
-<h3>Access</h3>
-<h3>Operations</h3>
-<p>External operations may be applied to the <code>either</code> monad using pipes (<code>operator|</code>). The built-in operations for maybe
-are:</p>
-<ul>
-<li><code>transform_left</code></li>
-<li><code>transform_right</code></li>
-<li><code>flat_transform_left</code></li>
-<li><code>flat_transform_right</code></li>
-</ul>
-</main></div></div></div></section></div><footer class="footer"><p>Documentation for libreglisse 0.1.0-a.5.z.</p><p>Generated by <a href="https://hdoc.io/">hdoc</a> version 1.2.0-hdocInternal on 2021-07-18T17:18:28 UTC.</p><p class="has-text-grey-light">19AD43E11B2996</p></footer></body></html>
+<h1>Basic Classes</h1>
+<p>The library provides three monadic types: <code>maybe</code>, <code>result</code> and <code>either</code>. They are quite small in size and provide a
+bare API for storing &amp; accessing the data store within the monadic types.</p>
+<h3>Maybe</h3>
+<p><code>maybe</code> is a monadic type that either holds a value or is empty. It provides functions to query the state of the monad
+with <code>is_some()</code> and <code>is_none()</code>.</p>
+<p>The monad can be constructed empty using the <code>none</code> value, or using the <code>some</code> class as follows:</p>
+<pre><code>maybe&lt;int&gt; m_empty = none;
+maybe&lt;int&gt; m_full = some(1);
+</code></pre>
+<p>You can borrow the value stored within the monad when it is an lvalue with the function <code>borrow()</code>
+You can take the value stored within the monad when it is an rvalue with the function <code>take()</code> or <code>take_or()</code></p>
+<p>If you attemp to <strong>borrow</strong> or <strong>take</strong> the value stored when the monad is empty, an <code>abort()</code> will be called.</p>
+<h3>Result</h3>
+<p><code>result</code> is a monadic type that hold either a value or an error. It provides functions to query the state of the monad
+with <code>is_ok()</code> and <code>is_err()</code></p>
+<p>The monad can be constructed using the <code>ok</code> and <code>err</code> classes as follows:</p>
+<pre><code>either&lt;int, std::string&gt; m_ok = ok(1);
+either&lt;int, std::string&gt; m_err = err(&quot;hello&quot;);
+</code></pre>
+<p>You can borrow the value stored within the monad when it is an lvalue with the function <code>borrow()</code> and the error using
+<code>borrow_err()</code>
+You can take the value stored within the monad when it is an rvalue with the function <code>take()</code> and the error using
+<code>take_err()</code></p>
+<p>If you attemp to <strong>borrow</strong> or <strong>take</strong> the value stored when the monad holds an error, an <code>abort()</code> will be called. the
+inverse is also true</p>
+<h3>Either</h3>
+<h1>Operations</h1>
+<h1>Extend Api</h1>
+<p>You can extend the piping API on the monadic types by implement a functor class and create an instance of the
+<code>operation</code> class template like so:</p>
+<pre><code>struct sample_op_fn
+{
+   template &lt;typename Func&gt;
+   constexpr auto operator()(const maybe&lt;int&gt;&amp;, Func some_func);
+}
+
+const constexpr operation&lt;sample_op_fn&gt; sample_op = {};
+</code></pre>
+</main></div></div></div></section></div><footer class="footer"><p>Documentation for libreglisse 0.1.0.</p><p>Generated by <a href="https://hdoc.io/">hdoc</a> version 1.2.0-hdocInternal on 2021-07-18T22:36:42 UTC.</p><p class="has-text-grey-light">19AD43E11B2996</p></footer></body></html>
