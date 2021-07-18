@@ -17,7 +17,7 @@ To construct a `maybe` monad, the utility classes `some` and `none` is provided.
 a `maybe`
 
 ```cpp
-maybe<int> my_int = some(1);    // constructs a maybe holding an int with value 1
+maybe<int> my_int = some(1);                    // constructs a maybe holding an int with value 1
 maybe<int> my_empty_int = none;                 // constructs an empty maybe with no value
 ```
 You can also check whether a `maybe` contains a value or not using `operator bool()`, `is_some()` and `is_none()`

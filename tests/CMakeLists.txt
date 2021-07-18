@@ -42,6 +42,14 @@ target_sources(libreglisse_test
         basic/maybe/maybe.cpp
         basic/maybe/none_t.cpp
         basic/maybe/some.cpp
+        basic/operations/and_then.cpp
+        basic/operations/flat_transform_left.cpp
+        basic/operations/flat_transform_right.cpp
+        basic/operations/or_else.cpp
+        basic/operations/transform_err.cpp
+        basic/operations/transform_left.cpp
+        basic/operations/transform_right.cpp
+        basic/operations/transform.cpp
         basic/result/err.cpp
         basic/result/ok.cpp
         basic/result/result.cpp
