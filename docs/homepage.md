@@ -55,33 +55,13 @@ maybe<std::vector<float>> my_vec = none;
 std::vector<int> vec = std::move(my_vec).take_or(std::vector({0.0f, 0.0f 0.0f}));
 ```
 
-#### Transformation
+#### Operations
 
-You can also directly modify the value held by the monad if it is present using the `transform()` and `transform_or()`.
-
-```cpp
-// maybe holding a string with value "1"
-maybe<std::string> maybe_str = maybe<int>(some(1)).transform([](int i){
-    return std::to_string(i);
-});
-
-// empty maybe
-maybe<std::string> empty = maybe<int>(none).transform([](int i){
-    return std::to_string(i);
-});
-```
-
-```cpp
-// maybe holding a string of value "1"
-std::string maybe_str = maybe<int>(some(1)).transform_or(
-    [](int i){ return std::to_string(i); }, 
-    std::string("empty"));
-        
-// maybe holding a string of value "empty"
-std::string empty = maybe<int>(none).transform_or(
-    [](int i){ return std::to_string(i); }, 
-    std::string("empty"));
-```
+External operations may be applied to the `maybe` monad using pipes (`operator|`). The built-in operations for maybe
+are:
+* `transform`
+* `and_then`
+* `or_else`
 
 ## result
 

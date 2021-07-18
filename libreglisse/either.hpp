@@ -70,9 +70,14 @@ namespace reglisse
       using value_type = T;
 
    public:
+      /**
+       * @brief Construct by copying a value_type
+       *
+       * @param [in] value The value to be stored.
+       */
       explicit constexpr left(const value_type& value) : m_value(value) {}
       /**
-       * @brief Construct from a value_type.
+       * @brief Construct by moving a value_type.
        *
        * @param [in] value The value to move into the class.
        */
@@ -132,6 +137,11 @@ namespace reglisse
       using value_type = T;
 
    public:
+      /**
+       * @brief Construct a right by copying a value_type
+       *
+       * @param [in] value The value to be stored.
+       */
       explicit constexpr right(const value_type& value) : m_value(value) {}
       /**
        * @brief Construct a right by moving a value_type
@@ -182,7 +192,13 @@ namespace reglisse
       value_type m_value;
    };
 
+   /**
+    * @brief Deduce a 'const char*' param as a std::string
+    */
    left(const char*)->left<std::string>;
+   /**
+    * @brief Deduce a 'const char*' param as a std::string
+    */
    right(const char*)->right<std::string>;
 
    /**

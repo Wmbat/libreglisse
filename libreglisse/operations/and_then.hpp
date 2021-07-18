@@ -23,6 +23,9 @@ namespace reglisse
       concept and_then_returns_maybe = maybe_monad<std::invoke_result_t<Func, ValueType>>;
    } // namespace detail
 
+   /**
+    * @brief Functor used to implement the 'and_then' operation on maybe & result monads
+    */
    struct and_then_fn
    {
       template <typename ValueType, std::invocable<ValueType> Func>
@@ -124,6 +127,9 @@ namespace reglisse
       }
    };
 
+   /**
+    * @brief The operation used on maybe & result.
+    */
    const constexpr operation<and_then_fn> and_then = {};
 } // namespace reglisse
 

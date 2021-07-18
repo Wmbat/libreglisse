@@ -71,18 +71,50 @@ namespace reglisse
       using value_type = T;
 
    public:
+      /**
+       * @brief Construct by copying a value_type
+       *
+       * @param [in] value The value to be stored.
+       */
       explicit constexpr some(const value_type& value) : m_value(value) {}
+      /**
+       * @brief Construct by moving a value_type
+       *
+       * @param [in] value The value to be stored.
+       */
       explicit constexpr some(value_type&& value) : m_value(std::move(value)) {}
 
-      constexpr auto value() const& noexcept -> const value_type& { return m_value; }
-      constexpr auto value() & noexcept -> value_type& { return m_value; }
-      constexpr auto value() const&& noexcept -> const value_type { return std::move(m_value); }
-      constexpr auto value() && noexcept -> value_type { return std::move(m_value); }
+      /**
+       * @brief Borrow the value stored within the class
+       *
+       * @return An immutable reference to the value stored within the class.
+       */
+      constexpr auto borrow() const& noexcept -> const value_type& { return m_value; }
+      /**
+       * @brief Borrow the value stored within the class
+       *
+       * @return An mutable reference to the value stored within the class.
+       */
+      constexpr auto borrow() & noexcept -> value_type& { return m_value; }
+      /**
+       * @brief Take the value stored within the class. This operation leaves the class in an
+       * undefined state.
+       *
+       * @return The value stored within the class
+       */
+      constexpr auto take() const&& noexcept -> const value_type { return std::move(m_value); }
+      /**
+       * @brief Take the value stored within the class. This operation leaves the class in an
+       * undefined state.
+       *
+       * @return The value stored within the class
+       */
+      constexpr auto take() && noexcept -> value_type { return std::move(m_value); }
 
       constexpr auto operator==(const some<value_type>& rhs) const
          -> bool requires std::equality_comparable<value_type>
       {
-         return value() == rhs.value();
+         return borrow() == rhs.borrow();
       }
 
       constexpr auto operator==(none_t) const noexcept -> bool { return false; }
@@ -92,7 +124,12 @@ namespace reglisse
    };
 
    // clang-format off
+   
+   /**
+    * @brief Deduce a 'const char*' param as a std::string
+    */
    some(const char*) -> some<std::string>;
+
    // clang-format on
 
    /**
@@ -116,7 +153,7 @@ namespace reglisse
        *
        * @param val The value to take.
        */
-      constexpr maybe(some<T>&& val) : m_is_none(false), m_value(std::move(val.value())) {}
+      constexpr maybe(some<T>&& val) : m_is_none(false), m_value(std::move(val).take()) {}
       /**
        * @brief Copy construct a maybe.
        */
@@ -180,7 +217,7 @@ namespace reglisse
 
             if (is_some())
             {
-               std::construct_at(&m_value, std::move(rhs.borrow())); // NOLINT
+               std::construct_at(&m_value, std::move(rhs).take()); // NOLINT
             }
          }
       }
@@ -307,6 +344,11 @@ namespace reglisse
          }
       }
 
+      /**
+       * @brief Swap the content with 'other'
+       *
+       * @param [in] other The maybe to swap content with
+       */
       constexpr void swap(maybe& other) requires std::swappable<value_type>
       {
          if (is_some() && other.is_some())
@@ -362,9 +404,6 @@ namespace reglisse
 
    // clang-format on
 
-   /**
-    * @brief
-    */
    template <class First, std::equality_comparable_with<First> Second>
    constexpr auto
    operator==(const maybe<First>& lhs,
@@ -383,9 +422,6 @@ namespace reglisse
       return lhs.borrow() == rhs.borrow();
    }
 
-   /**
-    * @brief
-    */
    template <class Any>
    constexpr auto operator==(const maybe<Any>& m, none_t) noexcept -> bool
    {

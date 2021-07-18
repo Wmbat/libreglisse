@@ -32,22 +32,22 @@ TEST_CASE("some(value_type&&)", "[maybe][some]")
       const auto int_val = some(1);
       const auto float_val = some(1.0f);
 
-      CHECK(int_val.value() == 1);
-      CHECK(float_val.value() == 1.0f);
+      CHECK(int_val.borrow() == 1);
+      CHECK(float_val.borrow() == 1.0f);
    }
    SECTION("non-trivial")
    {
       const auto vec_val = some(std::vector({1, 1, 1}));
 
-      CHECK(std::size(vec_val.value()) == 3);
-      for (int val : vec_val.value())
+      CHECK(std::size(vec_val.borrow()) == 3);
+      for (int val : vec_val.borrow())
       {
          CHECK(val == 1);
       }
 
       const auto ptr_val = some(std::make_unique<int>(0));
 
-      CHECK(*ptr_val.value() == 0);
+      CHECK(*ptr_val.borrow() == 0);
    }
 }
 
@@ -59,9 +59,9 @@ TEST_CASE("some::value()", "[maybe][some]")
       const auto some_float = some<float>(1.0f);
       const auto some_vector = some<std::vector<int>>({1, 1, 1});
 
-      CHECK(some_int.value() == 1);
-      CHECK(some_float.value() == 1.0f);
-      CHECK(std::size(some_vector.value()) == 3);
+      CHECK(some_int.borrow() == 1);
+      CHECK(some_float.borrow() == 1.0f);
+      CHECK(std::size(some_vector.borrow()) == 3);
    }
    SECTION("&")
    {
@@ -69,15 +69,15 @@ TEST_CASE("some::value()", "[maybe][some]")
       auto some_float = some<float>(1.0f);
       auto some_vector = some<std::vector<int>>({1, 1, 1});
 
-      CHECK(some_int.value() == 1);
-      CHECK(some_float.value() == 1.0f);
-      CHECK(std::size(some_vector.value()) == 3);
+      CHECK(some_int.borrow() == 1);
+      CHECK(some_float.borrow() == 1.0f);
+      CHECK(std::size(some_vector.borrow()) == 3);
    }
    SECTION("&&")
    {
-      CHECK(some<int>(1).value() == 1);
-      CHECK(some<float>(1.0f).value() == 1.0f);
-      CHECK(some<std::vector<int>>({1, 1, 1}).value() == std::vector<int>({1, 1, 1}));
+      CHECK(some<int>(1).borrow() == 1);
+      CHECK(some<float>(1.0f).borrow() == 1.0f);
+      CHECK(some<std::vector<int>>({1, 1, 1}).borrow() == std::vector<int>({1, 1, 1}));
    }
 }
 
