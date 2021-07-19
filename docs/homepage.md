@@ -4,11 +4,11 @@
 The library also provides a set of extensible operations that can be applied on the monadic types through the pipe
 operator (`operator|`).
 
-# Table Of Content
+# Table of Content
 * [Requirements](#requirements)
 * [Basic Classes](#basic-classes)
 * [Operations](#operations)
-* [Extend API](#extend-api)
+* [Extend the API](#extend-the-api)
 
 # Requirements
 
@@ -52,14 +52,14 @@ You can borrow the value stored within the monad when it is an lvalue with the f
 You can take the value stored within the monad when it is an rvalue with the function `take()` and the error using
 `take_err()`
 
-If you attemp to **borrow** or **take** the value stored when the monad holds an error, an `abort()` will be called. the
+If you attemp to **borrow** or **take** the value stored when the monad holds an error, an `abort()` will be called. The
 inverse is also true
 
 ### Either
 
 # Operations
 
-# Extend Api 
+# Extend the API
 
 You can extend the piping API on the monadic types by implement a functor class and create an instance of the
 `operation` class template like so:

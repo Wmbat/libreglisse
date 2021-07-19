@@ -19,6 +19,8 @@ maybe<std::string> m_str = m_int | transform([](int i){ return std::to_string(i)
 You can see that the monad **m_str** hold a value of type string, which is the return type of the lambda passed in
 `transform`
 
+Do note that if the `maybe` is empty, the `transform` will not do anything to the value.
+
 ### Result
 
 #### transform
@@ -32,10 +34,23 @@ result<int, float> r_int = ok(1);
 result<std::string, float> = r_str = r_int | transform([](int i){ return std::to_string(i); });
 ```
 
-You can see that the syntax & behaviour is the same as shown above for the maybe monad.
-    
+You can see that the syntax & behaviour is the same as shown above for the maybe monad.    
+
+Do note that if the `result` contains an error, the `transform` will not do anything to the value.
 
 #### transform_err
+
+`transform_err` does the same thing as `transform` but on the error side of the result.
+
+```cpp
+using namespace reglisse;
+
+result<int, float> r_int = ok(1);
+result<int, std::string> = r_str = r_int 
+    | transform_err([](int i) -> std::string { return i == 0 ? "hello" : "world"; });
+```
+
+Do note that if the `result` contains a value, the `transform_err` will not do anything to the error.
 
 ### Either
 

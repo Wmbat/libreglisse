@@ -9,8 +9,8 @@ git_repo_url = "https://github.com/Wmbat/libreglisse/tree/master/"
 [pages]
 homepage = "docs/homepage.md"
 paths = [
-   "docs/Examples.md",
    "docs/GettingStarted.md",
+   "docs/Examples.md",
    "docs/ReleaseNotes.md"
 ]
 
