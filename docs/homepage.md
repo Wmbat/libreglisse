@@ -94,8 +94,8 @@ The library comes with a set of premade operations  and they are:
 * `either`:
     * `transform_left`: Transform the right value stored within the monad, if it exists.
     * `transform_right`: Transform the left value stored within the monad, if it exists.
-    * `flat_transform_left`: Chain a function returning a either using the left value stored, if it exist.
-    * `flat_transform_right`: Chain a function returning a either using the right value stored, if it exist. 
+    * `transform_join_left`: Chain a function returning a either using the left value stored, if it exist.
+    * `transform_join_right`: Chain a function returning a either using the right value stored, if it exist. 
     
 # Extend the API
 

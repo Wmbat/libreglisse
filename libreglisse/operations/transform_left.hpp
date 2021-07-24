@@ -19,7 +19,7 @@ namespace reglisse
    /**
     * @brief Functor used to implement the 'transform_left' operation on either monads
     */
-   struct flat_transform_left_fn
+   struct transform_left_fn
    {
       template <typename LeftType, typename RightType, std::invocable<LeftType> Func>
       constexpr auto operator()(const either<LeftType, RightType>&& e, Func&& left_func)
@@ -74,7 +74,7 @@ namespace reglisse
       }
    };
 
-   const constexpr operation<flat_transform_left_fn> transform_left = {};
+   const constexpr operation<transform_left_fn> transform_left = {};
 } // namespace reglisse
 
 #endif // LIBREGLISSE_OPERATIONS_TRANSFORM_LEFT_HPP

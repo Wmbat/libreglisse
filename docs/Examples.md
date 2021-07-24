@@ -58,7 +58,7 @@ Do note that if the `result` contains a value, the `transform_err` will not do a
 
 #### transform_right
 
-## Flat transformations
+## Join transformations
 
 ### Maybe
 
@@ -74,6 +74,40 @@ Do note that if the `result` contains a value, the `transform_err` will not do a
 
 ### Either
 
-#### flat_transform_left
+#### transform_join_left
 
-#### flat_transform_right
+`transform_join_left` takes for input a function who's input is the left hand type of the `either` monad. That function
+must also return an `either` which will be joined with the current monad with left hand type being determined by the
+transformation and the right hand type being the same as the original monad.
+
+```cpp
+using namespace reglisse;
+
+either<int, std::string> e_int = left(1);
+either<float, std::string> e_res = e_int 
+   | transform_join_left([](int i) -> either<float, std::string> {
+         return left(static_cast<float>(i));
+      });
+```
+
+Do note that if the original monad (e_int) in the example contained a value in it's right, the `transform_join_left` operation
+actually call the input function, but it will modify the `either`'s left type.
+
+#### transform_join_right
+
+`transform_join_right` takes for input a function who's input is the right hand type of the `either` monad. That
+function must also return an `either` which will be joined with the current monad with the right hand type determined by
+the transformation and the left hand type being the same as the original monad.
+
+```cpp
+using namespace reglisse;
+
+either<int, std::string> e_str = right("hello");
+either<float, std::string> e_res = e_str
+   | transform_join_left([](std::string& i) -> either<int, std::string_view> {
+         return right(std::string_view(i));
+      });
+```
+
+Do note that if the original monad (e_str) in the example contained a value in it's lfet, the `transform_join_right` operation
+actually call the input function, but it will modify the `either`'s right type.

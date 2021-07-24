@@ -19,7 +19,7 @@ namespace reglisse
    namespace detail
    {
       template <typename LeftType, typename RightType, typename Func>
-      concept ensure_ftransformr_returns_valid_either =
+      concept ensure_transformjr_returns_valid_either =
          either_monad<std::invoke_result_t<Func, RightType>> and
          std::same_as<typename std::invoke_result_t<Func, RightType>::left_type, LeftType>;
    } // namespace detail
@@ -27,10 +27,10 @@ namespace reglisse
    /**
     * @brief Functor used to implement the 'flat_transform_right' operation on either monads
     */
-   struct flat_transform_right_fn
+   struct transform_join_right_fn
    {
       template <typename LeftType, typename RightType, std::invocable<RightType> Func>
-         requires detail::ensure_ftransformr_returns_valid_either<LeftType, RightType, Func>
+         requires detail::ensure_transformjr_returns_valid_either<LeftType, RightType, Func>
       constexpr auto operator()(const either<LeftType, RightType>&& e, Func&& right_func)
       {
          using ret_t = std::invoke_result_t<Func, RightType>;
@@ -43,7 +43,7 @@ namespace reglisse
          return ret_t(left(std::move(e).take_left()));
       }
       template <typename LeftType, typename RightType, std::invocable<RightType> Func>
-         requires detail::ensure_ftransformr_returns_valid_either<LeftType, RightType, Func>
+         requires detail::ensure_transformjr_returns_valid_either<LeftType, RightType, Func>
       constexpr auto operator()(either<LeftType, RightType>&& e, Func&& right_func)
       {
          using ret_t = std::invoke_result_t<Func, RightType>;
@@ -57,7 +57,7 @@ namespace reglisse
       }
 
       template <typename LeftType, typename RightType, std::invocable<RightType> Func>
-         requires detail::ensure_ftransformr_returns_valid_either<LeftType, RightType, Func>
+         requires detail::ensure_transformjr_returns_valid_either<LeftType, RightType, Func>
       constexpr auto operator()(const either<LeftType, RightType>& e, Func&& right_func)
       {
          using ret_t = std::invoke_result_t<Func, RightType>;
@@ -70,7 +70,7 @@ namespace reglisse
          return ret_t(left(e.borrow_left()));
       }
       template <typename LeftType, typename RightType, std::invocable<RightType> Func>
-         requires detail::ensure_ftransformr_returns_valid_either<LeftType, RightType, Func>
+         requires detail::ensure_transformjr_returns_valid_either<LeftType, RightType, Func>
       constexpr auto operator()(either<LeftType, RightType>& e, Func&& right_func)
       {
          using ret_t = std::invoke_result_t<Func, RightType>;
@@ -84,7 +84,7 @@ namespace reglisse
       }
    };
 
-   const constexpr operation<flat_transform_right_fn> flat_transform_right = {};
+   const constexpr operation<transform_join_right_fn> transform_join_right = {};
 } // namespace reglisse
 
 #endif // LIBREGLISSE_OPERATIONS_FLAT_TRANSFORM_LEFT_HPP
