@@ -111,3 +111,24 @@ either<float, std::string> e_res = e_str
 
 Do note that if the original monad (e_str) in the example contained a value in it's lfet, the `transform_join_right` operation
 actually call the input function, but it will modify the `either`'s right type.
+
+## Wrapping Exceptions
+
+`libreglisse` provides a helper function for functions that return a type and throw an exception at the same time called
+`try_wrap`.
+
+```cpp
+auto my_func(bool b) -> int
+{
+   if (b)
+   {
+      throw std::exception(); 
+   }
+   else 
+   {
+      return 0; 
+   } 
+}
+
+result<int, std::exception> res = try_wrap<std::exception>(my_func, true);
+```

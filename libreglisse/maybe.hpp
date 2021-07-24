@@ -23,22 +23,25 @@
 #include <memory>
 #include <utility>
 
-namespace reglisse::detail
+namespace reglisse::inline v1
 {
-   inline void handle_invalid_maybe_access(bool check)
+   namespace detail
    {
-#if defined(LIBREGLISSE_USE_EXCEPTIONS)
-      if (!check)
+      inline void handle_invalid_maybe_access(bool check)
       {
-         throw invalid_access_exception("no value stored in maybe");
-      }
+#if defined(LIBREGLISSE_USE_EXCEPTIONS)
+         if (!check)
+         {
+            throw invalid_access_exception("no value stored in maybe");
+         }
 #else
-      assert(check && "no value stored in maybe"); // NOLINT
+         assert(check && "no value stored in maybe"); // NOLINT
 #endif // defined(LIBREGLISSE_USE_EXCEPTIONS)
-   }
-} // namespace reglisse::detail
+      }
+   } // namespace detail
+} // namespace reglisse::v1
 
-namespace reglisse
+namespace reglisse::inline v1
 {
    template <std::movable T>
       requires(not std::is_reference_v<T>)
@@ -462,7 +465,7 @@ namespace reglisse
    {
       return m.is_some() ? m.borrow() <=> value : std::strong_ordering::less;
    }
-} // namespace reglisse
+} // namespace reglisse::v1
 
 namespace std // NOLINT
 {

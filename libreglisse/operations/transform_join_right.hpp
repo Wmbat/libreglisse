@@ -14,7 +14,7 @@
 
 #include <libreglisse/operations/pipe_closure.hpp>
 
-namespace reglisse
+namespace reglisse::inline v1
 {
    namespace detail
    {

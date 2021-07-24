@@ -17,7 +17,7 @@
 
 #include <type_traits>
 
-namespace reglisse
+namespace reglisse::inline v1
 {
    namespace detail
    {

@@ -6,7 +6,7 @@
 
 #define ERROR_TYPE_HELPER(T) typename std::remove_reference_t<T>::error_type
 
-namespace reglisse
+namespace reglisse::inline v1
 {
    // clang-format off
 

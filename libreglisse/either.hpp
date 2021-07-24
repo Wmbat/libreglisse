@@ -18,34 +18,37 @@
 #include <algorithm>
 #include <concepts>
 
-namespace reglisse::detail
+namespace reglisse::inline v1
 {
-   inline void handle_invalid_left_either_access(bool check)
+   namespace detail
    {
-#if defined(LIBREGLISSE_USE_EXCEPTIONS)
-      if (!check)
+      inline void handle_invalid_left_either_access(bool check)
       {
-         throw invalid_access_exception("value stored on right side of either");
-      }
-#else
-      assert(check && "value stored on right side of either"); // NOLINT
-#endif // defined(LIBREGLISSE_USE_EXCEPTIONS)
-   }
-
-   inline void handle_invalid_right_either_access(bool check)
-   {
 #if defined(LIBREGLISSE_USE_EXCEPTIONS)
-      if (!check)
-      {
-         throw invalid_access_exception("value stored on left side of either");
-      }
+         if (!check)
+         {
+            throw invalid_access_exception("value stored on right side of either");
+         }
 #else
-      assert(check && "value stored on left side of either");  // NOLINT
+         assert(check && "value stored on right side of either"); // NOLINT
 #endif // defined(LIBREGLISSE_USE_EXCEPTIONS)
-   }
-} // namespace reglisse::detail
+      }
 
-namespace reglisse
+      inline void handle_invalid_right_either_access(bool check)
+      {
+#if defined(LIBREGLISSE_USE_EXCEPTIONS)
+         if (!check)
+         {
+            throw invalid_access_exception("value stored on left side of either");
+         }
+#else
+         assert(check && "value stored on left side of either");  // NOLINT
+#endif // defined(LIBREGLISSE_USE_EXCEPTIONS)
+      }
+   } // namespace detail
+} // namespace reglisse::v1
+
+namespace reglisse::inline v1
 {
    template <std::movable LeftType, std::movable RightType>
       requires(not(std::is_reference_v<LeftType> or std::is_reference_v<RightType>))
@@ -522,6 +525,6 @@ namespace reglisse
    {
       return lhs.is_right() ? lhs.borrow_right() == rhs : false;
    }
-} // namespace reglisse
+} // namespace reglisse::v1
 
 #endif // LIBREGLISSE_EITHER_HPP

@@ -7,7 +7,7 @@
 #include <functional>
 #include <utility>
 
-namespace reglisse
+namespace reglisse::inline v1
 {
    namespace detail
    {

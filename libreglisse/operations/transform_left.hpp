@@ -14,7 +14,7 @@
 
 #include <libreglisse/operations/pipe_closure.hpp>
 
-namespace reglisse
+namespace reglisse::inline v1
 {
    /**
     * @brief Functor used to implement the 'transform_left' operation on either monads

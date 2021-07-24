@@ -13,7 +13,7 @@
 #include <string>
 #include <utility>
 
-namespace reglisse
+namespace reglisse::inline v1
 {
    /**
     * @brief A helper exception class used for error handling in monadic types
@@ -31,6 +31,6 @@ namespace reglisse
    private:
       std::string m_msg;
    };
-} // namespace reglisse
+} // namespace reglisse::v1
 
 #endif // LIBREGLISSE_UTILS_INVALID_ACCESS_EXCEPTION
