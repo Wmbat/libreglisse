@@ -14,7 +14,7 @@
 
 #include <libreglisse/operations/pipe_closure.hpp>
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    /**
     * @brief Functor used to implement the 'transform_err' operation on maybe & result monads
@@ -71,6 +71,6 @@ namespace reglisse::inline v1
     * @brief Piping operation to transform the error contained in a result monad.
     */
    const constexpr operation<transform_err_fn> transform_err = {};
-} // namespace reglisse
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_OPERATIONS_TRANSFORM_ERR_HPP

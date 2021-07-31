@@ -17,7 +17,7 @@
 
 #include <type_traits>
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    namespace detail
    {
@@ -140,6 +140,6 @@ namespace reglisse::inline v1
     * @brief The 'or_else' operation used on maybe & result.
     */
    const constexpr operation<or_else_fn> or_else = {};
-} // namespace reglisse
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_OPERATIONS_OR_ELSE_HPP

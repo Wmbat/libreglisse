@@ -11,7 +11,7 @@
 
 #include <functional>
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    /**
     * @brief Helper alias for std::reference_wrapper.
@@ -30,6 +30,6 @@ namespace reglisse::inline v1
     */
    template <typename T>
    using mut_ref = std::reference_wrapper<std::remove_const_t<std::remove_reference_t<T>>>;
-} // namespace reglisse::v1
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_UTILS_REF_HPP

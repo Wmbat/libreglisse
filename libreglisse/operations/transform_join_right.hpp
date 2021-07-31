@@ -14,7 +14,7 @@
 
 #include <libreglisse/operations/pipe_closure.hpp>
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    namespace detail
    {
@@ -85,6 +85,6 @@ namespace reglisse::inline v1
    };
 
    const constexpr operation<transform_join_right_fn> transform_join_right = {};
-} // namespace reglisse
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_OPERATIONS_FLAT_TRANSFORM_LEFT_HPP

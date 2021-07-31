@@ -6,7 +6,7 @@
 
 #define ERROR_TYPE_HELPER(T) typename std::remove_reference_t<T>::error_type
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    // clang-format off
 
@@ -89,6 +89,6 @@ namespace reglisse::inline v1
    concept monad = maybe_monad<Type> or result_monad<Type> or either_monad<Type>;
 
    // clang-format on
-} // namespace reglisse
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_CONCEPTS_HPP

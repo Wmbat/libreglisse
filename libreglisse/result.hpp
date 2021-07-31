@@ -19,7 +19,7 @@
 #include <functional>
 #include <memory>
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    namespace detail
    {
@@ -47,9 +47,9 @@ namespace reglisse::inline v1
 #endif // defined(LIBREGLISSE_USE_EXCEPTIONS)
       }
    } // namespace detail
-} // namespace reglisse::v1
+} // namespace reglisse::v0
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    template <std::movable T>
       requires(not std::is_reference_v<T>)
@@ -387,4 +387,4 @@ namespace reglisse::inline v1
 
       return false;
    }
-} // namespace reglisse::v1
+} // namespace reglisse::v0

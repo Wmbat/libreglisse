@@ -15,7 +15,7 @@
 
 #include <libreglisse/operations/pipe_closure.hpp>
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    /**
     * @brief Functor used to implement the 'transform' operation on maybe & result monads
@@ -126,6 +126,6 @@ namespace reglisse::inline v1
     * @brief Piping operation to transform the data contained in a maybe or result monad.
     */
    const constexpr operation<transform_fn> transform = {};
-} // namespace reglisse
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_OPERATIONS_TRANSFORM_HPP

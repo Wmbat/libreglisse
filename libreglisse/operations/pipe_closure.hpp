@@ -7,7 +7,7 @@
 #include <functional>
 #include <utility>
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    namespace detail
    {
@@ -74,6 +74,6 @@ namespace reglisse::inline v1
    {
       return operation()(std::forward<T>(val));
    }
-} // namespace reglisse
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_OPERATIONS_PIPE_CLOSURE_HPP

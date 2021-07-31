@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <concepts>
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    namespace detail
    {
@@ -46,9 +46,9 @@ namespace reglisse::inline v1
 #endif // defined(LIBREGLISSE_USE_EXCEPTIONS)
       }
    } // namespace detail
-} // namespace reglisse::v1
+} // namespace reglisse::v0
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    template <std::movable LeftType, std::movable RightType>
       requires(not(std::is_reference_v<LeftType> or std::is_reference_v<RightType>))
@@ -525,6 +525,6 @@ namespace reglisse::inline v1
    {
       return lhs.is_right() ? lhs.borrow_right() == rhs : false;
    }
-} // namespace reglisse::v1
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_EITHER_HPP

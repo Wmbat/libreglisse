@@ -10,7 +10,7 @@
 
 #include <libreglisse/result.hpp>
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    /**
     * @brief Wrap a call that throws an exception and returns it as a result.
@@ -34,4 +34,4 @@ namespace reglisse::inline v1
          return err(e);
       }
    }
-} // namespace reglisse::v1
+} // namespace reglisse::v0

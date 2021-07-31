@@ -15,7 +15,7 @@
 
 #include <libreglisse/operations/pipe_closure.hpp>
 
-namespace reglisse::inline v1
+namespace reglisse::inline v0
 {
    namespace detail
    {
@@ -131,6 +131,6 @@ namespace reglisse::inline v1
     * @brief The 'and_then' operation used on maybe & result.
     */
    const constexpr operation<and_then_fn> and_then = {};
-} // namespace reglisse
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_OPERATIONS_AND_THEN_HPP
