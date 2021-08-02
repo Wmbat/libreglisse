@@ -2,7 +2,7 @@
  * @file operations/or_else.hpp
  * @author wmbat wmbat@protonmail.com
  * @date Wednesday, 30th of June 2021
- * @brief
+ * @brief Contains the 'or_else' operation
  * @copyright Copyright (C) 2021 wmbat.
  */
 
@@ -17,7 +17,7 @@
 
 #include <type_traits>
 
-namespace reglisse
+namespace reglisse::inline v0
 {
    namespace detail
    {
@@ -31,6 +31,9 @@ namespace reglisse
          std::same_as<typename std::invoke_result_t<Func, ErrorType>::value_type, ValueType>;
    } // namespace detail
 
+   /**
+    * @brief Functor used to implement the 'or_else' operation on maybe & result monads
+    */
    struct or_else_fn
    {
       template <typename ValueType, std::invocable Func>
@@ -81,7 +84,7 @@ namespace reglisse
 
       template <typename ValueType, typename ErrorType, std::invocable<ErrorType> Func>
          requires detail::ensure_or_else_returns_valid_result<Func, ValueType, ErrorType>
-      auto operator()(result<ValueType, ErrorType>&& r, Func&& err_func)
+      constexpr auto operator()(result<ValueType, ErrorType>&& r, Func&& err_func)
       {
          using res_t = std::invoke_result_t<Func, ErrorType>;
 
@@ -94,7 +97,7 @@ namespace reglisse
       }
       template <typename ValueType, typename ErrorType, std::invocable<ErrorType> Func>
          requires detail::ensure_or_else_returns_valid_result<Func, ValueType, ErrorType>
-      auto operator()(const result<ValueType, ErrorType>&& r, Func&& err_func)
+      constexpr auto operator()(const result<ValueType, ErrorType>&& r, Func&& err_func)
       {
          using res_t = std::invoke_result_t<Func, ErrorType>;
 
@@ -107,7 +110,7 @@ namespace reglisse
       }
       template <typename ValueType, typename ErrorType, std::invocable<ErrorType> Func>
          requires detail::ensure_or_else_returns_valid_result<Func, ValueType, ErrorType>
-      auto operator()(const result<ValueType, ErrorType>& r, Func&& err_func)
+      constexpr auto operator()(const result<ValueType, ErrorType>& r, Func&& err_func)
       {
          using res_t = std::invoke_result_t<Func, ErrorType>;
 
@@ -120,7 +123,7 @@ namespace reglisse
       }
       template <typename ValueType, typename ErrorType, std::invocable<ErrorType> Func>
          requires detail::ensure_or_else_returns_valid_result<Func, ValueType, ErrorType>
-      auto operator()(result<ValueType, ErrorType>& r, Func&& err_func)
+      constexpr auto operator()(result<ValueType, ErrorType>& r, Func&& err_func)
       {
          using res_t = std::invoke_result_t<Func, ErrorType>;
 
@@ -133,7 +136,10 @@ namespace reglisse
       }
    };
 
+   /**
+    * @brief The 'or_else' operation used on maybe & result.
+    */
    const constexpr operation<or_else_fn> or_else = {};
-} // namespace reglisse
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_OPERATIONS_OR_ELSE_HPP

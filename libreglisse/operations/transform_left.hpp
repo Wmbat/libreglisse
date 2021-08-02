@@ -2,7 +2,7 @@
  * @file operations/transform_left.hpp
  * @author wmbat wmbat@protonmail.com
  * @date Wednesday, 30th of June 2021
- * @brief
+ * @brief Contains the 'transform_left' operation
  * @copyright Copyright (C) 2021 wmbat.
  */
 
@@ -14,9 +14,12 @@
 
 #include <libreglisse/operations/pipe_closure.hpp>
 
-namespace reglisse
+namespace reglisse::inline v0
 {
-   struct flat_transform_left_fn
+   /**
+    * @brief Functor used to implement the 'transform_left' operation on either monads
+    */
+   struct transform_left_fn
    {
       template <typename LeftType, typename RightType, std::invocable<LeftType> Func>
       constexpr auto operator()(const either<LeftType, RightType>&& e, Func&& left_func)
@@ -71,7 +74,7 @@ namespace reglisse
       }
    };
 
-   const constexpr operation<flat_transform_left_fn> transform_left = {};
-} // namespace reglisse
+   const constexpr operation<transform_left_fn> transform_left = {};
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_OPERATIONS_TRANSFORM_LEFT_HPP

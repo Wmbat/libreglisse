@@ -2,7 +2,7 @@
  * @file operations/transform.hpp
  * @author wmbat wmbat@protonmail.com
  * @date Wednesday, 30th of June 2021
- * @brief
+ * @brief Contains the 'transform' operation
  * @copyright Copyright (C) 2021 wmbat.
  */
 
@@ -15,10 +15,10 @@
 
 #include <libreglisse/operations/pipe_closure.hpp>
 
-namespace reglisse
+namespace reglisse::inline v0
 {
    /**
-    * @brief Functor class
+    * @brief Functor used to implement the 'transform' operation on maybe & result monads
     */
    struct transform_fn
    {
@@ -126,6 +126,6 @@ namespace reglisse
     * @brief Piping operation to transform the data contained in a maybe or result monad.
     */
    const constexpr operation<transform_fn> transform = {};
-} // namespace reglisse
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_OPERATIONS_TRANSFORM_HPP

@@ -2,7 +2,7 @@
  * @file operations/transform_err.hpp
  * @author wmbat wmbat@protonmail.com
  * @date Wednesday, 30th of June 2021
- * @brief
+ * @brief Contains the 'transform_err' operation
  * @copyright Copyright (C) 2021 wmbat.
  */
 
@@ -14,10 +14,10 @@
 
 #include <libreglisse/operations/pipe_closure.hpp>
 
-namespace reglisse
+namespace reglisse::inline v0
 {
    /**
-    *
+    * @brief Functor used to implement the 'transform_err' operation on maybe & result monads
     */
    struct transform_err_fn
    {
@@ -71,6 +71,6 @@ namespace reglisse
     * @brief Piping operation to transform the error contained in a result monad.
     */
    const constexpr operation<transform_err_fn> transform_err = {};
-} // namespace reglisse
+} // namespace reglisse::v0
 
 #endif // LIBREGLISSE_OPERATIONS_TRANSFORM_ERR_HPP

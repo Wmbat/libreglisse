@@ -3,7 +3,7 @@
 #include <libreglisse/maybe.hpp>
 #include <libreglisse/result.hpp>
 
-#include <libreglisse/operations/flat_transform_right.hpp>
+#include <libreglisse/operations/transform_join_right.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -38,9 +38,9 @@ SCENARIO("Applying flat transformations on the right element in an either", "[ei
 
       THEN("The value stored within will be not be modified by the func")
       {
-         const either res_0 = e_0 | flat_transform_right(to_string_view_either_r);
-         const either res_1 = e_1 | flat_transform_right(to_float);
-         const either res_2 = e_2 | flat_transform_right(to_float);
+         const either res_0 = e_0 | transform_join_right(to_string_view_either_r);
+         const either res_1 = e_1 | transform_join_right(to_float);
+         const either res_2 = e_2 | transform_join_right(to_float);
 
          REQUIRE(res_0.is_left());
          CHECK(res_0 == 0);
@@ -70,9 +70,9 @@ SCENARIO("Applying flat transformations on the right element in an either", "[ei
 
       THEN("The value stored within will be modified by the func")
       {
-         const either res_0 = e_0 | flat_transform_right(to_string_view_either_r);
-         const either res_1 = e_1 | flat_transform_right(to_float);
-         const either res_2 = e_2 | flat_transform_right(to_float);
+         const either res_0 = e_0 | transform_join_right(to_string_view_either_r);
+         const either res_1 = e_1 | transform_join_right(to_float);
+         const either res_2 = e_2 | transform_join_right(to_float);
 
          REQUIRE(res_0.is_right());
          CHECK(res_0 == "he");

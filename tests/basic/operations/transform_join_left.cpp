@@ -3,7 +3,7 @@
 #include <libreglisse/maybe.hpp>
 #include <libreglisse/result.hpp>
 
-#include <libreglisse/operations/flat_transform_left.hpp>
+#include <libreglisse/operations/transform_join_left.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -44,9 +44,9 @@ SCENARIO("Applying flat transformations on the left element in an either", "[eit
 
       THEN("The value stored within will be modified by the func")
       {
-         const either res_0 = e_0 | flat_transform_left(to_float_either);
-         const either res_1 = e_1 | flat_transform_left(to_string_view_either);
-         const either res_2 = std::move(e_2) | flat_transform_left(complete_world);
+         const either res_0 = e_0 | transform_join_left(to_float_either);
+         const either res_1 = e_1 | transform_join_left(to_string_view_either);
+         const either res_2 = std::move(e_2) | transform_join_left(complete_world);
 
          REQUIRE(res_0.is_left());
          CHECK(res_0 == 0.0f);
@@ -75,9 +75,9 @@ SCENARIO("Applying flat transformations on the left element in an either", "[eit
 
       THEN("The value stored within will be not be modified by the func")
       {
-         const either res_0 = e_0 | flat_transform_left(to_float_either);
-         const either res_1 = e_1 | flat_transform_left(to_string_view_either);
-         const either res_2 = std::move(e_2) | flat_transform_left(complete_world);
+         const either res_0 = e_0 | transform_join_left(to_float_either);
+         const either res_1 = e_1 | transform_join_left(to_string_view_either);
+         const either res_2 = std::move(e_2) | transform_join_left(complete_world);
 
          REQUIRE(res_0.is_right());
          CHECK(res_0 == "hello");

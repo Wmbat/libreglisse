@@ -10,7 +10,7 @@
 
 #include <libreglisse/result.hpp>
 
-namespace reglisse
+namespace reglisse::inline v0
 {
    /**
     * @brief Wrap a call that throws an exception and returns it as a result.
@@ -20,10 +20,6 @@ namespace reglisse
     *
     * @param fun The function to call.
     * @param args The arguments of the function.
-    *
-    * @tparam ErrType The type of the exception that may be thrown from the function.
-    * @tparam Fun The type of the function.
-    * @tparam Args The type of the parameters for the function.
     */
    template <class ErrType, class Fun, class... Args>
       requires std::invocable<Fun, Args...>
@@ -38,4 +34,4 @@ namespace reglisse
          return err(e);
       }
    }
-} // namespace reglisse
+} // namespace reglisse::v0

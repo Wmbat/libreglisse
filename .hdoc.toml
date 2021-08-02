@@ -1,13 +1,24 @@
 [project]
 name = "libreglisse"
-version = "0.1.0-a.5.z"
+version = "0.1.0"
 
 # Optional, adding this will enable direct links from the documentation
 # to your source code.
-git_repo_url = "https://github.com/Wmbat/libreglisse/blob/main/"
+git_repo_url = "https://github.com/Wmbat/libreglisse/tree/master/"
 
 [pages]
 homepage = "docs/homepage.md"
+paths = [
+   "docs/GettingStarted.md",
+   "docs/Examples.md",
+   "docs/ReleaseNotes.md"
+]
 
 [paths]
 compile_commands = "compile_commands.json"
+output_dir = "hdoc-output"
+
+[ignore]
+paths = [
+    "tests/basic/"
+]

@@ -1,90 +1,112 @@
-@mainpage
-
 # What is libreglisse?
 
-`libreglisse` is a library of monadic types for C++. It currently contains the `maybe`, `either` and `result` monads.
+`libreglisse` is a library of monadic types implemented using C++20. It currently contains the `maybe`, `either` and `result` monads.
+The library also provides a set of extensible operations that can be applied on the monadic types through the pipe
+operator (`operator|`).
 
-# Monads
+# Table of Content
+* [Requirements](#requirements)
+* [Basic Classes](#basic-classes)
+* [Operations](#operations)
+* [Extend the API](#extend-the-api)
 
-## maybe
+# Requirements
 
-A `maybe` monad is a type that may or may not hold a value. By default, it is assumed that the `maybe` is empty unless
-specified otherwise.
+* A C++20 capable compiler
+* [build2](https://build2.org/) for build & packaging system
 
-### Examples
+# Basic Classes
 
-#### Construction
+The library provides three monadic types: `maybe`, `result` and `either`. They are quite small in size and provide a
+bare API for storing & accessing the data store within the monadic types.
 
-To construct a `maybe` monad, the utility classes `some` and `none` is provided. Allowing for the simple, expressive construction of
-a `maybe`
+### Maybe
 
-```cpp
-maybe<int> my_int = some(1);    // constructs a maybe holding an int with value 1
-maybe<int> my_empty_int = none; // constructs an empty maybe with no value
+`maybe` is a monadic type that either holds a value or is empty. It provides functions to query the state of the monad
+with `is_some()` and `is_none()`. 
+
+The monad can be constructed empty using the `none` value, or using the `some` class as follows:
 ```
-You can also check whether a `maybe` contains a value or not using `operator bool()`, `is_some()` and `is_none()`
-```cpp
-maybe my_ptr = some(std::make_unique<int>(10)); // constructs a maybe holding an int with value 1
-if (my_ptr.is_some()) {}    // Checks if the maybe holds a value. true here
-if (my_ptr.is_none()) {}    // Checks if the maybe does not hold a value. false here
-if (my_ptr) {}              // Same behaviour as `is_some()`. true here
-```
-
-#### Access
-
-The `maybe` monad also provides a set of function to access the value stored within,
-they are the following: `borrow()`, `take()` and `take_or()`.
-
-To access the value store in an **lvalue** `maybe`, the function `borrow()` is provided. As the name implies, it's main
-goal is to borrow the value stored by the monad.
-```cpp
-maybe my_int = some(1);
-
-int& i = my_int.borrow();  
-```
-To actually take the value from the monad, it must be an **rvalue** and the function `take()` must be
-called instead.
-```cpp
-maybe my_int = some(1);
-
-int i = std::move(my_int).take();
-```
-Similarly to `take()`, `take_or()` must only be used on **rvalues**, but offers a fallback parameter in case the monad
-holds no value. `borrow()` and `take()` simply use an `assert()` to check for the presence of a value in debug mode.
-```cpp
-maybe<std::vector<float>> my_vec = none;
-
-std::vector<int> vec = std::move(my_vec).take_or(std::vector({0.0f, 0.0f 0.0f}));
+maybe<int> m_empty = none;
+maybe<int> m_full = some(1);
 ```
 
-#### Transformation
+You can borrow the value stored within the monad when it is an lvalue with the function `borrow()`
+You can take the value stored within the monad when it is an rvalue with the function `take()` or `take_or()`
 
-You can also directly modify the value held by the monad if it is present using the `transform()` and `transform_or()`.
+If you attemp to **borrow** or **take** the value stored when the monad is empty, an `abort()` will be called. 
 
-```cpp
-// maybe holding a string with value "1"
-maybe<std::string> maybe_str = maybe<int>(some(1)).transform([](int i){
-    return std::to_string(i);
-});
+### Result
 
-// empty maybe
-maybe<std::string> empty = maybe<int>(none).transform([](int i){
-    return std::to_string(i);
-});
+`result` is a monadic type that hold either a value or an error. It provides functions to query the state of the monad
+with `is_ok()` and `is_err()`.
+
+The monad can be constructed using the `ok` and `err` classes as follows:
+```
+result<int, std::string> m_ok = ok(1);
+result<int, std::string> m_err = err("hello");
 ```
 
-```cpp
-// maybe holding a string of value "1"
-std::string maybe_str = maybe<int>(some(1)).transform_or(
-    [](int i){ return std::to_string(i); }, 
-    std::string("empty"));
-        
-// maybe holding a string of value "empty"
-std::string empty = maybe<int>(none).transform_or(
-    [](int i){ return std::to_string(i); }, 
-    std::string("empty"));
+You can borrow the value stored within the monad when it is an lvalue with the function `borrow()` and the error using
+`borrow_err()`
+You can take the value stored within the monad when it is an rvalue with the function `take()` and the error using
+take_err()`
+
+If you attemp to **borrow** or **take** the value stored when the monad holds an error, an `abort()` will be called. The
+inverse is also true
+
+### Either
+
+`either` is a monadic type that, as the name implies, holds one type or another. You can check which side the either
+currently hold with `is_left()` and `is_right()`. `either` is essentially a more generic version of `result`.
+
+The monad can be constructed using the `left` and `right` classes as follows:
+```
+either<int, std::string> m_left = left(1);
+either<int, std::string> m_right = right("hello");
 ```
 
-## result
+You can borrow the right value stored within the monad when it is an lvalue with the function `borrow_right()` and the
+left value using `borrow_left()`
+You can take the right value stored within the monad when it is an rvalue with the function `take_right()` and the left
+value using `take_left()`
 
-## either
+If you attemp to **borrow** or **take** the value stored on the right when the monad holds a left, an `abort()` will be called. The
+inverse is also true
+
+# Operations
+
+Operations is the name given to function that can be aplied on a monadic type to transform, alter or chain sequences of
+operations. The `operator|` API is used to resemble unix piping. The API was also built in a way to allow for easy
+extensions, as shown in the next [section](#extend-the-api).
+
+The library comes with a set of premade operations  and they are:
+
+* `maybe`:
+    * `transform`: Transform the value stored within the monad, if it exists.
+    * `and_then`: Chain a function returning a maybe using the value stored, if it exist.
+    * `or_else`: Chain a function returning a maybe if no value is stored.
+* `result`:
+    * `transform`: Transform the value stored within the monad, if it exists.
+    * `transform_err`: Transform the error stored within the monad, if it exists.
+    * `and_then`: Chain a function returning a result using the value stored, if it exist.
+    * `or_else`: Chain a function returning a result using the error stored, if it exist. 
+* `either`:
+    * `transform_left`: Transform the right value stored within the monad, if it exists.
+    * `transform_right`: Transform the left value stored within the monad, if it exists.
+    * `transform_join_left`: Chain a function returning a either using the left value stored, if it exist.
+    * `transform_join_right`: Chain a function returning a either using the right value stored, if it exist. 
+    
+# Extend the API
+
+You can extend the piping API on the monadic types by implement a functor class and create an instance of the
+`operation` class template like so:
+```
+struct sample_op_fn
+{
+   template <typename Func>
+   constexpr auto operator()(const maybe<int>&, Func some_func);
+}
+
+const constexpr operation<sample_op_fn> sample_op = {};
+```
