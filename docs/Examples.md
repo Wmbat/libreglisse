@@ -56,7 +56,33 @@ Do note that if the `result` contains a value, the `transform_err` will not do a
 
 #### transform_left
 
+`transform_left` applies a function to the value stored on the left hand side of the monad.
+
+```cpp
+using namespace reglisse;
+
+either<int, float> e_float = left(1.0f);
+either<std::string, float> e_str = e_float
+    | transform_left([](int i) { return std::format("{}", i); };
+```
+
+Do note that if the `either` monad doesn't contain a value on the left, the function passed through `transform_left`
+will not be invoked, but the monad's left hand type will be modified.
+
 #### transform_right
+
+`transform_right` applies a function to the value stored on the right hand side of the monad.
+
+```cpp
+using namespace reglisse;
+
+either<int, float> e_float = left(1.0f);
+either<int, std::string> e_str = e_float
+    | transform_right([](float f) { return std::format("{}", f); };
+```
+
+Do note that if the `either` monad doesn't contain a value on the right, the function passed through `transform_right`
+will not be invoked, but the monad's right hand type will be modified.
 
 ## Join transformations
 
@@ -64,13 +90,71 @@ Do note that if the `result` contains a value, the `transform_err` will not do a
 
 #### and_then
 
+The `and_then` operation is a transform join operation. It calls a function that returns another `maybe` monadic type,
+and joins it with the original `maybe`.
+
+```cpp
+using namespace reglisse;
+
+maybe<int> m_int = some(1);
+maybe<std::string> m_str = m_int 
+    | and_then([](int i) -> maybe<std::string> { return i % 2 ? std::to_string(i) : none; })
+```
+
+If the `maybe` is empty, the function will not be invoked.
+
 #### or_else
+
+The `or_else` operation works the same as `and_then` but it is only applied when the monad is empty.
+
+```cpp
+using namespace reglisse;
+
+maybe<int> m_int = some(1);
+maybe<std::string> m_str = m_int 
+    | or_else([] { return maybe(some(1)); })
+```
+
+If the `maybe` is empty, the function will not be invoked.
 
 ### Result
 
 #### and_then
 
+The `and_then` operation calls a function that returns another `result` monadic type,
+and joins it with the original `result`.
+
+```cpp
+using namespace reglisse;
+
+enum struct err_code { e_err_1, e_unknown };
+
+result<int, err_code> r_int = ok(1);
+result<std::string, err_code> r_str = r_int 
+    | and_then([](int e) -> result<int, std::string> {
+            return e != 0 ? ok(to_string(e)) : err(err_code::e_err_1);
+        });
+```
+
+If the `either` contains an error, the function will not be invoked.
+
 #### or_else
+
+The `or_else` operation works the same as `and_then` but it is only applied when the monad is holds an error.
+
+```cpp
+using namespace reglisse;
+
+enum struct err_code { e_err_1, e_unknown };
+
+result<int, err_code> r_int = ok(1);
+result<int, std::string> r_str = r_int 
+    | or_else([](err_code e) -> result<int, std::string> {
+            return e != err_code::e_unknown ? ok(1) : err("e_err_1");
+        });
+```
+
+If the `either` contains a value, the function will not be invoked.
 
 ### Either
 
