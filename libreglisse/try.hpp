@@ -24,10 +24,11 @@ namespace reglisse::inline v0
    template <class ErrType, class Fun, class... Args>
       requires std::invocable<Fun, Args...>
    constexpr auto try_wrap(Fun&& fun, Args&&... args)
+      -> result<std::invoke_result_t<Fun, Args...>, ErrType>
    {
       try
       {
-         return std::invoke(std::forward<Fun>(fun), std::forward<Args>(args)...);
+         return ok(std::invoke(std::forward<Fun>(fun), std::forward<Args>(args)...));
       }
       catch (const ErrType& e)
       {

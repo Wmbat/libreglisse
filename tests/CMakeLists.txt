@@ -35,7 +35,7 @@ target_link_libraries(libreglisse_test
 
 target_sources(libreglisse_test
     PRIVATE
-        basic/main.cpp
+        basic/driver.cpp
         basic/either/left.cpp
         basic/either/right.cpp
         basic/either/either.cpp

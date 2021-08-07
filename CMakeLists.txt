@@ -21,7 +21,7 @@ include(${CPM_DOWNLOAD_LOCATION})
 # Set the project language toolchain, version and description
 
 project(libreglisse
-    VERSION 0.1.0
+    VERSION 0.1.1
     DESCRIPTION "A small library containing C++ monad-like classes"
     LANGUAGES CXX
 )
