@@ -205,6 +205,8 @@ namespace reglisse::inline v0
                std::construct_at(&m_value, rhs.borrow()); // NOLINT
             }
          }
+
+         return *this;
       }
       constexpr auto operator=(maybe&& rhs) noexcept -> maybe&
       {
@@ -223,6 +225,8 @@ namespace reglisse::inline v0
                std::construct_at(&m_value, std::move(rhs).take()); // NOLINT
             }
          }
+
+         return *this;
       }
 
       /**
